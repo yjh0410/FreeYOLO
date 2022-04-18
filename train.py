@@ -13,7 +13,7 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 
 from utils import distributed_utils
 from utils.com_flops_params import FLOPs_and_Params
-from utils.misc import CollateFunc, build_dataset, build_dataloader
+from utils.misc import ModelEMA, CollateFunc, build_dataset, build_dataloader
 from utils.solver.optimizer import build_optimizer
 from utils.solver.warmup_schedule import build_warmup
 
@@ -24,14 +24,12 @@ from models.detector import build_model
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description='Object Detection Benchmark')
+    parser = argparse.ArgumentParser(description='YOLOX')
     # basic
     parser.add_argument('--cuda', action='store_true', default=False,
                         help='use cuda.')
     parser.add_argument('--num_workers', default=4, type=int, 
                         help='Number of workers used in dataloading')
-    parser.add_argument('--eval_epoch', type=int,
-                            default=2, help='interval between evaluations')
     parser.add_argument('--grad_clip_norm', type=float, default=-1.,
                         help='grad clip.')
     parser.add_argument('--tfboard', action='store_true', default=False,
@@ -43,7 +41,7 @@ def parse_args():
     parser.add_argument('-v', '--version', default='yolox_d53', type=str,
                         help='build yolox')
     parser.add_argument('--topk', default=1000, type=int,
-                        help='NMS threshold')
+                        help='topk candidates for evaluation')
     parser.add_argument('-p', '--coco_pretrained', default=None, type=str,
                         help='coco pretrained weight')
 
@@ -54,12 +52,8 @@ def parse_args():
                         help='coco, voc, widerface, crowdhuman')
     
     # train trick
-    parser.add_argument('--mosaic', action='store_true', default=False,
-                        help='Mosaic augmentation')
-    parser.add_argument('--mixup', action='store_true', default=False,
-                        help='MixUp augmentation')
-    parser.add_argument('--no_warmup', action='store_true', default=False,
-                        help='do not use warmup')
+    parser.add_argument('--ema', action='store_true', default=False,
+                        help='Model EMA')
 
     # DDP train
     parser.add_argument('-dist', '--distributed', action='store_true', default=False,
@@ -80,6 +74,7 @@ def train():
     print("----------------------------------------------------------")
 
     # dist
+    print('World size: {}'.format(distributed_utils.get_world_size()))
     if args.distributed:
         distributed_utils.init_distributed_mode(args)
         print("git:\n  {}\n".format(distributed_utils.get_sha()))
@@ -132,8 +127,7 @@ def train():
         model_copy.trainable = False
         model_copy.eval()
         FLOPs_and_Params(model=model_copy, 
-                         min_size=cfg['test_min_size'], 
-                         max_size=cfg['test_max_size'], 
+                         img_size=cfg['img_size'], 
                          device=device)
         model_copy.trainable = True
         model_copy.train()
@@ -141,8 +135,11 @@ def train():
         # wait for all processes to synchronize
         dist.barrier()
 
+    # EMA
+    ema = ModelEMA(model) if args.ema else None
+
     # optimizer
-    base_lr = 0.01 * cfg['batch_size'] / 64
+    base_lr = 0.01 * cfg['batch_size'] / 64 * distributed_utils.get_world_size()
     optimizer = build_optimizer(model=model_without_ddp,
                                 base_lr=base_lr,
                                 backbone_lr=base_lr,
@@ -166,6 +163,7 @@ def train():
     # warmup training loop
     train_with_warmup(args=args, 
                       device=device, 
+                      ema=ema,
                       model=model, 
                       cfg=cfg, 
                       base_lr=base_lr, 
@@ -180,7 +178,8 @@ def train():
 
         # train one epoch
         train_one_epoch(args=args, 
-                        device=device, 
+                        device=device,
+                        ema=ema, 
                         model=model, 
                         cfg=cfg, 
                         dataloader=dataloader, 
@@ -189,7 +188,7 @@ def train():
 
         # evaluation
         val_one_epoch(args=args, 
-                      model=model_without_ddp, 
+                      model=ema.model if args.ema else model_without_ddp, 
                       evaluator=evaluator,
                       optimizer=optimizer,
                       lr_scheduler=lr_scheduler,
@@ -200,6 +199,10 @@ def train():
         if args.mosaic and cfg['max_epoch'] - epoch == 5:
             print('close Mosaic Augmentation ...')
             dataloader.dataset.mosaic = False
+        # close mixup augmentation
+        if args.mixup and cfg['max_epoch'] - epoch == 5:
+            print('close Mixup Augmentation ...')
+            dataloader.dataset.mixup = False
 
 
 if __name__ == '__main__':

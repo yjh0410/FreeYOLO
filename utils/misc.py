@@ -119,11 +119,16 @@ def load_weight(device, model, path_to_ckpt):
     return model
 
 
+def is_parallel(model):
+    # Returns True if model is of type DP or DDP
+    return type(model) in (nn.parallel.DataParallel, nn.parallel.DistributedDataParallel)
+
+
 # Model EMA
 class ModelEMA(object):
     def __init__(self, model, decay=0.9999, updates=0):
         # create EMA
-        self.ema = deepcopy(model).eval()  # FP32 EMA
+        self.ema = deepcopy(model.module if is_parallel(model) else model).eval()  # FP32 EMA
         self.updates = updates
         self.decay = lambda x: decay * (1 - math.exp(-x / 2000.))
         for p in self.ema.parameters():
@@ -135,7 +140,7 @@ class ModelEMA(object):
             self.updates += 1
             d = self.decay(self.updates)
 
-            msd = model.state_dict()  # model state_dict
+            msd = model.module.state_dict() if is_parallel(model) else model.state_dict()  # model state_dict
             for k, v in self.ema.state_dict().items():
                 if v.dtype.is_floating_point:
                     v *= d
@@ -146,21 +151,17 @@ class CollateFunc(object):
     def __call__(self, batch):
         targets = []
         images = []
-        masks = []
 
         for sample in batch:
             image = sample[0]
             target = sample[1]
-            mask = sample[2]
 
             images.append(image)
             targets.append(target)
-            masks.append(mask)
 
         images = torch.stack(images, 0) # [B, C, H, W]
-        masks = torch.stack(masks, 0)   # [B, H, W]
 
-        return images, targets, masks
+        return images, targets
 
 
 class SinkhornDistance(torch.nn.Module):

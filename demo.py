@@ -6,23 +6,21 @@ import numpy as np
 import torch
 import torch.backends.cudnn as cudnn
 
-from config.yolof_config import yolof_config
-from dataset.coco import coco_class_index, coco_class_labels, COCODataset
+from dataset.coco import coco_class_index, coco_class_labels
 from dataset.transforms import ValTransforms
 from utils.misc import load_weight
 
+from config import build_config
 from models.detector import build_model
 
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description='Object Detection Benchmark Demo')
+    parser = argparse.ArgumentParser(description='YOLOX Demo')
 
     # basic
-    parser.add_argument('--min_size', default=800, type=int,
-                        help='the min size of input image')
-    parser.add_argument('--max_size', default=1333, type=int,
-                        help='the min size of input image')
+    parser.add_argument('-size', '--img_size', default=640, type=int,
+                        help='the max size of input image')
     parser.add_argument('--mode', default='image',
                         type=str, help='Use the data from image, video or camera')
     parser.add_argument('--cuda', action='store_true', default=False,
@@ -35,14 +33,16 @@ def parse_args():
                         type=str, help='The path to save the detection results')
     parser.add_argument('--path_to_saveVid', default='data/videos/result.avi',
                         type=str, help='The path to save the detection results video')
+    parser.add_argument('-vs', '--visual_threshold', default=0.35, type=float,
+                        help='Final confidence threshold for visualization')
 
     # model
-    parser.add_argument('-v', '--version', default='yolof50', type=str,
-                        help='build yolof')
+    parser.add_argument('-v', '--version', default='yolox_d53', type=str,
+                        help='build yolox')
     parser.add_argument('--weight', default='weight/',
                         type=str, help='Trained state_dict file path to open')
     parser.add_argument('--topk', default=100, type=int,
-                        help='NMS threshold')
+                        help='topk candidates for demo')
     
     return parser.parse_args()
                     
@@ -98,8 +98,7 @@ def detect(net,
             if ret:
                 if cv2.waitKey(1) == ord('q'):
                     break
-                h, w, _ = frame.shape
-                orig_size = np.array([[w, h, w, h]])
+                orig_h, orig_w, _ = frame.shape
 
                 # prepare
                 x = transform(frame)[0]
@@ -111,9 +110,9 @@ def detect(net,
                 print("detection time used ", t1-t0, "s")
 
                 # rescale
-                bboxes *= orig_size
-                bboxes[..., [0, 2]] = np.clip(bboxes[..., [0, 2]], a_min=0., a_max=w)
-                bboxes[..., [1, 3]] = np.clip(bboxes[..., [1, 3]], a_min=0., a_max=h)
+                bboxes *= max(orig_h, orig_w)
+                bboxes[..., [0, 2]] = np.clip(bboxes[..., [0, 2]], a_min=0., a_max=orig_w)
+                bboxes[..., [1, 3]] = np.clip(bboxes[..., [1, 3]], a_min=0., a_max=orig_h)
 
                 frame_processed = visualize(img=frame, 
                                             bboxes=bboxes,
@@ -132,12 +131,12 @@ def detect(net,
     elif mode == 'image':
         for i, img_id in enumerate(os.listdir(path_to_img)):
             image = cv2.imread(path_to_img + '/' + img_id, cv2.IMREAD_COLOR)
-            h, w, _ = image.shape
-            orig_size = np.array([[w, h, w, h]])
+            orig_h, orig_w, _ = image.shape
 
             # prepare
             x = transform(image)[0]
             x = x.unsqueeze(0).to(device)
+
             # inference
             t0 = time.time()
             bboxes, scores, cls_inds = net(x)
@@ -145,9 +144,9 @@ def detect(net,
             print("detection time used ", t1-t0, "s")
 
             # rescale
-            bboxes *= orig_size
-            bboxes[..., [0, 2]] = np.clip(bboxes[..., [0, 2]], a_min=0., a_max=w)
-            bboxes[..., [1, 3]] = np.clip(bboxes[..., [1, 3]], a_min=0., a_max=h)
+            bboxes *= max(orig_h, orig_w)
+            bboxes[..., [0, 2]] = np.clip(bboxes[..., [0, 2]], a_min=0., a_max=orig_w)
+            bboxes[..., [1, 3]] = np.clip(bboxes[..., [1, 3]], a_min=0., a_max=orig_h)
 
             img_processed = visualize(img=image, 
                                       bboxes=bboxes,
@@ -174,12 +173,12 @@ def detect(net,
             
             if ret:
                 # ------------------------- Detection ---------------------------
-                h, w, _ = frame.shape
-                orig_size = np.array([[w, h, w, h]])
+                orig_h, orig_w, _ = frame.shape
 
                 # prepare
                 x = transform(frame)[0]
                 x = x.unsqueeze(0).to(device)
+
                 # inference
                 t0 = time.time()
                 bboxes, scores, cls_inds = net(x)
@@ -187,9 +186,9 @@ def detect(net,
                 print("detection time used ", t1-t0, "s")
 
                 # rescale
-                bboxes *= orig_size
-                bboxes[..., [0, 2]] = np.clip(bboxes[..., [0, 2]], a_min=0., a_max=w)
-                bboxes[..., [1, 3]] = np.clip(bboxes[..., [1, 3]], a_min=0., a_max=h)
+                bboxes *= max(orig_h, orig_w)
+                bboxes[..., [0, 2]] = np.clip(bboxes[..., [0, 2]], a_min=0., a_max=orig_w)
+                bboxes[..., [1, 3]] = np.clip(bboxes[..., [1, 3]], a_min=0., a_max=orig_h)
 
                 frame_processed = visualize(img=frame, 
                                             bboxes=bboxes,
@@ -221,9 +220,8 @@ def run():
 
     np.random.seed(0)
 
-    # YOLOF config
-    print('Model: ', args.version)
-    cfg = yolof_config[args.version]
+    # config
+    cfg = build_config(args)
 
     # build model
     model = build_model(args=args, 
@@ -239,12 +237,7 @@ def run():
 
 
     # transform
-    transform = ValTransforms(min_size=cfg['test_min_size'], 
-                              max_size=cfg['test_max_size'],
-                              pixel_mean=cfg['pixel_mean'],
-                              pixel_std=cfg['pixel_std'],
-                              format=cfg['format'],
-                              padding=cfg['val_padding'])
+    transform = ValTransforms(img_size=cfg['img_size'], format=cfg['format'])
 
     # run
     detect(net=model, 
@@ -254,7 +247,7 @@ def run():
             path_to_img=args.path_to_img,
             path_to_vid=args.path_to_vid,
             path_to_save=args.path_to_save,
-            vis_thresh=cfg['test_score_thresh'])
+            vis_thresh=args.vidual_threshold)
 
 
 if __name__ == '__main__':

@@ -18,24 +18,24 @@ def parse_args():
     parser = argparse.ArgumentParser(description='Object Detection Benchmark')
 
     # basic
-    parser.add_argument('--min_size', default=800, type=int,
-                        help='the min size of input image')
-    parser.add_argument('--max_size', default=1333, type=int,
-                        help='the min size of input image')
+    parser.add_argument('-size', '--img_size', default=640, type=int,
+                        help='the max size of input image')
     parser.add_argument('--show', action='store_true', default=False,
                         help='show the visulization results.')
     parser.add_argument('--cuda', action='store_true', default=False, 
                         help='use cuda.')
     parser.add_argument('--save_folder', default='det_results/', type=str,
                         help='Dir to save results')
+    parser.add_argument('-vs', '--visual_threshold', default=0.35, type=float,
+                        help='Final confidence threshold')
 
     # model
-    parser.add_argument('-v', '--version', default='yolof50', type=str,
-                        help='build yolof')
+    parser.add_argument('-v', '--version', default='yolox_d53', type=str,
+                        help='build yolox')
     parser.add_argument('--weight', default='weight/',
                         type=str, help='Trained state_dict file path to open')
     parser.add_argument('--topk', default=100, type=int,
-                        help='NMS threshold')
+                        help='topk candidates for testing')
 
     # dataset
     parser.add_argument('--root', default='/mnt/share/ssd2/dataset',
@@ -115,8 +115,7 @@ def test(args,
         print('Testing image {:d}/{:d}....'.format(index+1, num_images))
         image, _ = dataset.pull_image(index)
 
-        h, w, _ = image.shape
-        orig_size = np.array([[w, h, w, h]])
+        orig_h, orig_w, _ = image.shape
 
         # prepare
         x = transforms(image)[0]
@@ -132,14 +131,9 @@ def test(args,
         print("detection time used ", time.time() - t0, "s")
         
         # rescale
-        if transforms.padding:
-            # The input image is padded with 0 on the short side, aligning with the long side.
-            bboxes *= max(h, w)
-        else:
-            # the input image is not padded.
-            bboxes *= orig_size
-        bboxes[..., [0, 2]] = np.clip(bboxes[..., [0, 2]], a_min=0., a_max=w)
-        bboxes[..., [1, 3]] = np.clip(bboxes[..., [1, 3]], a_min=0., a_max=h)
+        bboxes *= max(orig_h, orig_w)
+        bboxes[..., [0, 2]] = np.clip(bboxes[..., [0, 2]], a_min=0., a_max=orig_w)
+        bboxes[..., [1, 3]] = np.clip(bboxes[..., [1, 3]], a_min=0., a_max=orig_h)
 
         # vis detection
         img_processed = visualize(
@@ -174,20 +168,18 @@ if __name__ == '__main__':
         class_names = VOC_CLASSES
         class_indexs = None
         num_classes = 20
-        dataset = VOCDetection(
-                        data_dir=data_dir,
-                        image_sets=[('2007', 'test')],
-                        transform=None)
+        dataset = VOCDetection(data_dir=data_dir,
+                               image_sets=[('2007', 'test')],
+                               transform=None)
 
     elif args.dataset == 'coco':
         data_dir = os.path.join(args.root, 'COCO')
         class_names = coco_class_labels
         class_indexs = coco_class_index
         num_classes = 80
-        dataset = COCODataset(
-                    data_dir=data_dir,
-                    image_set='val2017',
-                    transform=None)
+        dataset = COCODataset(data_dir=data_dir,
+                              image_set='val2017',
+                              transform=None)
     
     else:
         print('unknow dataset !! Only support voc and coco !!')
@@ -217,12 +209,7 @@ if __name__ == '__main__':
     test_aug = TestTimeAugmentation(num_classes=num_classes) if args.test_aug else None
 
     # transform
-    transform = ValTransforms(min_size=cfg['test_min_size'], 
-                              max_size=cfg['test_max_size'],
-                              pixel_mean=cfg['pixel_mean'],
-                              pixel_std=cfg['pixel_std'],
-                              format=cfg['format'],
-                              padding=cfg['val_padding'])
+    transform = ValTransforms(img_size=args.img_size, format=cfg['format'])
 
     # run
     test(args=args,
@@ -230,7 +217,7 @@ if __name__ == '__main__':
         device=device, 
         dataset=dataset,
         transforms=transform,
-        vis_thresh=cfg['test_score_thresh'],
+        vis_thresh=args.visual_threshold,
         class_colors=class_colors,
         class_names=class_names,
         class_indexs=class_indexs,

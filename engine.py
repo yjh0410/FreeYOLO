@@ -3,13 +3,38 @@ import torch.distributed as dist
 
 import time
 import os
+import numpy as np
 
 from utils import distributed_utils
 from utils.misc import get_total_grad_norm
 
 
+def rescale_image_targets(images, targets, img_size):
+    """
+        Deployed for Multi scale trick.
+    """
+    # interpolate
+    images = torch.nn.functional.interpolate(
+                        input=images, 
+                        size=img_size, 
+                        mode='bilinear', 
+                        align_corners=False)
+    # rescale targets
+    # During training phase, the shape of input image is square.
+    old_img_size = images.shape[-1]
+    # rescale bbox
+    for tgt in targets:
+        boxes = tgt["boxes"].clone()
+        boxes[:, [0, 2]] = boxes[:, [0, 2]] / old_img_size * img_size
+        boxes[:, [1, 3]] = boxes[:, [1, 3]] / old_img_size * img_size
+        tgt["boxes"] = boxes
+
+    return images, targets
+
+
 def train_with_warmup(args, 
                       device, 
+                      ema,
                       model, 
                       cfg, 
                       base_lr,
@@ -17,23 +42,29 @@ def train_with_warmup(args,
                       optimizer, 
                       warmup_scheduler):
     epoch_size = len(dataloader)
+    img_size = cfg['img_size']
     # start training loop
     for epoch in range(cfg['wp_epoch']):
         if args.distributed:
             dataloader.batch_sampler.sampler.set_epoch(epoch)            
 
         # train one epoch
-        for iter_i, (images, targets, masks) in enumerate(dataloader):
+        for iter_i, (images, targets) in enumerate(dataloader):
             ni = iter_i + epoch * epoch_size
             # warmup
             warmup_scheduler.warmup(ni, optimizer)
 
             # to device
             images = images.to(device)
-            masks = masks.to(device)
+
+            # multi scale
+            if ni % 10 == 0 and cfg['random_size']:
+                idx = np.random.randint(len(cfg['random_size']))
+                img_size = cfg['random_size'][idx]
+                images, targets = rescale_image_targets(images, targets, img_size)
 
             # inference
-            loss_dict = model(images, mask=masks, targets=targets)
+            loss_dict = model(images, targets=targets)
             losses = loss_dict['losses']
 
             # reduce            
@@ -53,19 +84,18 @@ def train_with_warmup(args,
             optimizer.step()
             optimizer.zero_grad()
 
+            # ema
+            if args.ema:
+                ema.update(model)
+
             # display
             if distributed_utils.is_main_process() and iter_i % 10 == 0:
                 t1 = time.time()
                 cur_lr = [param_group['lr']  for param_group in optimizer.param_groups]
-                cur_lr_dict = {'lr': cur_lr[0], 'lr_bk': cur_lr[1]}
-                log = dict(
-                    lr=round(cur_lr_dict['lr'], 6),
-                    lr_bk=round(cur_lr_dict['lr_bk'], 6)
-                )
                 # basic infor
                 log =  '[Epoch: {}/{}]'.format(epoch+1, cfg['max_epoch'])
                 log += '[Iter: {}/{}]'.format(iter_i, epoch_size)
-                log += '[lr: {:.6f}][lr_bk: {:.6f}]'.format(cur_lr_dict['lr'], cur_lr_dict['lr_bk'])
+                log += '[lr: {:.6f}][lr_bk: {:.6f}]'.format(cur_lr[0], cur_lr[1])
                 # loss infor
                 for k in loss_dict_reduced.keys():
                     log += '[{}: {:.2f}]'.format(k, loss_dict[k])
@@ -73,7 +103,7 @@ def train_with_warmup(args,
                 # other infor
                 log += '[time: {:.2f}]'.format(t1 - t0)
                 log += '[gnorm: {:.2f}]'.format(total_norm)
-                log += '[size: [{}, {}]]'.format(cfg['train_min_size'], cfg['train_max_size'])
+                log += '[size: {}'.format(img_size)
 
                 # print log infor
                 print(log, flush=True)
@@ -86,25 +116,33 @@ def train_with_warmup(args,
 
 def train_one_epoch(args, 
                     device, 
+                    ema,
                     model, 
                     cfg, 
                     dataloader, 
                     optimizer, 
                     lr_scheduler):
     epoch_size = len(dataloader)
+    img_size = cfg["img_size"]
     # start training loop
     for epoch in range(cfg['max_epoch']):
         if args.distributed:
             dataloader.batch_sampler.sampler.set_epoch(epoch)            
 
         # train one epoch
-        for iter_i, (images, targets, masks) in enumerate(dataloader):
+        for iter_i, (images, targets) in enumerate(dataloader):
+            ni = iter_i + epoch * epoch_size
             # to device
             images = images.to(device)
-            masks = masks.to(device)
+
+            # multi scale
+            if ni % 10 == 0 and cfg['random_size']:
+                idx = np.random.randint(len(cfg['random_size']))
+                img_size = cfg['random_size'][idx]
+                images, targets = rescale_image_targets(images, targets, img_size)
 
             # inference
-            loss_dict = model(images, mask=masks, targets=targets)
+            loss_dict = model(images, targets=targets)
             losses = loss_dict['losses']
 
             # reduce            
@@ -124,19 +162,18 @@ def train_one_epoch(args,
             optimizer.step()
             optimizer.zero_grad()
 
+            # ema
+            if args.ema:
+                ema.update(model)
+
             # display
             if distributed_utils.is_main_process() and iter_i % 10 == 0:
                 t1 = time.time()
                 cur_lr = [param_group['lr']  for param_group in optimizer.param_groups]
-                cur_lr_dict = {'lr': cur_lr[0], 'lr_bk': cur_lr[1]}
-                log = dict(
-                    lr=round(cur_lr_dict['lr'], 6),
-                    lr_bk=round(cur_lr_dict['lr_bk'], 6)
-                )
                 # basic infor
                 log =  '[Epoch: {}/{}]'.format(epoch+1, cfg['max_epoch'])
                 log += '[Iter: {}/{}]'.format(iter_i, epoch_size)
-                log += '[lr: {:.6f}][lr_bk: {:.6f}]'.format(cur_lr_dict['lr'], cur_lr_dict['lr_bk'])
+                log += '[lr: {:.6f}][lr_bk: {:.6f}]'.format(cur_lr[0], cur_lr[1])
                 # loss infor
                 for k in loss_dict_reduced.keys():
                     log += '[{}: {:.2f}]'.format(k, loss_dict[k])
@@ -144,7 +181,7 @@ def train_one_epoch(args,
                 # other infor
                 log += '[time: {:.2f}]'.format(t1 - t0)
                 log += '[gnorm: {:.2f}]'.format(total_norm)
-                log += '[size: [{}, {}]]'.format(cfg['train_min_size'], cfg['train_max_size'])
+                log += '[size: {}'.format(img_size)
 
                 # print log infor
                 print(log, flush=True)

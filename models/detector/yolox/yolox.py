@@ -80,9 +80,9 @@ class YOLOX(nn.Module):
         if self.trainable:
             self.criterion = Criterion(cfg=cfg,
                                        device=device,
+                                       loss_obj_weight=cfg['loss_obj_weight'],
                                        loss_cls_weight=cfg['loss_cls_weight'],
                                        loss_reg_weight=cfg['loss_reg_weight'],
-                                       loss_ctn_weight=cfg['loss_ctn_weight'],
                                        num_classes=num_classes)
 
 
@@ -179,21 +179,21 @@ class YOLOX(nn.Module):
             cls_feat, reg_feat = self.head(feat)
 
             # [1, C, H, W]
-            cls_pred = self.cls_pred(cls_feat)
+            obj_pred = self.obj_pred(cls_feat)
+            cls_pred = self.cls_pred(reg_feat)
             reg_pred = self.reg_pred(reg_feat)
-            ctn_pred = self.ctn_pred(reg_feat)
 
             # decode box
             _, _, H, W = cls_pred.size()
             fmp_size = [H, W]
             # [1, C, H, W] -> [H, W, C] -> [M, C]
+            obj_pred = obj_pred[0].permute(1, 2, 0).contiguous().view(-1, 1)
             cls_pred = cls_pred[0].permute(1, 2, 0).contiguous().view(-1, self.num_classes)
             reg_pred = reg_pred[0].permute(1, 2, 0).contiguous().view(-1, 4)
             reg_pred = F.relu(self.scales[level](reg_pred)) * self.stride[level]
-            ctn_pred = ctn_pred[0].permute(1, 2, 0).contiguous().view(-1, 1)
 
             # scores
-            scores, labels = torch.max(torch.sqrt(cls_pred.sigmoid() * ctn_pred.sigmoid()), dim=-1)
+            scores, labels = torch.max(obj_pred.sigmoid() * cls_pred.sigmoid(), dim=-1)
 
             # [M, 4]
             anchors = self.generate_anchors(level, fmp_size)
@@ -263,37 +263,36 @@ class YOLOX(nn.Module):
 
             # shared head
             all_anchors = []
+            all_obj_preds = []
             all_cls_preds = []
             all_reg_preds = []
-            all_ctn_preds = []
-            all_masks = []
             for level, feat in enumerate(pyramid_feats):
                 cls_feat, reg_feat = self.head(feat)
                 # [B, C, H, W]
+                obj_pred = self.obj_pred(reg_feat)
                 cls_pred = self.cls_pred(cls_feat)
                 reg_pred = self.reg_pred(reg_feat)
-                ctn_pred = self.ctn_pred(reg_feat)
 
                 B, _, H, W = cls_pred.size()
                 fmp_size = [H, W]
                 # [B, C, H, W] -> [B, H, W, C] -> [B, M, C]
+                obj_pred = obj_pred.permute(0, 2, 3, 1).contiguous().view(B, -1, 1)
                 cls_pred = cls_pred.permute(0, 2, 3, 1).contiguous().view(B, -1, self.num_classes)
                 reg_pred = reg_pred.permute(0, 2, 3, 1).contiguous().view(B, -1, 4)
                 reg_pred = F.relu(self.scales[level](reg_pred)) * self.stride[level]
-                ctn_pred = ctn_pred.permute(0, 2, 3, 1).contiguous().view(B, -1, 1)
 
+                all_obj_preds.append(obj_pred)
                 all_cls_preds.append(cls_pred)
                 all_reg_preds.append(reg_pred)
-                all_ctn_preds.append(ctn_pred)
 
                 # generate anchor boxes: [M, 4]
                 anchors = self.generate_anchors(level, fmp_size)
                 all_anchors.append(anchors)
             
             # output dict
-            outputs = {"pred_obj": all_cls_preds,  # List [B, M, 1]
-                       "pred_cls": all_reg_preds,  # List [B, M, C]
-                       "pred_reg": all_ctn_preds,  # List [B, M, 4]
+            outputs = {"pred_obj": all_obj_preds,        # List [B, M, 1]
+                       "pred_cls": all_cls_preds,        # List [B, M, C]
+                       "pred_reg": all_reg_preds,        # List [B, M, 4]
                        'strides': self.strides}          # List [B, M,]
 
             # loss
