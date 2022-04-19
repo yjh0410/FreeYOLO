@@ -44,13 +44,17 @@ yolox_config = {
         'loss_obj_weight': 1.0,
         'loss_cls_weight': 1.0,
         'loss_reg_weight': 5.0,
-        # optimizer
+        # training configuration
+        'max_epoch': 300,
+        'no_aug_epoch': 15,
         'batch_size': 16,
+        'min_lr_ratio': 0.2,
+        # optimizer
         'optimizer': 'sgd',
         'momentum': 0.9,
         'weight_decay': 5e-4,
+        # warmup strategy
         'warmup': 'linear',
-        'wp_iter': 1000,
         'warmup_factor': 0.00066667,
         'wp_epoch': 5,
         },

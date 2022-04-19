@@ -140,6 +140,7 @@ def train():
 
     # optimizer
     base_lr = 0.01 * cfg['batch_size'] / 64 * distributed_utils.get_world_size()
+    min_lr = base_lr * cfg['min_lr_ratio']
     optimizer = build_optimizer(model=model_without_ddp,
                                 base_lr=base_lr,
                                 backbone_lr=base_lr,
@@ -149,8 +150,8 @@ def train():
     
     # lr scheduler
     lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer=optimizer, 
-                                                              T_max=None, 
-                                                              eta_min=None, 
+                                                              T_max=cfg['max_epoch'] - cfg['no_aug_epoch'], 
+                                                              eta_min=min_lr, 
                                                               last_epoch=None,)
 
     # warmup scheduler
@@ -183,8 +184,15 @@ def train():
                         model=model, 
                         cfg=cfg, 
                         dataloader=dataloader, 
-                        optimizer=optimizer, 
-                        lr_scheduler=lr_scheduler)
+                        optimizer=optimizer)
+        
+        # check if stop LRSchedule
+        flag = cfg['max_epoch'] - epoch > cfg['no_aug_epoch']
+        if flag:
+            lr_scheduler.step()
+        else:
+            for param_group in optimizer.param_groups:
+                param_group['lr'] = min_lr
 
         # evaluation
         val_one_epoch(args=args, 
@@ -196,11 +204,11 @@ def train():
                       path_to_save=path_to_save)
 
         # close mosaic augmentation
-        if args.mosaic and cfg['max_epoch'] - epoch == 5:
+        if args.mosaic and cfg['max_epoch'] - epoch == cfg['no_aug_epoch']:
             print('close Mosaic Augmentation ...')
             dataloader.dataset.mosaic = False
         # close mixup augmentation
-        if args.mixup and cfg['max_epoch'] - epoch == 5:
+        if args.mixup and cfg['max_epoch'] - epoch == cfg['no_aug_epoch']:
             print('close Mixup Augmentation ...')
             dataloader.dataset.mixup = False
 
