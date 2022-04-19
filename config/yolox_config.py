@@ -48,7 +48,7 @@ yolox_config = {
         'max_epoch': 300,
         'no_aug_epoch': 15,
         'batch_size': 16,
-        'min_lr_ratio': 0.2,
+        'min_lr_ratio': 0.05,
         # optimizer
         'optimizer': 'sgd',
         'momentum': 0.9,
