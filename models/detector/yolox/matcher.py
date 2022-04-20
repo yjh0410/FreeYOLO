@@ -113,9 +113,9 @@ class Matcher(object):
                                  'labels': [...], 
                                  'orig_size': ...}
         """
+        gt_objectness = []
         gt_classes = []
         gt_anchors_deltas = []
-        gt_centerness = []
         device = anchors[0].device
 
         # List[F, M, 2] -> [M, 2]
@@ -179,28 +179,19 @@ class Matcher(object):
                 # [M,], each element is the index of ground-truth
                 positions_min_area, gt_matched_idxs = gt_positions_area.min(dim=0)
 
-                # ground truth box regression
-                # [M, 4]
-                gt_anchors_reg_deltas_i = self.get_deltas(
-                    anchors_over_all_feature_maps, tgt_box[gt_matched_idxs])
-
                 # [M,]
                 tgt_cls_i = tgt_cls[gt_matched_idxs]
                 # anchors with area inf are treated as background.
                 tgt_cls_i[positions_min_area == math.inf] = self.num_classes
 
-                # ground truth centerness
-                left_right = gt_anchors_reg_deltas_i[:, [0, 2]]
-                top_bottom = gt_anchors_reg_deltas_i[:, [1, 3]]
-                # [M,]
-                gt_centerness_i = torch.sqrt(
-                    (left_right.min(dim=-1).values / left_right.max(dim=-1).values).clamp_(min=0)
-                    * (top_bottom.min(dim=-1).values / top_bottom.max(dim=-1).values).clamp_(min=0)
-                )
+                # ground truth box regression
+                # [M, 4]
+                gt_anchors_reg_deltas_i = self.get_deltas(
+                    anchors_over_all_feature_maps, tgt_box[gt_matched_idxs])
+
 
                 gt_classes.append(tgt_cls_i)
                 gt_anchors_deltas.append(gt_anchors_reg_deltas_i)
-                gt_centerness.append(gt_centerness_i)
                 
             else:
                 tgt_cls_i = torch.zeros(anchors_over_all_feature_maps.shape[0], device=device) + self.num_classes
@@ -215,7 +206,7 @@ class Matcher(object):
         return torch.stack(gt_classes), torch.stack(gt_anchors_deltas), torch.stack(gt_centerness)
 
 
-class OTA_Matcher(object):
+class SimOTA_Matcher(object):
     def __init__(self, 
                  cfg,
                  num_classes,

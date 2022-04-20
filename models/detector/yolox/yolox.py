@@ -51,18 +51,21 @@ class YOLOX(nn.Module):
 
         # backbone
         self.backbone, bk_dim = build_backbone(model_name=cfg['backbone'], 
-                                               pretrained=trainable,
+                                               pretrained=cfg['pretrained'],
                                                norm_type=cfg['norm_type'])
 
         # neck
         self.fpn = build_fpn(cfg=cfg, in_dims=bk_dim)
                                      
-        # head
-        self.head = DecoupledHead(head_dim=cfg['head_dim'],
+        # non-shared heads
+        self.non_shared_heads = nn.ModuleList([
+            DecoupledHead(head_dim=cfg['head_dim'],
                                   num_cls_head=cfg['num_cls_head'],
                                   num_reg_head=cfg['num_reg_head'],
                                   act_type=cfg['act_type'],
                                   norm_type=cfg['head_norm'])
+            for _ in range(len(cfg['stride']))
+        ])
 
         # pred
         self.obj_pred = nn.Conv2d(cfg['head_dim'], 1, kernel_size=1)
@@ -175,12 +178,12 @@ class YOLOX(nn.Module):
         all_scores = []
         all_labels = []
         all_bboxes = []
-        for level, feat in enumerate(pyramid_feats):
-            cls_feat, reg_feat = self.head(feat)
+        for level, (feat, head) in enumerate(zip(pyramid_feats, self.non_shared_heads)):
+            cls_feat, reg_feat = head(feat)
 
             # [1, C, H, W]
-            obj_pred = self.obj_pred(cls_feat)
-            cls_pred = self.cls_pred(reg_feat)
+            obj_pred = self.obj_pred(reg_feat)
+            cls_pred = self.cls_pred(cls_feat)
             reg_pred = self.reg_pred(reg_feat)
 
             # decode box
@@ -266,8 +269,9 @@ class YOLOX(nn.Module):
             all_obj_preds = []
             all_cls_preds = []
             all_reg_preds = []
-            for level, feat in enumerate(pyramid_feats):
-                cls_feat, reg_feat = self.head(feat)
+            for level, (feat, head) in enumerate(zip(pyramid_feats, self.non_shared_heads) ):
+                cls_feat, reg_feat = head(feat)
+
                 # [B, C, H, W]
                 obj_pred = self.obj_pred(reg_feat)
                 cls_pred = self.cls_pred(cls_feat)

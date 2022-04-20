@@ -2,6 +2,11 @@ import torch
 import torch.nn as nn
 
 
+model_urls = {
+    "darknet53": "https://github.com/yjh0410/DetLAB/releases/download/object-detection-benchmark-backbone/darknet53.pth",
+}
+
+
 class Conv_BN_LeakyReLU(nn.Module):
     def __init__(self, in_channels, out_channels, ksize, padding=0, stride=1, dilation=1):
         super(Conv_BN_LeakyReLU, self).__init__()
@@ -84,7 +89,7 @@ class DarkNet_53(nn.Module):
         return outputs
 
 
-def darknet53():
+def darknet53(pretrained=False):
     """Constructs a darknet-53 model.
 
     Args:
@@ -92,6 +97,26 @@ def darknet53():
     """
     model = DarkNet_53()
     feats = [256, 512, 1024] # C3, C4, C5
+
+    if pretrained:
+        print('Loading pretrained darknet53 ...')
+        url = model_urls['darknet53']
+        checkpoint_state_dict = torch.hub.load_state_dict_from_url(url=url, map_location="cpu", check_hash=True)
+
+        # model state dict
+        model_state_dict = model.state_dict()
+        # check
+        for k in list(checkpoint_state_dict.keys()):
+            if k in model_state_dict:
+                shape_model = tuple(model_state_dict[k].shape)
+                shape_checkpoint = tuple(checkpoint_state_dict[k].shape)
+                if shape_model != shape_checkpoint:
+                    checkpoint_state_dict.pop(k)
+            else:
+                checkpoint_state_dict.pop(k)
+                print(k)
+
+        model.load_state_dict(checkpoint_state_dict)
 
     return model, feats
 

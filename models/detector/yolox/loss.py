@@ -31,14 +31,11 @@ class Criterion(object):
 
 
     # The origin loss of FCOS
-    def basic_losses(self,
-                     outputs, 
-                     targets, 
-                     anchors=None):
+    def __call__(self, outputs, targets, anchors=None):
         """
+            outputs['pred_obj']: (Tensor) [B, M, 1]
             outputs['pred_cls']: (Tensor) [B, M, C]
             outputs['pred_reg']: (Tensor) [B, M, 4]
-            outputs['pred_ctn']: (Tensor) [B, M, 1]
             outputs['strides']: (List) [8, 16, 32, ...] stride of the model output
             targets: (List) [dict{'boxes': [...], 
                                  'labels': [...], 
@@ -47,15 +44,14 @@ class Criterion(object):
         """
         device = outputs['pred_cls'][0].device
         fpn_strides = outputs['strides']
-        gt_classes, gt_shifts_deltas, gt_centerness = self.matcher(fpn_strides = fpn_strides,
+        gt_objectness, gt_classes, gt_shifts_deltas = self.matcher(fpn_strides = fpn_strides,
                                                                     anchors = anchors,
                                                                     targets = targets)
 
         # List[B, M, C] -> [B, M, C] -> [BM, C]
+        pred_obj = torch.cat(outputs['pred_obj'], dim=1).view(-1, 1)
         pred_cls = torch.cat(outputs['pred_cls'], dim=1).view(-1, self.num_classes)
         pred_delta = torch.cat(outputs['pred_reg'], dim=1).view(-1, 4)
-        pred_ctn = torch.cat(outputs['pred_ctn'], dim=1).view(-1, 1)
-        masks = torch.cat(outputs['mask'], dim=1).view(-1)
 
         gt_classes = gt_classes.flatten().to(device)
         gt_shifts_deltas = gt_shifts_deltas.view(-1, 4).to(device)
@@ -68,23 +64,19 @@ class Criterion(object):
             torch.distributed.all_reduce(num_foreground)
         num_foreground = torch.clamp(num_foreground / get_world_size(), min=1).item()
 
-        num_foreground_centerness = gt_centerness[foreground_idxs].sum()
-        if is_dist_avail_and_initialized():
-            torch.distributed.all_reduce(num_foreground_centerness)
-        num_targets = torch.clamp(num_foreground_centerness / get_world_size(), min=1).item()
-
         gt_classes_target = torch.zeros_like(pred_cls)
         gt_classes_target[foreground_idxs, gt_classes[foreground_idxs]] = 1
 
         # TO DO:
+        # regression loss
+        ious = None
+        loss_bboxes = None
+
         # objectness loss
         loss_objectness = None
 
         # classification loss
         loss_labels = None
-
-        # regression loss
-        loss_bboxes = None
 
         # total loss
         losses = self.loss_obj_weight * loss_objectness + \

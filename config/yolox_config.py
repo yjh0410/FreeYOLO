@@ -26,6 +26,7 @@ yolox_config = {
             'mixup_scale': (0.5, 1.5)},
         # model
         'backbone': 'darknet53',
+        'pretrained': False,
         'stride': [8, 16, 32],  # P3, P4, P5
         # neck
         'fpn': 'yolo_fpn',
