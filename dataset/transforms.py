@@ -1,10 +1,294 @@
 import random
 import cv2
+import math
 import numpy as np
 import torch
 import torchvision.transforms.functional as F
 
 
+def get_aug_params(value, center=0):
+    if isinstance(value, float):
+        return random.uniform(center - value, center + value)
+    elif len(value) == 2:
+        return random.uniform(value[0], value[1])
+    else:
+        raise ValueError(
+            "Affine params should be either a sequence containing two values\
+             or single float values. Got {}".format(value)
+        )
+
+
+def get_affine_matrix(
+    target_size,
+    degrees=10,
+    translate=0.1,
+    scales=0.1,
+    shear=10,
+):
+    twidth, theight = target_size
+
+    # Rotation and Scale
+    angle = get_aug_params(degrees)
+    scale = get_aug_params(scales, center=1.0)
+
+    if scale <= 0.0:
+        raise ValueError("Argument scale should be positive")
+
+    R = cv2.getRotationMatrix2D(angle=angle, center=(0, 0), scale=scale)
+
+    M = np.ones([2, 3])
+    # Shear
+    shear_x = math.tan(get_aug_params(shear) * math.pi / 180)
+    shear_y = math.tan(get_aug_params(shear) * math.pi / 180)
+
+    M[0] = R[0] + shear_y * R[1]
+    M[1] = R[1] + shear_x * R[0]
+
+    # Translation
+    translation_x = get_aug_params(translate) * twidth  # x translation (pixels)
+    translation_y = get_aug_params(translate) * theight  # y translation (pixels)
+
+    M[0, 2] = translation_x
+    M[1, 2] = translation_y
+
+    return M, scale
+
+
+def apply_affine_to_bboxes(targets, target_size, M, scale):
+    num_gts = len(targets)
+
+    # warp corner points
+    twidth, theight = target_size
+    corner_points = np.ones((4 * num_gts, 3))
+    corner_points[:, :2] = targets[:, [0, 1, 2, 3, 0, 3, 2, 1]].reshape(
+        4 * num_gts, 2
+    )  # x1y1, x2y2, x1y2, x2y1
+    corner_points = corner_points @ M.T  # apply affine transform
+    corner_points = corner_points.reshape(num_gts, 8)
+
+    # create new boxes
+    corner_xs = corner_points[:, 0::2]
+    corner_ys = corner_points[:, 1::2]
+    new_bboxes = (
+        np.concatenate(
+            (corner_xs.min(1), corner_ys.min(1), corner_xs.max(1), corner_ys.max(1))
+        )
+        .reshape(4, num_gts)
+        .T
+    )
+
+    # clip boxes
+    new_bboxes[:, 0::2] = new_bboxes[:, 0::2].clip(0, twidth)
+    new_bboxes[:, 1::2] = new_bboxes[:, 1::2].clip(0, theight)
+
+    targets[:, :4] = new_bboxes
+
+    return targets
+
+
+def random_affine(
+    img,
+    targets=(),
+    target_size=(640, 640),
+    degrees=10,
+    translate=0.1,
+    scales=0.1,
+    shear=10,
+):
+    M, scale = get_affine_matrix(target_size, degrees, translate, scales, shear)
+
+    img = cv2.warpAffine(img, M, dsize=target_size, borderValue=(114, 114, 114))
+
+    # Transform label coordinates
+    if len(targets) > 0:
+        targets = apply_affine_to_bboxes(targets, target_size, M, scale)
+
+    return img, targets
+
+
+def mosaic_augment(image_list, target_list, img_size, affine_params):
+    # prepare empty mosaic image
+    mosaic_img = np.zeros([img_size*2, img_size*2, image_list[0].shape[2]], dtype=np.uint8)
+    # mosaic center
+    yc, xc = [int(random.uniform(-x, 2*img_size + x)) 
+                for x in [-img_size // 2, -img_size // 2]]
+    # yc = xc = img_size
+
+    mosaic_bboxes = []
+    mosaic_labels = []
+    for i in range(4):
+        img_i, target_i = image_list[i], target_list[i]
+        bboxes_i = target_i["boxes"]
+        labels_i = target_i["labels"]
+
+        h0, w0, _ = img_i.shape
+
+        # resize
+        if np.random.randint(2):
+            # keep aspect ratio
+            r = img_size / max(h0, w0)
+            if r != 1: 
+                img_i = cv2.resize(img_i, (int(w0 * r), int(h0 * r)))
+        else:
+            img_i = cv2.resize(img_i, (int(img_size), int(img_size)))
+        h, w, _ = img_i.shape
+
+        # place img in img4
+        if i == 0:  # top left
+            x1a, y1a, x2a, y2a = max(xc - w, 0), max(yc - h, 0), xc, yc  # xmin, ymin, xmax, ymax (large image)
+            x1b, y1b, x2b, y2b = w - (x2a - x1a), h - (y2a - y1a), w, h  # xmin, ymin, xmax, ymax (small image)
+        elif i == 1:  # top right
+            x1a, y1a, x2a, y2a = xc, max(yc - h, 0), min(xc + w, img_size * 2), yc
+            x1b, y1b, x2b, y2b = 0, h - (y2a - y1a), min(w, x2a - x1a), h
+        elif i == 2:  # bottom left
+            x1a, y1a, x2a, y2a = max(xc - w, 0), yc, xc, min(img_size * 2, yc + h)
+            x1b, y1b, x2b, y2b = w - (x2a - x1a), 0, w, min(y2a - y1a, h)
+        elif i == 3:  # bottom right
+            x1a, y1a, x2a, y2a = xc, yc, min(xc + w, img_size * 2), min(img_size * 2, yc + h)
+            x1b, y1b, x2b, y2b = 0, 0, min(w, x2a - x1a), min(y2a - y1a, h)
+
+        mosaic_img[y1a:y2a, x1a:x2a] = img_i[y1b:y2b, x1b:x2b]
+        padw = x1a - x1b
+        padh = y1a - y1b
+
+        # labels
+        bboxes_i_ = bboxes_i.copy()
+        if len(bboxes_i) > 0:
+            # a valid target, and modify it.
+            bboxes_i_[:, 0] = (w * bboxes_i[:, 0] / w0 + padw)
+            bboxes_i_[:, 1] = (h * bboxes_i[:, 1] / h0 + padh)
+            bboxes_i_[:, 2] = (w * bboxes_i[:, 2] / w0 + padw)
+            bboxes_i_[:, 3] = (h * bboxes_i[:, 3] / h0 + padh)    
+
+            mosaic_bboxes.append(bboxes_i_)
+            mosaic_labels.append(labels_i)
+
+    mosaic_bboxes = np.concatenate(mosaic_bboxes)
+    mosaic_labels = np.concatenate(mosaic_labels)[..., None]
+    mosaic_tgts = np.concatenate([mosaic_bboxes, mosaic_labels], axis=-1)
+    mosaic_img, mosaic_tgts = random_affine(
+        mosaic_img,
+        mosaic_tgts,
+        target_size=(img_size*2, img_size*2),
+        degrees=affine_params['degrees'],
+        translate=affine_params['translate'],
+        scales=affine_params['scales'],
+        shear=affine_params['shear'],
+    )
+    mosaic_img = cv2.resize(mosaic_img, (img_size, img_size))
+    mosaic_bboxes = mosaic_tgts[..., :4] / 2.0
+    mosaic_labels = mosaic_tgts[..., 4]
+
+    # check target
+    valid_bboxes = []
+    valid_labels = []
+    if len(mosaic_bboxes) > 0:
+        # Cutout/Clip targets
+        np.clip(mosaic_bboxes, 0, img_size, out=mosaic_bboxes)
+
+        # check boxes
+        for box, label in zip(mosaic_bboxes, mosaic_labels):
+            x1, y1, x2, y2 = box
+            bw, bh = x2 - x1, y2 - y1
+            if bw > 10. and bh > 10.:
+                valid_bboxes.append([x1, y1, x2, y2])
+                valid_labels.append(label)
+        if len(valid_labels) == 0:
+                valid_bboxes.append([0., 0., 0., 0.])
+                valid_labels.append(0.)
+
+    # guard against no boxes via resizing
+    valid_bboxes = np.array(valid_bboxes).reshape(-1, 4)
+    valid_labels = np.array(valid_labels).reshape(-1)
+    mosaic_bboxes = np.array(valid_bboxes)
+    mosaic_labels = np.array(valid_labels)
+
+    # target
+    mosaic_target = {
+        "boxes": mosaic_bboxes,
+        "labels": mosaic_labels,
+        "orig_size": [img_size, img_size]
+    }
+    
+    return mosaic_img, mosaic_target
+
+
+def mixup_augment(origin_image, origin_target, new_image, new_target, img_size, mixup_scale):
+    jit_factor = random.uniform(*mixup_scale)
+    FLIP = random.uniform(0, 1) > 0.5
+
+    cp_img = np.ones((img_size, img_size, 3), dtype=np.uint8) * 114
+
+    cp_scale_ratio = min(img_size / new_image.shape[0], img_size / new_image.shape[1])
+    resized_img = cv2.resize(
+        new_image,
+        (int(new_image.shape[1] * cp_scale_ratio), int(new_image.shape[0] * cp_scale_ratio)),
+        interpolation=cv2.INTER_LINEAR,
+    )
+
+    cp_img[
+        : int(new_image.shape[0] * cp_scale_ratio), : int(new_image.shape[1] * cp_scale_ratio)
+    ] = resized_img
+
+    cp_img = cv2.resize(
+        cp_img,
+        (int(cp_img.shape[1] * jit_factor), int(cp_img.shape[0] * jit_factor)),
+    )
+    cp_scale_ratio *= jit_factor
+
+    if FLIP:
+        cp_img = cp_img[:, ::-1, :]
+
+    origin_h, origin_w = cp_img.shape[:2]
+    target_h, target_w = origin_image.shape[:2]
+    padded_img = np.zeros(
+        (max(origin_h, target_h), max(origin_w, target_w), 3), dtype=cp_img.dtype
+    )
+    padded_img[:origin_h, :origin_w] = cp_img
+
+    x_offset, y_offset = 0, 0
+    if padded_img.shape[0] > target_h:
+        y_offset = random.randint(0, padded_img.shape[0] - target_h - 1)
+    if padded_img.shape[1] > target_w:
+        x_offset = random.randint(0, padded_img.shape[1] - target_w - 1)
+    padded_cropped_img = padded_img[
+        y_offset: y_offset + target_h, x_offset: x_offset + target_w
+    ]
+
+    cp_bboxes = new_target["boxes"].copy()
+    cp_bboxes_origin_np = np.zeros_like(cp_bboxes)
+    cp_bboxes_origin_np[:, 0::2] = np.clip(cp_bboxes[:, 0::2] * cp_scale_ratio, 0, origin_w)
+    cp_bboxes_origin_np[:, 1::2] = np.clip(cp_bboxes[:, 1::2] * cp_scale_ratio, 0, origin_h)
+
+    if FLIP:
+        cp_bboxes_origin_np[:, 0::2] = (
+            origin_w - cp_bboxes_origin_np[:, 0::2][:, ::-1]
+        )
+
+    cp_bboxes_transformed_np = cp_bboxes_origin_np.copy()
+    cp_bboxes_transformed_np[:, 0::2] = np.clip(
+        cp_bboxes_transformed_np[:, 0::2] - x_offset, 0, target_w
+    )
+    cp_bboxes_transformed_np[:, 1::2] = np.clip(
+        cp_bboxes_transformed_np[:, 1::2] - y_offset, 0, target_h
+    )
+
+    mixup_image = 0.5 * origin_image.astype(np.float32) + 0.5 * padded_cropped_img.astype(np.float32)
+    mixup_image = mixup_image.astype(np.uint8)
+    
+    cls_labels = new_target["labels"].copy()
+    box_labels = cp_bboxes_transformed_np
+
+    mixup_bboxes = np.concatenate([origin_target["boxes"], box_labels], axis=0)
+    mixup_labels = np.concatenate([origin_target["labels"], cls_labels], axis=0)
+    mixup_target = {
+        "boxes": mixup_bboxes,
+        "labels": mixup_labels,
+        'orig_size': mixup_image.shape[:2]
+    }
+
+    return mixup_image, mixup_target
+    
 
 class Compose(object):
     """Composes several augmentations together.

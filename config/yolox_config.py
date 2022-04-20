@@ -17,6 +17,13 @@ yolox_config = {
                          {'name': 'ToTensor'},
                          {'name': 'Resize'},
                          {'name': 'PadImage'}]},
+        # parameters affine
+        'affine_params': {
+            'degrees': 10.,
+            'translate': 0.1,
+            'scales': (0.1, 2.0),  # mosaic scale
+            'shear': 2.0,
+            'mixup_scale': (0.5, 1.5)},
         # model
         'backbone': 'darknet53',
         'stride': [8, 16, 32],  # P3, P4, P5

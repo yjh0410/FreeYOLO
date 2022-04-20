@@ -10,6 +10,11 @@ try:
 except:
     print("It seems that the COCOAPI is not installed.")
 
+try:
+    from .transforms import random_affine, mosaic_augment, mixup_augment
+except:
+    from transforms import random_affine, mosaic_augment, mixup_augment
+
 
 coco_class_labels = ('background',
                         'person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus', 'train', 'truck',
@@ -42,7 +47,8 @@ class COCODataset(Dataset):
                  image_set='train2017',
                  transform=None,
                  mosaic=False,
-                 mixup=False):
+                 mixup=False,
+                 affine_params=None):
         """
         COCO dataset initialization. Annotation data are read into memory by COCO API.
         Args:
@@ -67,6 +73,7 @@ class COCODataset(Dataset):
         self.transform = transform
         self.mosaic = mosaic
         self.mixup = mixup
+        self.affine_params = affine_params
         if self.mosaic:
             print('use Mosaic Augmentation ...')
         if self.mixup:
@@ -127,126 +134,38 @@ class COCODataset(Dataset):
         return image, target
 
 
-    def load_mosaic(self, index):
-        ids_list_ = self.ids[:index] + self.ids[index+1:]
-        # random sample other indexs
-        id1 = self.ids[index]
-        id2, id3, id4 = random.sample(ids_list_, 3)
-        ids = [id1, id2, id3, id4]
-
-        img_lists = []
-        tg_lists = []
-        # load image and target
-        for id_ in ids:
-            img_i, target_i = self.load_image_target(id_)
-            img_lists.append(img_i)
-            tg_lists.append(target_i)
-
-        mosaic_img = np.zeros([self.img_size*2, self.img_size*2, img_i.shape[2]], dtype=np.uint8)
-        # mosaic center
-        yc, xc = [int(random.uniform(-x, 2*self.img_size + x)) for x in [-self.img_size // 2, -self.img_size // 2]]
-        # yc = xc = self.img_size
-
-        mosaic_bboxes = []
-        mosaic_labels = []
-        for i in range(4):
-            img_i, target_i = img_lists[i], tg_lists[i]
-            bboxes_i = target_i["boxes"]
-            labels_i = target_i["labels"]
-
-            h0, w0, _ = img_i.shape
-            s = np.random.randint(5, 21) / 10.
-
-            # resize
-            if np.random.randint(2):
-                # keep aspect ratio
-                r = self.img_size / max(h0, w0)
-                if r != 1: 
-                    img_i = cv2.resize(img_i, (int(w0 * r * s), int(h0 * r * s)))
-            else:
-                img_i = cv2.resize(img_i, (int(self.img_size * s), int(self.img_size * s)))
-            h, w, _ = img_i.shape
-
-            # place img in img4
-            if i == 0:  # top left
-                x1a, y1a, x2a, y2a = max(xc - w, 0), max(yc - h, 0), xc, yc  # xmin, ymin, xmax, ymax (large image)
-                x1b, y1b, x2b, y2b = w - (x2a - x1a), h - (y2a - y1a), w, h  # xmin, ymin, xmax, ymax (small image)
-            elif i == 1:  # top right
-                x1a, y1a, x2a, y2a = xc, max(yc - h, 0), min(xc + w, self.img_size * 2), yc
-                x1b, y1b, x2b, y2b = 0, h - (y2a - y1a), min(w, x2a - x1a), h
-            elif i == 2:  # bottom left
-                x1a, y1a, x2a, y2a = max(xc - w, 0), yc, xc, min(self.img_size * 2, yc + h)
-                x1b, y1b, x2b, y2b = w - (x2a - x1a), 0, w, min(y2a - y1a, h)
-            elif i == 3:  # bottom right
-                x1a, y1a, x2a, y2a = xc, yc, min(xc + w, self.img_size * 2), min(self.img_size * 2, yc + h)
-                x1b, y1b, x2b, y2b = 0, 0, min(w, x2a - x1a), min(y2a - y1a, h)
-
-            mosaic_img[y1a:y2a, x1a:x2a] = img_i[y1b:y2b, x1b:x2b]
-            padw = x1a - x1b
-            padh = y1a - y1b
-
-            # labels
-            bboxes_i_ = bboxes_i.copy()
-            if len(bboxes_i) > 0:
-                # a valid target, and modify it.
-                bboxes_i_[:, 0] = (w * bboxes_i[:, 0] / w0 + padw)
-                bboxes_i_[:, 1] = (h * bboxes_i[:, 1] / h0 + padh)
-                bboxes_i_[:, 2] = (w * bboxes_i[:, 2] / w0 + padw)
-                bboxes_i_[:, 3] = (h * bboxes_i[:, 3] / h0 + padh)    
-
-                mosaic_bboxes.append(bboxes_i_)
-                mosaic_labels.append(labels_i)
-
-
-        valid_bboxes = []
-        valid_labels = []
-        # check target
-        if len(mosaic_bboxes) > 0:
-            mosaic_bboxes = np.concatenate(mosaic_bboxes)
-            mosaic_labels = np.concatenate(mosaic_labels)
-            # Cutout/Clip targets
-            np.clip(mosaic_bboxes, 0, 2 * self.img_size, out=mosaic_bboxes)
-
-            # check boxes
-            for box, label in zip(mosaic_bboxes, mosaic_labels):
-                x1, y1, x2, y2 = box
-                bw, bh = x2 - x1, y2 - y1
-                if bw > 10. and bh > 10.:
-                    valid_bboxes.append([x1, y1, x2, y2])
-                    valid_labels.append(label)
-
-        # guard against no boxes via resizing
-        valid_bboxes = np.array(valid_bboxes).reshape(-1, 4)
-        valid_labels = np.array(valid_labels).reshape(-1)
-        mosaic_bboxes = np.array(valid_bboxes)
-        mosaic_labels = np.array(valid_labels)
-
-        # target
-        mosaic_target = {
-            "boxes": mosaic_bboxes,
-            "labels": mosaic_labels,
-            "orig_size": [self.img_size*2, self.img_size*2]
-        }
-        
-        return mosaic_img, mosaic_target
-
-
     def pull_item(self, index):
         # load a mosaic image
         if self.mosaic:
-            image, target = self.load_mosaic(index)
+            ids_list_ = self.ids[:index] + self.ids[index+1:]
+            # random sample other indexs
+            id1 = self.ids[index]
+            id2, id3, id4 = random.sample(ids_list_, 3)
+            ids = [id1, id2, id3, id4]
 
-            if self.mixup:
-                image2, target2 = self.load_mosaic(np.random.randint(0, len(self.ids)))
-                r = np.random.beta(8.0, 8.0)  # mixup ratio, alpha=beta=8.0
-                image = (image * r + image2 * (1 - r)).astype(np.uint8)
-                target["boxes"]= np.concatenate((target["boxes"], target2["boxes"]), 0)
-                target["labels"]= np.concatenate((target["labels"], target2["labels"]), 0)
+            image_list = []
+            target_list = []
+            # load image and target
+            for id_ in ids:
+                img_i, target_i = self.load_image_target(id_)
+                image_list.append(img_i)
+                target_list.append(target_i)
+
+            image, target = mosaic_augment(image_list, target_list, self.img_size, self.affine_params)
 
         # load an image and target
         else:
             img_id = self.ids[index]
             image, target = self.load_image_target(img_id)
+
+        # load mixup image
+        if self.mixup:
+            new_index = np.random.randint(0, len(self.ids))
+            new_img_id = self.ids[new_index]
+            new_image, new_target = self.load_image_target(new_img_id)
+
+            image, target = mixup_augment(image, target, new_image, new_target, 
+                                          self.img_size, self.affine_params['mixup_scale'])
 
         # augment
         image, target = self.transform(image, target)
@@ -295,6 +214,7 @@ class COCODataset(Dataset):
 if __name__ == "__main__":
     from transforms import TrainTransforms, ValTransforms
 
+    img_size = 640
     format = 'RGB'
     trans_config = [{'name': 'DistortTransform',
                      'hue': 0.1,
@@ -304,7 +224,11 @@ if __name__ == "__main__":
                     {'name': 'ToTensor'},
                     {'name': 'Resize'},
                     {'name': 'PadImage'}]
-    img_size = 640
+    affine_params = {'degrees': 10.,
+                     'translate': 0.1,
+                     'scales': (0.1, 2.0),
+                     'shear': 2.0,
+                     'mixup_scale': (0.5, 1.5)}
     transform = TrainTransforms(trans_config=trans_config,
                                 img_size=img_size,
                                 format=format)
@@ -313,7 +237,8 @@ if __name__ == "__main__":
                           image_set='train2017',
                           transform=transform,
                           mosaic=True,
-                          mixup=True)
+                          mixup=True,
+                          affine_params=affine_params)
     
     np.random.seed(0)
     class_colors = [(np.random.randint(255),
