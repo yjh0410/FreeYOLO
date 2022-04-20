@@ -29,8 +29,6 @@ def parse_args():
                         help='use cuda.')
     parser.add_argument('--num_workers', default=4, type=int, 
                         help='Number of workers used in dataloading')
-    parser.add_argument('--grad_clip_norm', type=float, default=-1.,
-                        help='grad clip.')
     parser.add_argument('--tfboard', action='store_true', default=False,
                         help='use tensorboard')
     parser.add_argument('--save_folder', default='weights/', type=str, 

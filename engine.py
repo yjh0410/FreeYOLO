@@ -76,10 +76,6 @@ def train_with_warmup(epoch,
 
         # Backward and Optimize
         losses.backward()
-        if args.grad_clip_norm > 0.:
-            total_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), args.grad_clip_norm)
-        else:
-            total_norm = get_total_grad_norm(model.parameters())
         optimizer.step()
         optimizer.zero_grad()
 
@@ -101,7 +97,6 @@ def train_with_warmup(epoch,
 
             # other infor
             log += '[time: {:.2f}]'.format(t1 - t0)
-            log += '[gnorm: {:.2f}]'.format(total_norm)
             log += '[size: {}'.format(img_size)
 
             # print log infor
@@ -153,10 +148,6 @@ def train_one_epoch(epoch,
 
         # Backward and Optimize
         losses.backward()
-        if args.grad_clip_norm > 0.:
-            total_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), args.grad_clip_norm)
-        else:
-            total_norm = get_total_grad_norm(model.parameters())
         optimizer.step()
         optimizer.zero_grad()
 
