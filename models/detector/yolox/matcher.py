@@ -2,10 +2,10 @@ import math
 import torch
 import torch.nn.functional as F
 from utils.box_ops import *
-from utils.misc import sigmoid_focal_loss, SinkhornDistance
+from utils.misc import SinkhornDistance
 
 
-@torch.no_grad()
+@ torch.no_grad()
 def get_ious_and_iou_loss(inputs,
                           targets,
                           weight=None,
@@ -292,12 +292,12 @@ class SimOTA_Matcher(object):
             gt_classes_per_image = F.one_hot(tgt_labels_per_images, self.num_classes).float()
 
             with torch.no_grad():
-                loss_cls = sigmoid_focal_loss(
+                loss_cls = F.binary_cross_entropy_with_logits(
                     pred_cls_per_image.unsqueeze(0).expand(shape),     # [M, C] -> [1, M, C] -> [N, M, C]
                     gt_classes_per_image.unsqueeze(1).expand(shape),   # [N, C] -> [N, 1, C] -> [N, M, C]
                 ).sum(dim=-1) # [N, M, C] -> [N, M]
 
-                loss_cls_bg = sigmoid_focal_loss(
+                loss_cls_bg = F.binary_cross_entropy_with_logits(
                     pred_cls_per_image,
                     torch.zeros_like(pred_cls_per_image),
                 ).sum(dim=-1) # [M, C] -> [M]

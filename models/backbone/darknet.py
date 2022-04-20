@@ -71,8 +71,6 @@ class DarkNet_53(nn.Module):
             ResBlock(1024, nblocks=4)
         )
 
-        self.freeze()
-
 
     def forward(self, x):
         outputs = dict()

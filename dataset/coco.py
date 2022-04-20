@@ -11,9 +11,9 @@ except:
     print("It seems that the COCOAPI is not installed.")
 
 try:
-    from .transforms import random_affine, mosaic_augment, mixup_augment
+    from .transforms import mosaic_augment, mixup_augment
 except:
-    from transforms import random_affine, mosaic_augment, mixup_augment
+    from transforms import mosaic_augment, mixup_augment
 
 
 coco_class_labels = ('background',

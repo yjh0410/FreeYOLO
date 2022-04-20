@@ -31,7 +31,8 @@ def rescale_image_targets(images, targets, new_img_size):
     return images, targets
 
 
-def train_with_warmup(args, 
+def train_with_warmup(epoch,
+                      args, 
                       device, 
                       ema,
                       model, 
@@ -42,78 +43,74 @@ def train_with_warmup(args,
                       warmup_scheduler):
     epoch_size = len(dataloader)
     img_size = cfg['img_size']
-    # start training loop
-    for epoch in range(cfg['wp_epoch']):
-        if args.distributed:
-            dataloader.batch_sampler.sampler.set_epoch(epoch)            
+    t0 = time.time()
+    # train one epoch
+    for iter_i, (images, targets) in enumerate(dataloader):
+        ni = iter_i + epoch * epoch_size
+        # warmup
+        warmup_scheduler.warmup(ni, optimizer)
 
-        # train one epoch
-        for iter_i, (images, targets) in enumerate(dataloader):
-            ni = iter_i + epoch * epoch_size
-            # warmup
-            warmup_scheduler.warmup(ni, optimizer)
+        # to device
+        images = images.to(device)
 
-            # to device
-            images = images.to(device)
+        # multi scale
+        # # choose a new image size
+        if ni % 10 == 0 and cfg['random_size']:
+            idx = np.random.randint(len(cfg['random_size']))
+            img_size = cfg['random_size'][idx]
+        # # rescale data with new image size
+        if cfg['random_size']:
+            images, targets = rescale_image_targets(images, targets, img_size)
 
-            # multi scale
-            # # choose a new image size
-            if ni % 10 == 0 and cfg['random_size']:
-                idx = np.random.randint(len(cfg['random_size']))
-                img_size = cfg['random_size'][idx]
-            # # rescale data with new image size
-            if cfg['random_size']:
-                images, targets = rescale_image_targets(images, targets, img_size)
+        # inference
+        loss_dict = model(images, targets=targets)
+        losses = loss_dict['losses']
 
-            # inference
-            loss_dict = model(images, targets=targets)
-            losses = loss_dict['losses']
+        # reduce            
+        loss_dict_reduced = distributed_utils.reduce_dict(loss_dict)
 
-            # reduce            
-            loss_dict_reduced = distributed_utils.reduce_dict(loss_dict)
+        # check loss
+        if torch.isnan(losses):
+            print('loss is NAN !!')
+            continue
 
-            # check loss
-            if torch.isnan(losses):
-                print('loss is NAN !!')
-                continue
+        # Backward and Optimize
+        losses.backward()
+        if args.grad_clip_norm > 0.:
+            total_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), args.grad_clip_norm)
+        else:
+            total_norm = get_total_grad_norm(model.parameters())
+        optimizer.step()
+        optimizer.zero_grad()
 
-            # Backward and Optimize
-            losses.backward()
-            if args.grad_clip_norm > 0.:
-                total_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), args.grad_clip_norm)
-            else:
-                total_norm = get_total_grad_norm(model.parameters())
-            optimizer.step()
-            optimizer.zero_grad()
+        # ema
+        if args.ema:
+            ema.update(model)
 
-            # ema
-            if args.ema:
-                ema.update(model)
+        # display
+        if distributed_utils.is_main_process() and iter_i % 10 == 0:
+            t1 = time.time()
+            cur_lr = [param_group['lr']  for param_group in optimizer.param_groups]
+            # basic infor
+            log =  '[Epoch: {}/{}]'.format(epoch+1, cfg['max_epoch'])
+            log += '[Iter: {}/{}]'.format(iter_i, epoch_size)
+            log += '[lr: {:.6f}]'.format(cur_lr[0])
+            # loss infor
+            for k in loss_dict_reduced.keys():
+                log += '[{}: {:.2f}]'.format(k, loss_dict[k])
 
-            # display
-            if distributed_utils.is_main_process() and iter_i % 10 == 0:
-                t1 = time.time()
-                cur_lr = [param_group['lr']  for param_group in optimizer.param_groups]
-                # basic infor
-                log =  '[Epoch: {}/{}]'.format(epoch+1, cfg['max_epoch'])
-                log += '[Iter: {}/{}]'.format(iter_i, epoch_size)
-                log += '[lr: {:.6f}][lr_bk: {:.6f}]'.format(cur_lr[0], cur_lr[1])
-                # loss infor
-                for k in loss_dict_reduced.keys():
-                    log += '[{}: {:.2f}]'.format(k, loss_dict[k])
+            # other infor
+            log += '[time: {:.2f}]'.format(t1 - t0)
+            log += '[gnorm: {:.2f}]'.format(total_norm)
+            log += '[size: {}'.format(img_size)
 
-                # other infor
-                log += '[time: {:.2f}]'.format(t1 - t0)
-                log += '[gnorm: {:.2f}]'.format(total_norm)
-                log += '[size: {}'.format(img_size)
-
-                # print log infor
-                print(log, flush=True)
-                
-                t0 = time.time()
-        
-        print('Warmup is Over !!!')
-        warmup_scheduler.set_lr(optimizer, base_lr, base_lr)
+            # print log infor
+            print(log, flush=True)
+            
+            t0 = time.time()
+    
+    print('Warmup is Over !!!')
+    warmup_scheduler.set_lr(optimizer, base_lr)
 
 
 def train_one_epoch(epoch,
@@ -126,6 +123,7 @@ def train_one_epoch(epoch,
                     optimizer):
     epoch_size = len(dataloader)
     img_size = cfg["img_size"]
+    t0 = time.time()
     # train one epoch
     for iter_i, (images, targets) in enumerate(dataloader):
         ni = iter_i + epoch * epoch_size
@@ -173,7 +171,7 @@ def train_one_epoch(epoch,
             # basic infor
             log =  '[Epoch: {}/{}]'.format(epoch+1, cfg['max_epoch'])
             log += '[Iter: {}/{}]'.format(iter_i, epoch_size)
-            log += '[lr: {:.6f}][lr_bk: {:.6f}]'.format(cur_lr[0], cur_lr[1])
+            log += '[lr: {:.6f}]'.format(cur_lr[0])
             # loss infor
             for k in loss_dict_reduced.keys():
                 log += '[{}: {:.2f}]'.format(k, loss_dict[k])
@@ -193,7 +191,6 @@ def val_one_epoch(args,
                   model, 
                   evaluator,
                   optimizer,
-                  lr_scheduler,
                   epoch,
                   path_to_save):
             # check evaluator
@@ -205,7 +202,6 @@ def val_one_epoch(args,
                     checkpoint_path = os.path.join(path_to_save, weight_name)
                     torch.save({'model': model.state_dict(),
                                 'optimizer': optimizer.state_dict(),
-                                'lr_scheduler': lr_scheduler.state_dict(),
                                 'epoch': epoch,
                                 'args': args}, 
                                 checkpoint_path)                      
@@ -229,7 +225,6 @@ def val_one_epoch(args,
                         checkpoint_path = os.path.join(path_to_save, weight_name)
                         torch.save({'model': model.state_dict(),
                                     'optimizer': optimizer.state_dict(),
-                                    'lr_scheduler': lr_scheduler.state_dict(),
                                     'epoch': epoch,
                                     'args': args}, 
                                     checkpoint_path)                      

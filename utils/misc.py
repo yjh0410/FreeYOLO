@@ -35,7 +35,8 @@ def build_dataset(cfg, args, device):
                                data_dir=data_dir, 
                                transform=train_transform,
                                mosaic=cfg['mosaic'],
-                               mixup=cfg['mixup'])
+                               mixup=cfg['mixup'],
+                               affine_params=cfg['affine_params'])
         # evaluator
         evaluator = VOCAPIEvaluator(data_dir=data_dir,
                                     device=device,
@@ -67,7 +68,7 @@ def build_dataset(cfg, args, device):
     return dataset, evaluator, num_classes
 
 
-def build_dataloader(args, dataset, collate_fn=None):
+def build_dataloader(args, dataset, batch_size, collate_fn=None):
     # distributed
     if args.distributed:
         sampler = torch.utils.data.distributed.DistributedSampler(dataset)
@@ -75,7 +76,7 @@ def build_dataloader(args, dataset, collate_fn=None):
         sampler = torch.utils.data.RandomSampler(dataset)
 
     batch_sampler_train = torch.utils.data.BatchSampler(sampler, 
-                                                        args.batch_size, 
+                                                        batch_size, 
                                                         drop_last=True)
 
     dataloader = torch.utils.data.DataLoader(dataset, 

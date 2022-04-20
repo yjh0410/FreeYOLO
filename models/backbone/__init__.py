@@ -4,7 +4,7 @@ from .darknet import darknet53
 def build_backbone(model_name='darknet53', pretrained=False):
     print('==============================')
     print('Backbone: {}'.format(model_name.upper()))
-    print('--pretrained: {}'.format())
+    print('--pretrained: {}'.format(pretrained))
 
     if model_name == 'darknet53':
         model, feat_dim = darknet53(pretrained=pretrained)

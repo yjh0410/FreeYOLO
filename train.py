@@ -1,6 +1,7 @@
 from __future__ import division
 
 import os
+import math
 import argparse
 from copy import deepcopy
 
@@ -96,7 +97,8 @@ def train():
     dataset, evaluator, num_classes = build_dataset(cfg, args, device)
 
     # dataloader
-    dataloader = build_dataloader(args, dataset, CollateFunc())
+    batch_size = cfg['batch_size'] * distributed_utils.get_world_size()
+    dataloader = build_dataloader(args, dataset, batch_size, CollateFunc())
 
     # build model
     net = build_model(args=args, 
@@ -137,21 +139,14 @@ def train():
     ema = ModelEMA(model) if args.ema else None
 
     # optimizer
-    base_lr = cfg['base_lr'] * cfg['batch_size'] * distributed_utils.get_world_size()
+    base_lr = cfg['base_lr'] * batch_size
     min_lr = base_lr * cfg['min_lr_ratio']
     optimizer = build_optimizer(model=model_without_ddp,
                                 base_lr=base_lr,
-                                backbone_lr=base_lr,
                                 name=cfg['optimizer'],
                                 momentum=cfg['momentum'],
                                 weight_decay=cfg['weight_decay'])
     
-    # lr scheduler
-    lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer=optimizer, 
-                                                              T_max=cfg['max_epoch'] - cfg['no_aug_epoch'], 
-                                                              eta_min=min_lr, 
-                                                              last_epoch=None,)
-
     # warmup scheduler
     wp_iter = len(dataloader) * cfg['wp_epoch']
     warmup_scheduler = build_warmup(name=cfg['warmup'],
@@ -159,47 +154,63 @@ def train():
                                     wp_iter=wp_iter,
                                     warmup_factor=cfg['warmup_factor'])
 
-    # warmup training loop
-    train_with_warmup(args=args, 
-                      device=device, 
-                      ema=ema,
-                      model=model, 
-                      cfg=cfg, 
-                      base_lr=base_lr, 
-                      dataloader=dataloader, 
-                      optimizer=optimizer, 
-                      warmup_scheduler=warmup_scheduler)
 
     # start training loop
-    for epoch in range(cfg['max_epoch']):
+    for epoch in range(cfg['wp_epoch'] + cfg['max_epoch']):
         if args.distributed:
             dataloader.batch_sampler.sampler.set_epoch(epoch)            
 
-        # train one epoch
-        train_one_epoch(args=args, 
-                        device=device,
-                        ema=ema, 
-                        model=model, 
-                        cfg=cfg, 
-                        dataloader=dataloader, 
-                        optimizer=optimizer)
-        
-        # check if stop LRSchedule
-        flag = (cfg['max_epoch'] - epoch > cfg['no_aug_epoch'])
-        if flag:
-            lr_scheduler.step()
-        else:
-            for param_group in optimizer.param_groups:
-                param_group['lr'] = min_lr
+        if epoch < cfg['wp_epoch']:
+            # warmup training loop
+            train_with_warmup(epoch=epoch,
+                              args=args, 
+                              device=device, 
+                              ema=ema,
+                              model=model, 
+                              cfg=cfg, 
+                              base_lr=base_lr, 
+                              dataloader=dataloader, 
+                              optimizer=optimizer, 
+                              warmup_scheduler=warmup_scheduler)
 
-        # evaluation
-        val_one_epoch(args=args, 
-                      model=ema.model if args.ema else model_without_ddp, 
-                      evaluator=evaluator,
-                      optimizer=optimizer,
-                      lr_scheduler=lr_scheduler,
-                      epoch=epoch,
-                      path_to_save=path_to_save)
+            # evaluation
+            val_one_epoch(args=args, 
+                          model=ema.model if args.ema else model_without_ddp, 
+                          evaluator=evaluator,
+                          optimizer=optimizer,
+                          epoch=epoch,
+                          path_to_save=path_to_save)
+
+        else:
+            # use cos lr decay
+            T_max = T_max=cfg['max_epoch'] - cfg['no_aug_epoch']
+            if epoch > T_max:
+                # Cos decay is done
+                print('Cosine annealing is over !!')
+                for param_group in optimizer.param_groups:
+                    param_group['lr'] = min_lr
+            else:
+                tmp_lr = min_lr + 0.5*(base_lr - min_lr)*(1 + math.cos(math.pi*epoch / T_max))
+                for param_group in optimizer.param_groups:
+                    param_group['lr'] = tmp_lr
+
+            # train one epoch
+            train_one_epoch(epoch=epoch,
+                            args=args, 
+                            device=device,
+                            ema=ema, 
+                            model=model, 
+                            cfg=cfg, 
+                            dataloader=dataloader, 
+                            optimizer=optimizer)
+        
+            # evaluation
+            val_one_epoch(args=args, 
+                          model=ema.model if args.ema else model_without_ddp, 
+                          evaluator=evaluator,
+                          optimizer=optimizer,
+                          epoch=epoch,
+                          path_to_save=path_to_save)
 
         # close mosaic augmentation
         if args.mosaic and cfg['max_epoch'] - epoch == cfg['no_aug_epoch']:

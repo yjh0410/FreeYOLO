@@ -51,8 +51,7 @@ class YOLOX(nn.Module):
 
         # backbone
         self.backbone, bk_dim = build_backbone(model_name=cfg['backbone'], 
-                                               pretrained=cfg['pretrained'],
-                                               norm_type=cfg['norm_type'])
+                                               pretrained=cfg['pretrained'])
 
         # neck
         self.fpn = build_fpn(cfg=cfg, in_dims=bk_dim)
@@ -60,10 +59,10 @@ class YOLOX(nn.Module):
         # non-shared heads
         self.non_shared_heads = nn.ModuleList([
             DecoupledHead(head_dim=cfg['head_dim'],
-                                  num_cls_head=cfg['num_cls_head'],
-                                  num_reg_head=cfg['num_reg_head'],
-                                  act_type=cfg['act_type'],
-                                  norm_type=cfg['head_norm'])
+                           num_cls_head=cfg['num_cls_head'],
+                           num_reg_head=cfg['num_reg_head'],
+                           act_type=cfg['head_act'],
+                           norm_type=cfg['head_norm'])
             for _ in range(len(cfg['stride']))
         ])
 
@@ -297,7 +296,7 @@ class YOLOX(nn.Module):
             outputs = {"pred_obj": all_obj_preds,        # List [B, M, 1]
                        "pred_cls": all_cls_preds,        # List [B, M, C]
                        "pred_reg": all_reg_preds,        # List [B, M, 4]
-                       'strides': self.strides}          # List [B, M,]
+                       'strides': self.stride}          # List [B, M,]
 
             # loss
             loss_dict = self.criterion(outputs = outputs, 

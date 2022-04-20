@@ -13,9 +13,9 @@ import random
 import xml.etree.ElementTree as ET
 
 try:
-    from .transforms import random_affine, mosaic_augment, mixup_augment
+    from .transforms import  mosaic_augment, mixup_augment
 except:
-    from transforms import random_affine, mosaic_augment, mixup_augment
+    from transforms import mosaic_augment, mixup_augment
 
 
 VOC_CLASSES = (  # always index 0
@@ -116,7 +116,6 @@ class VOCDetection(data.Dataset):
         self.mosaic = mosaic
         self.mixup = mixup
         self.affine_params = affine_params
-        self.mixup_scale = mixup_scale
         if self.mosaic:
             print('use Mosaic Augmentation ...')
         if self.mixup:

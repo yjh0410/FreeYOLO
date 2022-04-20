@@ -33,11 +33,9 @@ class WarmUpScheduler(object):
         self.warmup_factor = warmup_factor
 
 
-    def set_lr(self, optimizer, lr, base_lr):
+    def set_lr(self, optimizer, lr):
         for param_group in optimizer.param_groups:
-            init_lr = param_group['initial_lr']
-            ratio = init_lr / base_lr
-            param_group['lr'] = lr * ratio
+            param_group['lr'] = lr
 
 
     def warmup(self, iter, optimizer):
@@ -45,13 +43,13 @@ class WarmUpScheduler(object):
         assert iter < self.wp_iter
         if self.name == 'exp':
             tmp_lr = self.base_lr * pow(iter / self.wp_iter, 4)
-            self.set_lr(optimizer, tmp_lr, self.base_lr)
+            self.set_lr(optimizer, tmp_lr)
 
         elif self.name == 'linear':
             alpha = iter / self.wp_iter
             warmup_factor = self.warmup_factor * (1 - alpha) + alpha
             tmp_lr = self.base_lr * warmup_factor
-            self.set_lr(optimizer, tmp_lr, self.base_lr)
+            self.set_lr(optimizer, tmp_lr)
 
 
     def __call__(self, iter, optimizer):

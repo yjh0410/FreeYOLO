@@ -9,14 +9,14 @@ yolox_config = {
         'mosaic': True,
         'mixup': True,
         'format': 'RGB',
-        'transforms': {[{'name': 'DistortTransform',
+        'transforms': [{'name': 'DistortTransform',
                          'hue': 0.1,
                          'saturation': 1.5,
                          'exposure': 1.5},
                          {'name': 'RandomHorizontalFlip'},
                          {'name': 'ToTensor'},
                          {'name': 'Resize'},
-                         {'name': 'PadImage'}]},
+                         {'name': 'PadImage'}],
         # parameters affine
         'affine_params': {
             'degrees': 10.,
@@ -29,6 +29,7 @@ yolox_config = {
         'pretrained': False,
         'stride': [8, 16, 32],  # P3, P4, P5
         # neck
+        'use_spp': True,
         'fpn': 'yolo_fpn',
         'fpn_norm': 'BN',
         'fpn_act': 'lrelu',
