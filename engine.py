@@ -9,24 +9,23 @@ from utils import distributed_utils
 from utils.misc import get_total_grad_norm
 
 
-def rescale_image_targets(images, targets, img_size):
+def rescale_image_targets(images, targets, new_img_size):
     """
         Deployed for Multi scale trick.
     """
+    # During training phase, the shape of input image is square.
+    old_img_size = images.shape[-1]
     # interpolate
     images = torch.nn.functional.interpolate(
                         input=images, 
-                        size=img_size, 
+                        size=new_img_size, 
                         mode='bilinear', 
                         align_corners=False)
     # rescale targets
-    # During training phase, the shape of input image is square.
-    old_img_size = images.shape[-1]
-    # rescale bbox
     for tgt in targets:
         boxes = tgt["boxes"].clone()
-        boxes[:, [0, 2]] = boxes[:, [0, 2]] / old_img_size * img_size
-        boxes[:, [1, 3]] = boxes[:, [1, 3]] / old_img_size * img_size
+        boxes[:, [0, 2]] = boxes[:, [0, 2]] / old_img_size * new_img_size
+        boxes[:, [1, 3]] = boxes[:, [1, 3]] / old_img_size * new_img_size
         tgt["boxes"] = boxes
 
     return images, targets
@@ -58,9 +57,12 @@ def train_with_warmup(args,
             images = images.to(device)
 
             # multi scale
+            # # choose a new image size
             if ni % 10 == 0 and cfg['random_size']:
                 idx = np.random.randint(len(cfg['random_size']))
                 img_size = cfg['random_size'][idx]
+            # # rescale data with new image size
+            if cfg['random_size']:
                 images, targets = rescale_image_targets(images, targets, img_size)
 
             # inference
@@ -131,9 +133,12 @@ def train_one_epoch(epoch,
         images = images.to(device)
 
         # multi scale
+        # # choose a new image size
         if ni % 10 == 0 and cfg['random_size']:
             idx = np.random.randint(len(cfg['random_size']))
             img_size = cfg['random_size'][idx]
+        # # rescale data with new image size
+        if cfg['random_size']:
             images, targets = rescale_image_targets(images, targets, img_size)
 
         # inference
@@ -185,12 +190,12 @@ def train_one_epoch(epoch,
 
 
 def val_one_epoch(args, 
-                 model, 
-                 evaluator,
-                 optimizer,
-                 lr_scheduler,
-                 epoch,
-                 path_to_save):
+                  model, 
+                  evaluator,
+                  optimizer,
+                  lr_scheduler,
+                  epoch,
+                  path_to_save):
             # check evaluator
             if distributed_utils.is_main_process():
                 if evaluator is None:

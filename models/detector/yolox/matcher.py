@@ -129,8 +129,10 @@ class Matcher(object):
             object_sizes_of_interest = torch.cat(object_sizes_of_interest, dim=0)
             # [N, 4]
             tgt_box = targets_per_image['boxes'].to(device)
-            # [N, C]
+            # [N,]
             tgt_cls = targets_per_image['labels'].to(device)
+            # [N,]
+            tgt_obj = torch.ones_like(tgt_cls)
             # [N, M, 4], M = M1 + M2 + ... + MF
             deltas = self.get_deltas(anchors_over_all_feature_maps, tgt_box.unsqueeze(1))
 
@@ -179,31 +181,34 @@ class Matcher(object):
                 # [M,], each element is the index of ground-truth
                 positions_min_area, gt_matched_idxs = gt_positions_area.min(dim=0)
 
-                # [M,]
+                # ground truth objectness [M,]
+                tgt_obj_i = tgt_obj[gt_matched_idxs]
+                # anchors with area inf are treated as background.
+                tgt_obj_i[positions_min_area == math.inf] = 0
+
+                # ground truth classification [M,]
                 tgt_cls_i = tgt_cls[gt_matched_idxs]
                 # anchors with area inf are treated as background.
                 tgt_cls_i[positions_min_area == math.inf] = self.num_classes
 
-                # ground truth box regression
-                # [M, 4]
-                gt_anchors_reg_deltas_i = self.get_deltas(
-                    anchors_over_all_feature_maps, tgt_box[gt_matched_idxs])
+                # ground truth regression [M, 4]
+                tgt_reg_i = self.get_deltas(anchors_over_all_feature_maps, tgt_box[gt_matched_idxs])
 
-
+                gt_objectness.append(tgt_obj_i)
                 gt_classes.append(tgt_cls_i)
-                gt_anchors_deltas.append(gt_anchors_reg_deltas_i)
+                gt_anchors_deltas.append(tgt_reg_i)
                 
             else:
+                tgt_obj_i = torch.zeros(anchors_over_all_feature_maps.shape[0], device=device)
                 tgt_cls_i = torch.zeros(anchors_over_all_feature_maps.shape[0], device=device) + self.num_classes
-                gt_anchors_reg_deltas_i = torch.zeros([anchors_over_all_feature_maps.shape[0], 4], device=device)
-                gt_centerness_i = torch.zeros(anchors_over_all_feature_maps.shape[0], device=device)
+                tgt_reg_i = torch.zeros([anchors_over_all_feature_maps.shape[0], 4], device=device)
 
-                gt_classes.append(tgt_cls_i.long())
-                gt_anchors_deltas.append(gt_anchors_reg_deltas_i.float())
-                gt_centerness.append(gt_centerness_i.float())
+                gt_objectness.append(tgt_obj_i)
+                gt_classes.append(tgt_cls_i)
+                gt_anchors_deltas.append(tgt_reg_i)
 
-        # [B, M], [B, M, 4], [B, M]
-        return torch.stack(gt_classes), torch.stack(gt_anchors_deltas), torch.stack(gt_centerness)
+        # [B, M], [B, M], [B, M, 4]
+        return torch.stack(gt_objectness), torch.stack(gt_classes), torch.stack(gt_anchors_deltas)
 
 
 class SimOTA_Matcher(object):

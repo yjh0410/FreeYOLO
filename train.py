@@ -2,11 +2,9 @@ from __future__ import division
 
 import os
 import argparse
-import random
 from copy import deepcopy
 
 import torch
-import torch.nn.functional as F
 import torch.backends.cudnn as cudnn
 import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel as DDP
@@ -139,7 +137,7 @@ def train():
     ema = ModelEMA(model) if args.ema else None
 
     # optimizer
-    base_lr = 0.01 * cfg['batch_size'] / 64 * distributed_utils.get_world_size()
+    base_lr = cfg['base_lr'] * cfg['batch_size'] * distributed_utils.get_world_size()
     min_lr = base_lr * cfg['min_lr_ratio']
     optimizer = build_optimizer(model=model_without_ddp,
                                 base_lr=base_lr,
@@ -187,7 +185,7 @@ def train():
                         optimizer=optimizer)
         
         # check if stop LRSchedule
-        flag = cfg['max_epoch'] - epoch > cfg['no_aug_epoch']
+        flag = (cfg['max_epoch'] - epoch > cfg['no_aug_epoch'])
         if flag:
             lr_scheduler.step()
         else:
