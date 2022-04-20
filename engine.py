@@ -97,7 +97,7 @@ def train_with_warmup(epoch,
 
             # other infor
             log += '[time: {:.2f}]'.format(t1 - t0)
-            log += '[size: {}'.format(img_size)
+            log += '[size: {}]'.format(img_size)
 
             # print log infor
             print(log, flush=True)
@@ -169,8 +169,7 @@ def train_one_epoch(epoch,
 
             # other infor
             log += '[time: {:.2f}]'.format(t1 - t0)
-            log += '[gnorm: {:.2f}]'.format(total_norm)
-            log += '[size: {}'.format(img_size)
+            log += '[size: {}]'.format(img_size)
 
             # print log infor
             print(log, flush=True)
