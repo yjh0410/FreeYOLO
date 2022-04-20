@@ -51,7 +51,8 @@ def build_dataset(cfg, args, device):
                               image_set='train2017',
                               transform=train_transform,
                               mosaic=cfg['mosaic'],
-                              mixup=cfg['mixup'])
+                              mixup=cfg['mixup'],
+                              affine_params=cfg['affine_params'])
         # evaluator
         evaluator = COCOAPIEvaluator(data_dir=data_dir,
                                      device=device,
