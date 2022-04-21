@@ -6,7 +6,6 @@ import os
 import numpy as np
 
 from utils import distributed_utils
-from utils.misc import get_total_grad_norm
 
 
 def rescale_image_targets(images, targets, new_img_size):

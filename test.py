@@ -130,10 +130,14 @@ def test(args,
             bboxes, scores, cls_inds = net(x)
         print("detection time used ", time.time() - t0, "s")
         
-        # rescale
-        bboxes *= max(orig_h, orig_w)
-        bboxes[..., [0, 2]] = np.clip(bboxes[..., [0, 2]], a_min=0., a_max=orig_w)
-        bboxes[..., [1, 3]] = np.clip(bboxes[..., [1, 3]], a_min=0., a_max=orig_h)
+        img = x[0].permute(1, 2, 0).cpu().numpy().astype(np.uint8)
+        orig_h, orig_w, _ = image.shape
+        bboxes[..., [0, 2]] = bboxes[..., [0, 2]] * orig_w
+        bboxes[..., [1, 3]] = bboxes[..., [1, 3]] * orig_h
+        # # rescale
+        # bboxes *= max(orig_h, orig_w)
+        # bboxes[..., [0, 2]] = np.clip(bboxes[..., [0, 2]], a_min=0., a_max=orig_w)
+        # bboxes[..., [1, 3]] = np.clip(bboxes[..., [1, 3]], a_min=0., a_max=orig_h)
 
         # vis detection
         img_processed = visualize(
