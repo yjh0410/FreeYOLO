@@ -87,7 +87,7 @@ class Criterion(object):
 
         # classification loss
         matched_pred_cls = pred_cls[foreground_idxs]
-        matched_tgt_cls = gt_classes_target[foreground_idxs]# * ious.unsqueeze(1).clamp(0.)
+        matched_tgt_cls = gt_classes_target[foreground_idxs] * ious.unsqueeze(1).clamp(0.)
         loss_labels = self.cls_lossf(matched_pred_cls, matched_tgt_cls)
         loss_labels = loss_labels.sum() / num_foreground
 
