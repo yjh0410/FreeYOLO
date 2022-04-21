@@ -155,7 +155,9 @@ def train():
 
     # start training loop
     best_map = -1.0
-    for epoch in range(cfg['wp_epoch'] + cfg['max_epoch']):
+    lr_schedule=True
+    total_epochs = cfg['wp_epoch'] + cfg['max_epoch']
+    for epoch in range(total_epochs):
         if args.distributed:
             dataloader.batch_sampler.sampler.set_epoch(epoch)            
 
@@ -183,13 +185,14 @@ def train():
 
         else:
             # use cos lr decay
-            T_max = cfg['max_epoch'] - cfg['no_aug_epoch']
+            T_max = total_epochs - cfg['no_aug_epoch']
             if epoch > T_max:
-                # Cos decay is done
                 print('Cosine annealing is over !!')
+                lr_schedule = False
                 for param_group in optimizer.param_groups:
                     param_group['lr'] = min_lr
-            else:
+
+            if lr_schedule:
                 tmp_lr = min_lr + 0.5*(base_lr - min_lr)*(1 + math.cos(math.pi*epoch / T_max))
                 for param_group in optimizer.param_groups:
                     param_group['lr'] = tmp_lr
@@ -214,11 +217,11 @@ def train():
                           path_to_save=path_to_save)
 
         # close mosaic augmentation
-        if cfg['mosaic'] and cfg['max_epoch'] - epoch == cfg['no_aug_epoch']:
+        if cfg['mosaic'] and total_epochs- epoch == cfg['no_aug_epoch']:
             print('close Mosaic Augmentation ...')
             dataloader.dataset.mosaic = False
         # close mixup augmentation
-        if cfg['mixup'] and cfg['max_epoch'] - epoch == cfg['no_aug_epoch']:
+        if cfg['mixup'] and total_epochs - epoch == cfg['no_aug_epoch']:
             print('close Mixup Augmentation ...')
             dataloader.dataset.mixup = False
 
