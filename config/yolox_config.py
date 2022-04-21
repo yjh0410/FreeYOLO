@@ -26,8 +26,8 @@ yolox_config = {
             'mixup_scale': (0.5, 1.5)},
         # model
         'backbone': 'cspdarknet',
-        'depth': 0.33,
-        'width': 0.5,
+        'depth': 1.0,
+        'width': 1.0,
         'depthwise': False,
         'act_type': 'silu',
         'stride': [8, 16, 32],  # P3, P4, P5
