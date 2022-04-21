@@ -32,6 +32,7 @@ def rescale_image_targets(images, targets, new_img_size):
 
 
 def train_with_warmup(epoch,
+                      total_epoch,
                       args, 
                       device, 
                       ema,
@@ -88,7 +89,7 @@ def train_with_warmup(epoch,
             t1 = time.time()
             cur_lr = [param_group['lr']  for param_group in optimizer.param_groups]
             # basic infor
-            log =  '[Epoch: {}/{}]'.format(epoch+1, cfg['max_epoch'])
+            log =  '[Epoch: {}/{}]'.format(epoch+1, total_epoch)
             log += '[Iter: {}/{}]'.format(iter_i, epoch_size)
             log += '[lr: {:.6f}]'.format(cur_lr[0])
             # loss infor
@@ -109,6 +110,7 @@ def train_with_warmup(epoch,
 
 
 def train_one_epoch(epoch,
+                    total_epoch,
                     args, 
                     device, 
                     ema,
@@ -160,7 +162,7 @@ def train_one_epoch(epoch,
             t1 = time.time()
             cur_lr = [param_group['lr']  for param_group in optimizer.param_groups]
             # basic infor
-            log =  '[Epoch: {}/{}]'.format(epoch+1, cfg['max_epoch'])
+            log =  '[Epoch: {}/{}]'.format(epoch+1, total_epoch)
             log += '[Iter: {}/{}]'.format(iter_i, epoch_size)
             log += '[lr: {:.6f}]'.format(cur_lr[0])
             # loss infor

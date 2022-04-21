@@ -164,6 +164,7 @@ def train():
         if epoch < cfg['wp_epoch']:
             # warmup training loop
             train_with_warmup(epoch=epoch,
+                              total_epochs=total_epochs,
                               args=args, 
                               device=device, 
                               ema=ema,
@@ -199,7 +200,8 @@ def train():
 
             # train one epoch
             train_one_epoch(epoch=epoch,
-                            args=args, 
+                              total_epochs=total_epochs,
+                              args=args, 
                             device=device,
                             ema=ema, 
                             model=model, 
