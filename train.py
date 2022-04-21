@@ -154,17 +154,19 @@ def train():
 
 
     # start training loop
+    best_map = -1.0
     for epoch in range(cfg['wp_epoch'] + cfg['max_epoch']):
         if args.distributed:
             dataloader.batch_sampler.sampler.set_epoch(epoch)            
 
         if epoch < cfg['wp_epoch']:
             # evaluation
-            val_one_epoch(args=args, 
+            best_map = val_one_epoch(args=args, 
                           model=ema.ema if args.ema else model_without_ddp, 
                           evaluator=evaluator,
                           optimizer=optimizer,
                           epoch=epoch,
+                          best_map=best_map,
                           path_to_save=path_to_save)
 
             # warmup training loop

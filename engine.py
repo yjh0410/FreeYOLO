@@ -182,47 +182,50 @@ def val_one_epoch(args,
                   evaluator,
                   optimizer,
                   epoch,
+                  best_map,
                   path_to_save):
-            # check evaluator
-            if distributed_utils.is_main_process():
-                if evaluator is None:
-                    print('No evaluator ... save model and go on training.')
-                    print('Saving state, epoch: {}'.format(epoch + 1))
-                    weight_name = '{}_epoch_{}.pth'.format(args.version, epoch + 1)
-                    checkpoint_path = os.path.join(path_to_save, weight_name)
-                    torch.save({'model': model.state_dict(),
-                                'optimizer': optimizer.state_dict(),
-                                'epoch': epoch,
-                                'args': args}, 
-                                checkpoint_path)                      
-                    
-                else:
-                    print('eval ...')
-                    # set eval mode
-                    model.trainable = False
-                    model.eval()
+    # check evaluator
+    if distributed_utils.is_main_process():
+        if evaluator is None:
+            print('No evaluator ... save model and go on training.')
+            print('Saving state, epoch: {}'.format(epoch + 1))
+            weight_name = '{}_epoch_{}.pth'.format(args.version, epoch + 1)
+            checkpoint_path = os.path.join(path_to_save, weight_name)
+            torch.save({'model': model.state_dict(),
+                        'optimizer': optimizer.state_dict(),
+                        'epoch': epoch,
+                        'args': args}, 
+                        checkpoint_path)                      
+            
+        else:
+            print('eval ...')
+            # set eval mode
+            model.trainable = False
+            model.eval()
 
-                    # evaluate
-                    evaluator.evaluate(model)
+            # evaluate
+            evaluator.evaluate(model)
 
-                    cur_map = evaluator.map
-                    if cur_map > best_map:
-                        # update best-map
-                        best_map = cur_map
-                        # save model
-                        print('Saving state, epoch:', epoch + 1)
-                        weight_name = '{}_epoch_{}_{:.2f}.pth'.format(args.version, epoch + 1, best_map*100)
-                        checkpoint_path = os.path.join(path_to_save, weight_name)
-                        torch.save({'model': model.state_dict(),
-                                    'optimizer': optimizer.state_dict(),
-                                    'epoch': epoch,
-                                    'args': args}, 
-                                    checkpoint_path)                      
+            cur_map = evaluator.map
+            if cur_map > best_map:
+                # update best-map
+                best_map = cur_map
+                # save model
+                print('Saving state, epoch:', epoch + 1)
+                weight_name = '{}_epoch_{}_{:.2f}.pth'.format(args.version, epoch + 1, best_map*100)
+                checkpoint_path = os.path.join(path_to_save, weight_name)
+                torch.save({'model': model.state_dict(),
+                            'optimizer': optimizer.state_dict(),
+                            'epoch': epoch,
+                            'args': args}, 
+                            checkpoint_path)                      
 
-                    # set train mode.
-                    model.trainable = True
-                    model.train()
-        
-            if args.distributed:
-                # wait for all processes to synchronize
-                dist.barrier()
+            # set train mode.
+            model.trainable = True
+            model.train()
+
+    if args.distributed:
+        # wait for all processes to synchronize
+        dist.barrier()
+
+    return best_map
