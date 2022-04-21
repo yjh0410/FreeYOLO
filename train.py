@@ -183,7 +183,7 @@ def train():
 
         else:
             # use cos lr decay
-            T_max = T_max=cfg['max_epoch'] - cfg['no_aug_epoch']
+            T_max = cfg['max_epoch'] - cfg['no_aug_epoch']
             if epoch > T_max:
                 # Cos decay is done
                 print('Cosine annealing is over !!')
