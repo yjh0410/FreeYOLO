@@ -528,8 +528,8 @@ class PadImage(object):
                 pad_img_h = (img_h0 // 32 + 1) * 32
                 pad_img_w = self.img_size
             else:
-                pad_img_h = img_h0
-                pad_img_w = img_w0
+                pad_img_h = self.img_size
+                pad_img_w = self.img_size
             pad_image = torch.zeros([image.size(0), pad_img_h, pad_img_w]).float()
         else:
             pad_image = torch.zeros([image.size(0), self.img_size, self.img_size]).float()
