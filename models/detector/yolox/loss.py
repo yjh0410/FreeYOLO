@@ -62,7 +62,6 @@ class Criterion(object):
         gt_shifts_deltas = gt_shifts_deltas.view(-1, 4).to(device).float()
 
         foreground_idxs = (gt_objectness > 0)
-        # foreground_idxs = (gt_classes >= 0) & (gt_classes != self.num_classes)
         num_foreground = foreground_idxs.sum()
 
         if is_dist_avail_and_initialized():
@@ -88,7 +87,7 @@ class Criterion(object):
 
         # classification loss
         matched_pred_cls = pred_cls[foreground_idxs]
-        matched_tgt_cls = gt_classes_target[foreground_idxs]# * ious.unsqueeze(1).clamp(0.)
+        matched_tgt_cls = gt_classes_target[foreground_idxs] * ious.unsqueeze(1).clamp(0.)
         loss_labels = self.cls_lossf(matched_pred_cls, matched_tgt_cls)
         loss_labels = loss_labels.sum() / num_foreground
 

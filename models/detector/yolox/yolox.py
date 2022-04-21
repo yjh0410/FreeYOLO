@@ -50,33 +50,25 @@ class YOLOX(nn.Module):
         self.topk = topk
 
         # backbone
-        self.backbone, bk_dim = build_backbone(model_name=cfg['backbone'], 
-                                               pretrained=cfg['pretrained'])
+        self.backbone, bk_dim = build_backbone(cfg=cfg)
 
         # neck
         self.fpn = build_fpn(cfg=cfg, in_dims=bk_dim)
                                      
         # non-shared heads
-        self.non_shared_heads = nn.ModuleList([
-            DecoupledHead(head_dim=cfg['head_dim'],
-                           num_cls_head=cfg['num_cls_head'],
-                           num_reg_head=cfg['num_reg_head'],
-                           act_type=cfg['head_act'],
-                           norm_type=cfg['head_norm'])
-            for _ in range(len(cfg['stride']))
-        ])
+        self.non_shared_heads = nn.ModuleList([DecoupledHead(cfg) for _ in range(len(cfg['stride']))])
 
         # pred
-        self.obj_pred = nn.Conv2d(cfg['head_dim'], 1, kernel_size=1)
-        self.cls_pred = nn.Conv2d(cfg['head_dim'], self.num_classes, kernel_size=1)
-        self.reg_pred = nn.Conv2d(cfg['head_dim'], 4, kernel_size=1)
+        self.obj_pred = nn.Conv2d(int(cfg['head_dim']*cfg['width']), 1, kernel_size=1)
+        self.cls_pred = nn.Conv2d(int(cfg['head_dim']*cfg['width']), self.num_classes, kernel_size=1)
+        self.reg_pred = nn.Conv2d(int(cfg['head_dim']*cfg['width']), 4, kernel_size=1)
 
         # scale
         self.scales = nn.ModuleList([Scale() for _ in range(len(self.stride))])
 
         if trainable:
             # init bias
-            self._init_pred_layers()
+            self._init_biases()
 
         # criterion
         if self.trainable:
@@ -88,18 +80,15 @@ class YOLOX(nn.Module):
                                        num_classes=num_classes)
 
 
-    def _init_pred_layers(self):  
+    def _init_biases(self):  
         # init obj pred
-        nn.init.normal_(self.obj_pred.weight, mean=0, std=0.01)
-        nn.init.constant_(self.reg_pred.bias, 0.0)
+        init_prob = 0.01
+        bias_value = -torch.log(torch.tensor((1. - init_prob) / init_prob))
+        nn.init.constant_(self.obj_pred.bias, bias_value)
         # init cls pred
-        nn.init.normal_(self.cls_pred.weight, mean=0, std=0.01)
         init_prob = 0.01
         bias_value = -torch.log(torch.tensor((1. - init_prob) / init_prob))
         nn.init.constant_(self.cls_pred.bias, bias_value)
-        # init reg pred
-        nn.init.normal_(self.reg_pred.weight, mean=0, std=0.01)
-        nn.init.constant_(self.reg_pred.bias, 0.0)
 
 
     def generate_anchors(self, level, fmp_size):
@@ -192,7 +181,7 @@ class YOLOX(nn.Module):
             obj_pred = obj_pred[0].permute(1, 2, 0).contiguous().view(-1, 1)
             cls_pred = cls_pred[0].permute(1, 2, 0).contiguous().view(-1, self.num_classes)
             reg_pred = reg_pred[0].permute(1, 2, 0).contiguous().view(-1, 4)
-            reg_pred = F.relu(self.scales[level](reg_pred)) * self.stride[level]
+            reg_pred = torch.exp(self.scales[level](reg_pred)) * self.stride[level]
 
             # scores
             scores, labels = torch.max(obj_pred.sigmoid() * cls_pred.sigmoid(), dim=-1)
@@ -268,7 +257,7 @@ class YOLOX(nn.Module):
             all_obj_preds = []
             all_cls_preds = []
             all_reg_preds = []
-            for level, (feat, head) in enumerate(zip(pyramid_feats, self.non_shared_heads) ):
+            for level, (feat, head) in enumerate(zip(pyramid_feats, self.non_shared_heads)):
                 cls_feat, reg_feat = head(feat)
 
                 # [B, C, H, W]
@@ -282,7 +271,7 @@ class YOLOX(nn.Module):
                 obj_pred = obj_pred.permute(0, 2, 3, 1).contiguous().view(B, -1, 1)
                 cls_pred = cls_pred.permute(0, 2, 3, 1).contiguous().view(B, -1, self.num_classes)
                 reg_pred = reg_pred.permute(0, 2, 3, 1).contiguous().view(B, -1, 4)
-                reg_pred = F.relu(self.scales[level](reg_pred)) * self.stride[level]
+                reg_pred = torch.exp(self.scales[level](reg_pred)) * self.stride[level]
 
                 all_obj_preds.append(obj_pred)
                 all_cls_preds.append(cls_pred)

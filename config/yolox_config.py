@@ -2,7 +2,7 @@
 
 
 yolox_config = {
-    'yolox_d53': {
+    'yolox_s': {
         # input
         'img_size': 640,
         'random_size': [320, 352, 384, 416, 448, 480, 512, 544, 576, 608, 640],
@@ -25,19 +25,22 @@ yolox_config = {
             'shear': 2.0,
             'mixup_scale': (0.5, 1.5)},
         # model
-        'backbone': 'darknet53',
-        'pretrained': False,
+        'backbone': 'cspdarknet',
+        'depth': 0.33,
+        'width': 0.5,
+        'depthwise': False,
+        'act_type': 'silu',
         'stride': [8, 16, 32],  # P3, P4, P5
         # neck
-        'use_spp': True,
-        'fpn': 'yolo_fpn',
+        'use_spp': False,
+        'fpn': 'yolo_pafpn',
         'fpn_norm': 'BN',
-        'fpn_act': 'lrelu',
+        'fpn_act': 'silu',
         # head
         'head': 'decoupled_head',
         'head_dim': 256,
         'head_norm': 'BN',
-        'head_act': 'lrelu',
+        'head_act': 'silu',
         'num_cls_head': 2,
         'num_reg_head': 2,
         # post process
@@ -56,7 +59,7 @@ yolox_config = {
         # training configuration
         'max_epoch': 300,
         'no_aug_epoch': 15,
-        'batch_size': 12,
+        'batch_size': 1,
         'base_lr': 0.01 / 64.,
         'min_lr_ratio': 0.05,
         # optimizer
@@ -68,4 +71,6 @@ yolox_config = {
         'warmup_factor': 0.00066667,
         'wp_epoch': 5,
         },
+
+
 }

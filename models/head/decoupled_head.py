@@ -5,42 +5,27 @@ from ..basic.conv import Conv
 
 
 class DecoupledHead(nn.Module):
-    def __init__(self, 
-                 head_dim=256,
-                 num_cls_head=4,
-                 num_reg_head=4,
-                 act_type='relu',
-                 norm_type=''):
+    def __init__(self, cfg):
         super().__init__()
 
         print('==============================')
         print('Head: Decoupled Head')
+        self.num_cls_head=cfg['num_cls_head']
+        self.num_reg_head=cfg['num_reg_head']
+        self.act_type=cfg['head_act']
+        self.norm_type=cfg['head_norm']
+        self.head_dim = int(cfg['head_dim'] * cfg['width'])
 
-        self.cls_feats = nn.Sequential(*[Conv(head_dim, 
-                                              head_dim, 
+        self.cls_feats = nn.Sequential(*[Conv(self.head_dim, 
+                                              self.head_dim, 
                                               k=3, p=1, s=1, 
-                                              act_type=act_type, 
-                                              norm_type=norm_type) for _ in range(num_cls_head)])
-        self.reg_feats = nn.Sequential(*[Conv(head_dim, 
-                                              head_dim, 
+                                              act_type=self.act_type, 
+                                              norm_type=self.norm_type) for _ in range(self.num_cls_head)])
+        self.reg_feats = nn.Sequential(*[Conv(self.head_dim, 
+                                              self.head_dim, 
                                               k=3, p=1, s=1, 
-                                              act_type=act_type, 
-                                              norm_type=norm_type) for _ in range(num_reg_head)])
-
-        self._init_weight()
-
-
-    def _init_weight(self):
-        # init weight of detection head
-        for m in [self.cls_feats, self.reg_feats]:
-            if isinstance(m, nn.Conv2d):
-                nn.init.normal_(m.weight, mean=0, std=0.01)
-                if hasattr(m, 'bias') and m.bias is not None:
-                    nn.init.constant_(m.bias, 0)
-
-            if isinstance(m, (nn.GroupNorm, nn.BatchNorm2d, nn.SyncBatchNorm)):
-                nn.init.constant_(m.weight, 1)
-                nn.init.constant_(m.bias, 0)
+                                              act_type=self.act_type, 
+                                              norm_type=self.norm_type) for _ in range(self.num_reg_head)])
 
 
     def forward(self, x):

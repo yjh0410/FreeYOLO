@@ -1,13 +1,15 @@
-from .darknet import darknet53
+from .cspdarknet import build_cspdarknet
 
 
-def build_backbone(model_name='darknet53', pretrained=False):
+def build_backbone(cfg):
     print('==============================')
-    print('Backbone: {}'.format(model_name.upper()))
-    print('--pretrained: {}'.format(pretrained))
+    print('Backbone: {}'.format(cfg['backbone'].upper()))
 
-    if model_name == 'darknet53':
-        model, feat_dim = darknet53(pretrained=pretrained)
+    if 'cspdarknet' in cfg['backbone']:
+        model, feat_dim = build_cspdarknet(depth=cfg['depth'], 
+                                           width=cfg['width'], 
+                                           depthwise=cfg['depthwise'],
+                                           act_type=cfg['act_type'])
 
     else:
         print('Unknown Backbone ...')
