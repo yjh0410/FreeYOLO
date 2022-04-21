@@ -51,8 +51,6 @@ class YOLOX(nn.Module):
                               for _ in range(len(cfg['stride']))
                               ]) 
 
-        # scale
-        self.scales = nn.ModuleList([Scale() for _ in range(len(self.stride))])
 
         if trainable:
             # init bias
@@ -72,11 +70,13 @@ class YOLOX(nn.Module):
         # init obj pred
         init_prob = 0.01
         bias_value = -torch.log(torch.tensor((1. - init_prob) / init_prob))
-        nn.init.constant_(self.obj_pred.bias, bias_value)
+        for obj_pred in self.obj_preds:
+            nn.init.constant_(obj_pred.bias, bias_value)
         # init cls pred
         init_prob = 0.01
         bias_value = -torch.log(torch.tensor((1. - init_prob) / init_prob))
-        nn.init.constant_(self.cls_pred.bias, bias_value)
+        for cls_pred in self.cls_preds:
+            nn.init.constant_(cls_pred.bias, bias_value)
 
 
     def generate_anchors(self, level, fmp_size):
