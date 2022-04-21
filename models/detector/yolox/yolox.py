@@ -1,33 +1,11 @@
 import torch
 import numpy as np
 import torch.nn as nn
-import torch.nn.functional as F
 
 from ...backbone import build_backbone
 from ...neck import build_fpn
 from ...head.decoupled_head import DecoupledHead
 from .loss import Criterion
-
-
-class Scale(nn.Module):
-    """
-    Multiply the output regression range by a learnable constant value
-    """
-    def __init__(self, init_value=1.0):
-        """
-        init_value : initial value for the scalar
-        """
-        super().__init__()
-        self.scale = nn.Parameter(
-            torch.tensor(init_value, dtype=torch.float32),
-            requires_grad=True
-        )
-
-    def forward(self, x):
-        """
-        input -> scale * input
-        """
-        return x * self.scale
 
 
 class YOLOX(nn.Module):
@@ -59,9 +37,19 @@ class YOLOX(nn.Module):
         self.non_shared_heads = nn.ModuleList([DecoupledHead(cfg) for _ in range(len(cfg['stride']))])
 
         # pred
-        self.obj_pred = nn.Conv2d(int(cfg['head_dim']*cfg['width']), 1, kernel_size=1)
-        self.cls_pred = nn.Conv2d(int(cfg['head_dim']*cfg['width']), self.num_classes, kernel_size=1)
-        self.reg_pred = nn.Conv2d(int(cfg['head_dim']*cfg['width']), 4, kernel_size=1)
+        head_dim = int(cfg['head_dim']*cfg['width'])
+        self.obj_preds = nn.ModuleList(
+                            [nn.Conv2d(head_dim, 1, kernel_size=1) 
+                              for _ in range(len(cfg['stride']))
+                              ]) 
+        self.cls_preds = nn.ModuleList(
+                            [nn.Conv2d(head_dim, self.num_classes, kernel_size=1) 
+                              for _ in range(len(cfg['stride']))
+                              ]) 
+        self.reg_preds = nn.ModuleList(
+                            [nn.Conv2d(head_dim, 4, kernel_size=1) 
+                              for _ in range(len(cfg['stride']))
+                              ]) 
 
         # scale
         self.scales = nn.ModuleList([Scale() for _ in range(len(self.stride))])
@@ -170,9 +158,9 @@ class YOLOX(nn.Module):
             cls_feat, reg_feat = head(feat)
 
             # [1, C, H, W]
-            obj_pred = self.obj_pred(reg_feat)
-            cls_pred = self.cls_pred(cls_feat)
-            reg_pred = self.reg_pred(reg_feat)
+            obj_pred = self.obj_preds[level](reg_feat)
+            cls_pred = self.cls_preds[level](cls_feat)
+            reg_pred = self.reg_preds[level](reg_feat)
 
             # decode box
             _, _, H, W = cls_pred.size()
@@ -181,7 +169,7 @@ class YOLOX(nn.Module):
             obj_pred = obj_pred[0].permute(1, 2, 0).contiguous().view(-1, 1)
             cls_pred = cls_pred[0].permute(1, 2, 0).contiguous().view(-1, self.num_classes)
             reg_pred = reg_pred[0].permute(1, 2, 0).contiguous().view(-1, 4)
-            reg_pred = torch.exp(self.scales[level](reg_pred)) * self.stride[level]
+            reg_pred = torch.exp(reg_pred) * self.stride[level]
 
             # scores
             scores, labels = torch.max(obj_pred.sigmoid() * cls_pred.sigmoid(), dim=-1)
@@ -260,9 +248,9 @@ class YOLOX(nn.Module):
                 cls_feat, reg_feat = head(feat)
 
                 # [B, C, H, W]
-                obj_pred = self.obj_pred(reg_feat)
-                cls_pred = self.cls_pred(cls_feat)
-                reg_pred = self.reg_pred(reg_feat)
+                obj_pred = self.obj_preds[level](reg_feat)
+                cls_pred = self.cls_preds[level](cls_feat)
+                reg_pred = self.reg_preds[level](reg_feat)
 
                 B, _, H, W = cls_pred.size()
                 fmp_size = [H, W]
@@ -270,7 +258,7 @@ class YOLOX(nn.Module):
                 obj_pred = obj_pred.permute(0, 2, 3, 1).contiguous().view(B, -1, 1)
                 cls_pred = cls_pred.permute(0, 2, 3, 1).contiguous().view(B, -1, self.num_classes)
                 reg_pred = reg_pred.permute(0, 2, 3, 1).contiguous().view(B, -1, 4)
-                reg_pred = torch.exp(self.scales[level](reg_pred)) * self.stride[level]
+                reg_pred = torch.exp(reg_pred) * self.stride[level]
 
                 all_obj_preds.append(obj_pred)
                 all_cls_preds.append(cls_pred)
@@ -284,7 +272,7 @@ class YOLOX(nn.Module):
             outputs = {"pred_obj": all_obj_preds,        # List [B, M, 1]
                        "pred_cls": all_cls_preds,        # List [B, M, C]
                        "pred_reg": all_reg_preds,        # List [B, M, 4]
-                       'strides': self.stride}          # List [B, M,]
+                       'strides': self.stride}           # List [B, M,]
 
             # loss
             loss_dict = self.criterion(outputs = outputs, 
