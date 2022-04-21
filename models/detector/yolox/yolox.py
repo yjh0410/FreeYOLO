@@ -234,8 +234,7 @@ class YOLOX(nn.Module):
         labels = labels[keep]
 
         # normalize bbox
-        bboxes[..., [0, 2]] /= img_w
-        bboxes[..., [1, 3]] /= img_h
+        bboxes /= max(img_h, img_w)
         bboxes = bboxes.clip(0., 1.)
 
         return bboxes, scores, labels
