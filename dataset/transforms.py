@@ -522,11 +522,11 @@ class PadImage(object):
 
         if self.adapative:
             if img_h0 > img_w0:
-                pad_img_h = img_h0
+                pad_img_h = self.img_size
                 pad_img_w = (img_w0 // 32 + 1) * 32
             elif img_h0 < img_w0:
                 pad_img_h = (img_h0 // 32 + 1) * 32
-                pad_img_w = img_w0
+                pad_img_w = self.img_size
             else:
                 pad_img_h = img_h0
                 pad_img_w = img_w0
