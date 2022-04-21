@@ -64,6 +64,7 @@ class VOCAPIEvaluator():
             t0 = time.time()
             # forward
             bboxes, scores, cls_inds = net(x)
+            print(x.shape)
             detect_time = time.time() - t0
             # rescale
             bboxes *= max(orig_h, orig_w)

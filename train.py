@@ -159,6 +159,14 @@ def train():
             dataloader.batch_sampler.sampler.set_epoch(epoch)            
 
         if epoch < cfg['wp_epoch']:
+            # evaluation
+            val_one_epoch(args=args, 
+                          model=ema.ema if args.ema else model_without_ddp, 
+                          evaluator=evaluator,
+                          optimizer=optimizer,
+                          epoch=epoch,
+                          path_to_save=path_to_save)
+
             # warmup training loop
             train_with_warmup(epoch=epoch,
                               args=args, 
@@ -170,14 +178,6 @@ def train():
                               dataloader=dataloader, 
                               optimizer=optimizer, 
                               warmup_scheduler=warmup_scheduler)
-
-            # evaluation
-            val_one_epoch(args=args, 
-                          model=ema.ema if args.ema else model_without_ddp, 
-                          evaluator=evaluator,
-                          optimizer=optimizer,
-                          epoch=epoch,
-                          path_to_save=path_to_save)
 
         else:
             # use cos lr decay
