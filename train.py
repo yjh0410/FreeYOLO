@@ -214,11 +214,11 @@ def train():
                           path_to_save=path_to_save)
 
         # close mosaic augmentation
-        if args.mosaic and cfg['max_epoch'] - epoch == cfg['no_aug_epoch']:
+        if cfg['mosaic'] and cfg['max_epoch'] - epoch == cfg['no_aug_epoch']:
             print('close Mosaic Augmentation ...')
             dataloader.dataset.mosaic = False
         # close mixup augmentation
-        if args.mixup and cfg['max_epoch'] - epoch == cfg['no_aug_epoch']:
+        if cfg['mixup'] and cfg['max_epoch'] - epoch == cfg['no_aug_epoch']:
             print('close Mixup Augmentation ...')
             dataloader.dataset.mixup = False
 
