@@ -211,7 +211,7 @@ class Matcher(object):
         return torch.stack(gt_objectness), torch.stack(gt_classes), torch.stack(gt_anchors_deltas)
 
 
-class SimOTA_Matcher(object):
+class SimOTA(object):
     def __init__(self, 
                  cfg,
                  num_classes,
@@ -219,7 +219,6 @@ class SimOTA_Matcher(object):
         self.num_classes = num_classes
         self.box_weights = box_weights
         self.center_sampling_radius = cfg['center_sampling_radius']
-        self.sinkhorn = SinkhornDistance(eps=cfg['eps'], max_iter=cfg['max_iter'])
         self.topk_candidate = cfg['topk_candidate']
 
 

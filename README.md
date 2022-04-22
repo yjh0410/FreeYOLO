@@ -20,6 +20,25 @@ pip install -r requirements.txt
 We suggest that PyTorch should be higher than 1.9.0 and Torchvision should be higher than 0.10.3. 
 At least, please make sure your torch is version 1.x.
 
+# Tricks
+- [x] Mosaic Augmentation
+- [x] Mixup Augmentation
+- [x] Multi scale training
+- [x] Cosine Annealing Schedule
+- [x] Training from Scratch
+- [x] Simple OTA
+
+# Main results on COCO-val
+
+| Model                 |  scale   |   mAP   | Weight |
+|-----------------------|----------|---------|--------|
+| YOLOX-S               |  640     |         |    -   |
+| YOLOX-M               |  640     |         |    -   |
+| YOLOX-L               |  640     |         |    -   |
+| YOLOX-X               |  640     |         |    -   |
+| YOLOX-T               |  416     |         |    -   |
+| YOLOX-N               |  416     |         |    -   |
+
 # Train
 ## Single GPU
 ```Shell
