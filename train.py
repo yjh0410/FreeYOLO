@@ -42,6 +42,11 @@ def parse_args():
     parser.add_argument('-p', '--coco_pretrained', default=None, type=str,
                         help='coco pretrained weight')
 
+    # Matcher
+    parser.add_argument('-m', '--matcher', default='sim_ota', type=str, 
+                        choices=['basic', 'sim_ota'],
+                        help='build matcher')
+
     # dataset
     parser.add_argument('--root', default='/mnt/share/ssd2/dataset',
                         help='data root')

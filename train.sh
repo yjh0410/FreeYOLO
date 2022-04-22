@@ -3,4 +3,5 @@ python train.py \
         -d voc \
         --root /mnt/share/ssd2/dataset/ \
         -v yolox_s \
+        -m basic \
         --ema

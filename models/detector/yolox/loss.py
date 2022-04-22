@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from .matcher import Matcher, SimOTA_Matcher
+from .matcher import Matcher, SimOTA
 from utils.box_ops import get_ious
 from utils.distributed_utils import get_world_size, is_dist_avail_and_initialized
 
@@ -10,6 +10,7 @@ class Criterion(object):
     def __init__(self, 
                  cfg, 
                  device, 
+                 matcher,
                  loss_obj_weight=1.0, 
                  loss_cls_weight=1.0,
                  loss_reg_weight=1.0,
@@ -24,14 +25,17 @@ class Criterion(object):
         self.obj_lossf = nn.BCEWithLogitsLoss(reduction='none')
         self.cls_lossf = nn.BCEWithLogitsLoss(reduction='none')
         # matcher
-        if cfg['matcher'] == 'matcher':
-            self.matcher = Matcher(cfg,
-                                   num_classes=num_classes,
-                                   box_weights=[1., 1., 1., 1.])
-        elif cfg['matcher'] == 'ota_matcher':
-            self.matcher = SimOTA_Matcher(cfg, 
-                                          num_classes, 
-                                          box_weights=[1., 1., 1., 1.])
+        matcher_cfg = cfg['matcher'][matcher]
+        if matcher == 'basic':
+            self.matcher = Matcher(
+                num_classes=num_classes,
+                center_sampling_radius=matcher_cfg['center_sampling_radius'],
+                object_sizes_of_interest=matcher_cfg['object_sizes_of_interest'])
+        elif matcher == 'sim_ota':
+            self.matcher = SimOTA(
+                num_classes, 
+                center_sampling_radius=matcher_cfg['center_sampling_radius'],
+                topk_candidate=matcher_cfg['topk_candidate'])
 
 
     # The origin loss of FCOS

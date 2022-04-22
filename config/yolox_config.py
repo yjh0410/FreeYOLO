@@ -47,11 +47,12 @@ yolox_config = {
         'conf_thresh': 0.001,
         'train_nms_thresh': 0.6,
         'test_nms_thresh': 0.45,
-        # scale range
-        'object_sizes_of_interest': [[-1, 64], [64, 128], [128, float('inf')]],
         # matcher
-        'matcher': 'matcher',
-        'center_sampling_radius': 1.5,
+        'matcher': {'basic': {'object_sizes_of_interest': [[-1, 64], 
+                                                           [64, 128], 
+                                                           [128, float('inf')]],
+                              'center_sampling_radius': 1.5},
+                    'sim_ota': {}},
         # loss
         'loss_obj_weight': 1.0,
         'loss_cls_weight': 1.0,

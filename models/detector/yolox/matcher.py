@@ -77,13 +77,12 @@ def get_ious_and_iou_loss(inputs,
 
 class Matcher(object):
     def __init__(self, 
-                 cfg,
                  num_classes,
-                 box_weights=[1, 1, 1, 1]):
+                 center_sampling_radius,
+                 object_sizes_of_interest):
         self.num_classes = num_classes
-        self.center_sampling_radius = cfg['center_sampling_radius']
-        self.object_sizes_of_interest = cfg['object_sizes_of_interest']
-        self.box_weightss = box_weights
+        self.center_sampling_radius = center_sampling_radius
+        self.object_sizes_of_interest = object_sizes_of_interest
 
 
     def get_deltas(self, anchors, boxes):
@@ -99,8 +98,8 @@ class Matcher(object):
         """
         assert isinstance(anchors, torch.Tensor), type(anchors)
         assert isinstance(boxes, torch.Tensor), type(boxes)
-        deltas = torch.cat((anchors - boxes[..., :2], boxes[..., 2:] - anchors),
-                           dim=-1) * anchors.new_tensor(self.box_weightss)
+        deltas = torch.cat((anchors - boxes[..., :2], 
+                            boxes[..., 2:] - anchors), dim=-1)
         return deltas
 
 
@@ -213,13 +212,13 @@ class Matcher(object):
 
 class SimOTA(object):
     def __init__(self, 
-                 cfg,
                  num_classes,
-                 box_weights=[1.0, 1.0, 1.0, 1.0]) -> None:
+                 center_sampling_radius,
+                 topk_candidate
+                 ) -> None:
         self.num_classes = num_classes
-        self.box_weights = box_weights
-        self.center_sampling_radius = cfg['center_sampling_radius']
-        self.topk_candidate = cfg['topk_candidate']
+        self.center_sampling_radius = center_sampling_radius
+        self.topk_candidate = topk_candidate
 
 
     def get_deltas(self, anchors, bboxes):
@@ -235,8 +234,8 @@ class SimOTA(object):
         assert isinstance(anchors, torch.Tensor), type(anchors)
         assert isinstance(anchors, torch.Tensor), type(anchors)
 
-        deltas = torch.cat((anchors - bboxes[..., :2], bboxes[..., 2:] - anchors),
-                           dim=-1) * anchors.new_tensor(self.box_weights)
+        deltas = torch.cat((anchors - bboxes[..., :2], 
+                            bboxes[..., 2:] - anchors), dim=-1)
         return deltas
 
 

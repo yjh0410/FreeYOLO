@@ -16,7 +16,8 @@ class YOLOX(nn.Module):
                  conf_thresh = 0.05,
                  nms_thresh = 0.6,
                  trainable = False, 
-                 topk = 1000):
+                 topk = 1000,
+                 matcher=None):
         super(YOLOX, self).__init__()
         self.cfg = cfg
         self.device = device
@@ -57,9 +58,10 @@ class YOLOX(nn.Module):
             self._init_biases()
 
         # criterion
-        if self.trainable:
+        if matcher is not None:
             self.criterion = Criterion(cfg=cfg,
                                        device=device,
+                                       matcher=matcher,
                                        loss_obj_weight=cfg['loss_obj_weight'],
                                        loss_cls_weight=cfg['loss_cls_weight'],
                                        loss_reg_weight=cfg['loss_reg_weight'],

@@ -19,7 +19,8 @@ def build_model(args,
                      trainable=trainable,
                      conf_thresh=cfg['conf_thresh'],
                      nms_thresh=cfg['train_nms_thresh'] if trainable else cfg['test_nms_thresh'],
-                     topk=args.topk)
+                     topk=args.topk,
+                     matcher=args.matcher if trainable else None)
 
 
     print('==============================')
