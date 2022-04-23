@@ -28,9 +28,16 @@ At least, please make sure your torch is version 1.x.
 - [x] Training from Scratch
 - [x] Simple OTA
 
+# Main results on VOC 2007 test
+
+| Model                 |  Scale   |   SimOTA   |   mAP@0.5   | Weight |
+|-----------------------|----------|------------|-------------|--------|
+| YOLOX-S               |  640     |      ×     |     78.2    |    -   |
+| YOLOX-S               |  640     |      √     |     |    -   |
+
 # Main results on COCO-val
 
-| Model                 |  scale   |   mAP   | Weight |
+| Model                 |  Scale   |   mAP   | Weight |
 |-----------------------|----------|---------|--------|
 | YOLOX-S               |  640     |         |    -   |
 | YOLOX-M               |  640     |         |    -   |
