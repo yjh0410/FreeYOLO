@@ -185,13 +185,14 @@ class SimOTA(object):
         num_anchor = anchors_over_all_feature_maps.shape[0]        
         num_gt = len(tgt_cls_per_image)
 
-        fg_mask, is_in_boxes_and_center = self.get_in_boxes_info(
+        is_in_boxes_anchor, is_in_boxes_and_center = self.get_in_boxes_info(
             tgt_box_per_image,
             anchors_over_all_feature_maps,
             strides_over_all_feature_maps,
             num_anchor,
             num_gt
         )
+        fg_mask = is_in_boxes_anchor
 
         obj_preds_ = pred_obj_per_image[fg_mask]
         cls_preds_ = pred_cls_per_image[fg_mask]
@@ -311,7 +312,7 @@ class SimOTA(object):
         is_in_centers_all = is_in_centers.sum(dim=0) > 0
 
         # in boxes and in centers
-        is_in_boxes_anchor = is_in_boxes_all | is_in_centers_all
+        is_in_boxes_anchor = is_in_boxes_all & is_in_centers_all
 
         is_in_boxes_and_center = (
             is_in_boxes[:, is_in_boxes_anchor] & is_in_centers[:, is_in_boxes_anchor]
