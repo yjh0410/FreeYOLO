@@ -201,6 +201,10 @@ class Criterion(object):
         obj_targets = torch.cat(obj_targets, 0)
         fg_masks = torch.cat(fg_masks, 0)
 
+        if is_dist_avail_and_initialized():
+            torch.distributed.all_reduce(num_foreground)
+        num_foreground = torch.clamp(num_foreground / get_world_size(), min=1).item()
+        
         # objectness loss
         loss_objectness = self.obj_lossf(obj_preds.view(-1, 1), obj_targets.float())
         loss_objectness = loss_objectness.sum() / num_foregrounds
