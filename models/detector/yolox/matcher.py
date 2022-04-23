@@ -1,78 +1,7 @@
 import math
 import torch
 import torch.nn.functional as F
-from utils.box_ops import *
-from utils.misc import SinkhornDistance
-
-
-@ torch.no_grad()
-def get_ious_and_iou_loss(inputs,
-                          targets,
-                          weight=None,
-                          box_mode="xyxy",
-                          loss_type="iou",
-                          reduction="none"):
-    """
-    Compute iou loss of type ['iou', 'giou', 'linear_iou']
-
-    Args:
-        inputs (tensor): pred values
-        targets (tensor): target values
-        weight (tensor): loss weight
-        box_mode (str): 'xyxy' or 'ltrb', 'ltrb' is currently supported.
-        loss_type (str): 'giou' or 'iou' or 'linear_iou'
-        reduction (str): reduction manner
-
-    Returns:
-        loss (tensor): computed iou loss.
-    """
-    if box_mode == "ltrb":
-        inputs = torch.cat((-inputs[..., :2], inputs[..., 2:]), dim=-1)
-        targets = torch.cat((-targets[..., :2], targets[..., 2:]), dim=-1)
-    elif box_mode != "xyxy":
-        raise NotImplementedError
-
-    eps = torch.finfo(torch.float32).eps
-
-    inputs_area = (inputs[..., 2] - inputs[..., 0]).clamp_(min=0) \
-        * (inputs[..., 3] - inputs[..., 1]).clamp_(min=0)
-    targets_area = (targets[..., 2] - targets[..., 0]).clamp_(min=0) \
-        * (targets[..., 3] - targets[..., 1]).clamp_(min=0)
-
-    w_intersect = (torch.min(inputs[..., 2], targets[..., 2])
-                   - torch.max(inputs[..., 0], targets[..., 0])).clamp_(min=0)
-    h_intersect = (torch.min(inputs[..., 3], targets[..., 3])
-                   - torch.max(inputs[..., 1], targets[..., 1])).clamp_(min=0)
-
-    area_intersect = w_intersect * h_intersect
-    area_union = targets_area + inputs_area - area_intersect
-    ious = area_intersect / area_union.clamp(min=eps)
-
-    if loss_type == "iou":
-        loss = -ious.clamp(min=eps).log()
-    elif loss_type == "linear_iou":
-        loss = 1 - ious
-    elif loss_type == "giou":
-        g_w_intersect = torch.max(inputs[..., 2], targets[..., 2]) \
-            - torch.min(inputs[..., 0], targets[..., 0])
-        g_h_intersect = torch.max(inputs[..., 3], targets[..., 3]) \
-            - torch.min(inputs[..., 1], targets[..., 1])
-        ac_uion = g_w_intersect * g_h_intersect
-        gious = ious - (ac_uion - area_union) / ac_uion.clamp(min=eps)
-        loss = 1 - gious
-    else:
-        raise NotImplementedError
-    if weight is not None:
-        loss = loss * weight.view(loss.size())
-        if reduction == "mean":
-            loss = loss.sum() / max(weight.sum().item(), eps)
-    else:
-        if reduction == "mean":
-            loss = loss.mean()
-    if reduction == "sum":
-        loss = loss.sum()
-
-    return ious, loss
+from utils.box_ops import box_iou
 
 
 class Matcher(object):
@@ -240,122 +169,197 @@ class SimOTA(object):
 
 
     @torch.no_grad()
-    def __call__(self, fpn_strides, anchors, pred_cls_logits, pred_deltas, targets):
-        gt_classes = []
-        gt_anchors_deltas = []
-        gt_ious = []
-        assigned_units = []
-        device = anchors[0].device
-
+    def __call__(self, 
+                 fpn_strides, 
+                 anchors, 
+                 pred_obj_per_image, 
+                 pred_cls_per_image, 
+                 pred_box_per_image, 
+                 tgt_cls_per_image,
+                 tgt_box_per_image
+                 ):
+        strides_over_all_feature_maps = torch.cat([torch.ones_like(anchor_i[:, 0]) * stride_i
+                                            for stride_i, anchor_i in zip(fpn_strides, anchors)], dim=-1)
         # List[F, M, 2] -> [M, 2]
         anchors_over_all_feature_maps = torch.cat(anchors, dim=0)
+        num_anchor = anchors_over_all_feature_maps.shape[0]        
+        num_gt = len(tgt_cls_per_image)
 
-        # [B, M, C]
-        pred_cls_logits = torch.cat(pred_cls_logits, dim=1)
-        pred_deltas = torch.cat(pred_deltas, dim=1)
+        fg_mask, is_in_boxes_and_center = self.get_in_boxes_info(
+            tgt_box_per_image,
+            anchors_over_all_feature_maps,
+            strides_over_all_feature_maps,
+            num_anchor,
+            num_gt
+        )
 
-        for tgt_per_image, pred_cls_per_image, pred_deltas_per_image in zip(targets, pred_cls_logits, pred_deltas):
-            tgt_labels_per_images = tgt_per_image["labels"].to(device)
-            tgt_bboxes_per_images = tgt_per_image["boxes"].to(device)
+        obj_preds_ = pred_obj_per_image[fg_mask]
+        cls_preds_ = pred_cls_per_image[fg_mask]
+        box_preds_ = pred_box_per_image[fg_mask]
+        num_in_boxes_anchor = box_preds_.shape[0]
 
-            # [N, M, 4], N is the number of targets, M is the number of all anchors
-            deltas = self.get_deltas(anchors_over_all_feature_maps, tgt_bboxes_per_images.unsqueeze(1))
-            # [N, M]
-            is_in_bboxes = deltas.min(dim=-1).values > 0.01
+        pair_wise_ious, _ = box_iou(tgt_box_per_image, box_preds_)
 
-            # targets bbox centers: [N, 2]
-            centers = (tgt_bboxes_per_images[:, :2] + tgt_bboxes_per_images[:, 2:]) * 0.5
-            is_in_centers = []
-            for stride, anchors_i in zip(fpn_strides, anchors):
-                radius = stride * self.center_sampling_radius
-                center_bboxes = torch.cat((
-                    torch.max(centers - radius, tgt_bboxes_per_images[:, :2]),
-                    torch.min(centers + radius, tgt_bboxes_per_images[:, 2:]),
-                ), dim=-1)
-                # [N, Mi, 2]
-                center_deltas = self.get_deltas(anchors_i, center_bboxes.unsqueeze(1))
-                is_in_centers.append(center_deltas.min(dim=-1).values > 0)
-            # [N, M], M = M1 + M2 + ... + MF
-            is_in_centers = torch.cat(is_in_centers, dim=1)
+        gt_cls_per_image = (
+            F.one_hot(tgt_cls_per_image.long(), self.num_classes)
+            .float()
+            .unsqueeze(1)
+            .repeat(1, num_in_boxes_anchor, 1)
+        )
+        pair_wise_ious_loss = -torch.log(pair_wise_ious + 1e-8)
 
-            del centers, center_bboxes, deltas, center_deltas
+        cls_preds_ = (
+            cls_preds_.float().unsqueeze(0).repeat(num_gt, 1, 1).sigmoid_()
+            * obj_preds_.float().unsqueeze(0).repeat(num_gt, 1, 1).sigmoid_()
+        ) # [N, M, C]
+        pair_wise_cls_loss = F.binary_cross_entropy(
+            cls_preds_.sqrt_(), gt_cls_per_image, reduction="none"
+        ).sum(-1) # [N, M]
+        del cls_preds_
 
-            # [N, M]
-            is_in_bboxes = (is_in_bboxes & is_in_centers)
+        cost = (
+            pair_wise_cls_loss
+            + 3.0 * pair_wise_ious_loss
+            + 100000.0 * (~is_in_boxes_and_center)
+        ) # [N, M]
 
-            num_gt = len(tgt_labels_per_images)               # N
-            num_anchor = len(anchors_over_all_feature_maps)   # M
-            shape = (num_gt, num_anchor, -1)                  # [N, M, -1]
+        (
+            num_fg,
+            gt_matched_classes,         # [num_fg,]
+            pred_ious_this_matching,    # [num_fg,]
+            matched_gt_inds,            # [num_fg,]
+        ) = self.dynamic_k_matching(cost, pair_wise_ious, tgt_cls_per_image, num_gt, fg_mask)
+        del pair_wise_cls_loss, cost, pair_wise_ious, pair_wise_ious_loss
 
-            gt_classes_per_image = F.one_hot(tgt_labels_per_images, self.num_classes).float()
-
-            with torch.no_grad():
-                loss_cls = F.binary_cross_entropy_with_logits(
-                    pred_cls_per_image.unsqueeze(0).expand(shape),     # [M, C] -> [1, M, C] -> [N, M, C]
-                    gt_classes_per_image.unsqueeze(1).expand(shape),   # [N, C] -> [N, 1, C] -> [N, M, C]
-                ).sum(dim=-1) # [N, M, C] -> [N, M]
-
-                loss_cls_bg = F.binary_cross_entropy_with_logits(
-                    pred_cls_per_image,
-                    torch.zeros_like(pred_cls_per_image),
-                ).sum(dim=-1) # [M, C] -> [M]
-
-                # [N, M, 4]
-                gt_delta_per_image = self.get_deltas(anchors_over_all_feature_maps, tgt_bboxes_per_images.unsqueeze(1))
-
-                # compute iou and iou loss between pred deltas and tgt deltas
-                ious, loss_delta = get_ious_and_iou_loss(
-                    pred_deltas_per_image.unsqueeze(0).expand(shape), # [M, 4] -> [1, M, 4] -> [N, M, 4]
-                    gt_delta_per_image,
-                    box_mode="ltrb",
-                    loss_type='iou'
-                ) # [N, M]
-
-                loss = loss_cls + 3.0 * loss_delta + 1e6 * (1 - is_in_bboxes.float())
-
-                # Performing Dynamic k Estimation, top_candidates = 20
-                topk_ious, _ = torch.topk(ious * is_in_bboxes.float(), self.topk_candidate, dim=1)
-                mu = ious.new_ones(num_gt + 1)
-                mu[:-1] = torch.clamp(topk_ious.sum(1).int(), min=1).float()
-                mu[-1] = num_anchor - mu[:-1].sum()
-                nu = ious.new_ones(num_anchor)
-                loss = torch.cat([loss, loss_cls_bg.unsqueeze(0)], dim=0)
-
-                # Solving Optimal-Transportation-Plan pi via Sinkhorn-Iteration.
-                _, pi = self.sinkhorn(mu, nu, loss)
-
-                # Rescale pi so that the max pi for each gt equals to 1.
-                rescale_factor, _ = pi.max(dim=1)
-                pi = pi / rescale_factor.unsqueeze(1)
-
-                # matched_gt_inds: [M,]
-                max_assigned_units, matched_gt_inds = torch.max(pi, dim=0)
-                # [M,]
-                gt_classes_i = tgt_labels_per_images.new_ones(num_anchor) * self.num_classes
-                # fg_mask: [M,]
-                fg_mask = matched_gt_inds != num_gt
-                gt_classes_i[fg_mask] = tgt_labels_per_images[matched_gt_inds[fg_mask]]
-                gt_classes.append(gt_classes_i)
-                assigned_units.append(max_assigned_units)
-
-                # [M, 4]
-                gt_anchors_deltas_per_image = gt_delta_per_image.new_zeros((num_anchor, 4))
-                gt_anchors_deltas_per_image[fg_mask] = \
-                    gt_delta_per_image[matched_gt_inds[fg_mask], torch.arange(num_anchor)[fg_mask]]
-                gt_anchors_deltas.append(gt_anchors_deltas_per_image)
-
-                # [M,]
-                gt_ious_per_image = ious.new_zeros((num_anchor, 1))
-                gt_ious_per_image[fg_mask] = ious[matched_gt_inds[fg_mask],
-                                                  torch.arange(num_anchor)[fg_mask]].unsqueeze(1)
-                gt_ious.append(gt_ious_per_image)
+        return (
+            gt_matched_classes,
+            fg_mask,
+            pred_ious_this_matching,
+            matched_gt_inds,
+            num_fg,
+        )
 
 
-        # [B, M, C]
-        gt_classes = torch.stack(gt_classes)
-        # [B, M, 4]
-        gt_anchors_deltas = torch.stack(gt_anchors_deltas)
-        # [B, M,]
-        gt_ious = torch.stack(gt_ious)
+    def get_in_boxes_info(
+        self,
+        gt_bboxes_per_image,               # [N, 4]
+        anchors_over_all_feature_maps,     # [M, 2]
+        strides_over_all_feature_maps,     # [M,]
+        total_num_anchors,                 # M
+        num_gt,                            # N
+    ):
+        x_centers_per_image = anchors_over_all_feature_maps[:, 0]
+        y_centers_per_image = anchors_over_all_feature_maps[:, 1]
 
-        return gt_classes, gt_anchors_deltas, gt_ious
+        # [M,] -> [1, M] -> [N, M]
+        x_centers_per_image = x_centers_per_image.unsqueeze(0).repeat(num_gt, 1)
+        y_centers_per_image = y_centers_per_image.unsqueeze(0).repeat(num_gt, 1)
+
+        # [N,] -> [N, 1] -> [N, M]
+        gt_bboxes_per_image_l = (
+            (gt_bboxes_per_image[:, 0] - 0.5 * gt_bboxes_per_image[:, 2])
+            .unsqueeze(1)
+            .repeat(1, total_num_anchors)
+        )
+        gt_bboxes_per_image_r = (
+            (gt_bboxes_per_image[:, 0] + 0.5 * gt_bboxes_per_image[:, 2])
+            .unsqueeze(1)
+            .repeat(1, total_num_anchors)
+        )
+        gt_bboxes_per_image_t = (
+            (gt_bboxes_per_image[:, 1] - 0.5 * gt_bboxes_per_image[:, 3])
+            .unsqueeze(1)
+            .repeat(1, total_num_anchors)
+        )
+        gt_bboxes_per_image_b = (
+            (gt_bboxes_per_image[:, 1] + 0.5 * gt_bboxes_per_image[:, 3])
+            .unsqueeze(1)
+            .repeat(1, total_num_anchors)
+        )
+
+        b_l = x_centers_per_image - gt_bboxes_per_image_l
+        b_r = gt_bboxes_per_image_r - x_centers_per_image
+        b_t = y_centers_per_image - gt_bboxes_per_image_t
+        b_b = gt_bboxes_per_image_b - y_centers_per_image
+        bbox_deltas = torch.stack([b_l, b_t, b_r, b_b], 2)
+
+        is_in_boxes = bbox_deltas.min(dim=-1).values > 0.0
+        is_in_boxes_all = is_in_boxes.sum(dim=0) > 0
+        # in fixed center
+
+        center_radius = self.center_sampling_radius
+
+        gt_bboxes_per_image_l = (gt_bboxes_per_image[:, 0]).unsqueeze(1).repeat(
+            1, total_num_anchors
+        ) - center_radius * strides_over_all_feature_maps.unsqueeze(0)
+        gt_bboxes_per_image_r = (gt_bboxes_per_image[:, 0]).unsqueeze(1).repeat(
+            1, total_num_anchors
+        ) + center_radius * strides_over_all_feature_maps.unsqueeze(0)
+        gt_bboxes_per_image_t = (gt_bboxes_per_image[:, 1]).unsqueeze(1).repeat(
+            1, total_num_anchors
+        ) - center_radius * strides_over_all_feature_maps.unsqueeze(0)
+        gt_bboxes_per_image_b = (gt_bboxes_per_image[:, 1]).unsqueeze(1).repeat(
+            1, total_num_anchors
+        ) + center_radius * strides_over_all_feature_maps.unsqueeze(0)
+
+        c_l = x_centers_per_image - gt_bboxes_per_image_l
+        c_r = gt_bboxes_per_image_r - x_centers_per_image
+        c_t = y_centers_per_image - gt_bboxes_per_image_t
+        c_b = gt_bboxes_per_image_b - y_centers_per_image
+        center_deltas = torch.stack([c_l, c_t, c_r, c_b], 2)
+        is_in_centers = center_deltas.min(dim=-1).values > 0.0
+        is_in_centers_all = is_in_centers.sum(dim=0) > 0
+
+        # in boxes and in centers
+        is_in_boxes_anchor = is_in_boxes_all | is_in_centers_all
+
+        is_in_boxes_and_center = (
+            is_in_boxes[:, is_in_boxes_anchor] & is_in_centers[:, is_in_boxes_anchor]
+        )
+        return is_in_boxes_anchor, is_in_boxes_and_center
+    
+    
+    def dynamic_k_matching(
+        self, 
+        cost, 
+        pair_wise_ious, 
+        gt_classes, 
+        num_gt, 
+        fg_mask
+        ):
+        # Dynamic K
+        # ---------------------------------------------------------------
+        matching_matrix = torch.zeros_like(cost, dtype=torch.uint8)
+
+        ious_in_boxes_matrix = pair_wise_ious
+        n_candidate_k = min(10, ious_in_boxes_matrix.size(1))
+        topk_ious, _ = torch.topk(ious_in_boxes_matrix, n_candidate_k, dim=1)
+        dynamic_ks = torch.clamp(topk_ious.sum(1).int(), min=1)
+        dynamic_ks = dynamic_ks.tolist()
+        for gt_idx in range(num_gt):
+            _, pos_idx = torch.topk(
+                cost[gt_idx], k=dynamic_ks[gt_idx], largest=False
+            )
+            matching_matrix[gt_idx][pos_idx] = 1
+
+        del topk_ious, dynamic_ks, pos_idx
+
+        anchor_matching_gt = matching_matrix.sum(0)
+        if (anchor_matching_gt > 1).sum() > 0:
+            _, cost_argmin = torch.min(cost[:, anchor_matching_gt > 1], dim=0)
+            matching_matrix[:, anchor_matching_gt > 1] *= 0
+            matching_matrix[cost_argmin, anchor_matching_gt > 1] = 1
+        fg_mask_inboxes = matching_matrix.sum(0) > 0
+        num_fg = fg_mask_inboxes.sum().item()
+
+        fg_mask[fg_mask.clone()] = fg_mask_inboxes
+
+        matched_gt_inds = matching_matrix[:, fg_mask_inboxes].argmax(0)
+        gt_matched_classes = gt_classes[matched_gt_inds]
+
+        pred_ious_this_matching = (matching_matrix * pair_wise_ious).sum(0)[
+            fg_mask_inboxes
+        ]
+        return num_fg, gt_matched_classes, pred_ious_this_matching, matched_gt_inds
+
+
