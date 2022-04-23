@@ -185,10 +185,9 @@ class Criterion(object):
                                     tgt_box_per_image = tgt_box_per_image)
                 num_foregrounds += num_fg_img
 
-                cls_target = F.one_hot(
-                    gt_matched_classes.to(torch.int64), self.num_classes
-                ) * pred_ious_this_matching.unsqueeze(-1)
                 obj_target = fg_mask.unsqueeze(-1)
+                cls_target = F.one_hot(gt_matched_classes.long(), self.num_classes)
+                cls_target = cls_target * pred_ious_this_matching.unsqueeze(-1)
                 reg_target = tgt_box_per_image[matched_gt_inds]
 
             cls_targets.append(cls_target)
