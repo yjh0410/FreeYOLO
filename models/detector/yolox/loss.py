@@ -203,7 +203,7 @@ class Criterion(object):
 
         if is_dist_avail_and_initialized():
             torch.distributed.all_reduce(num_foregrounds)
-        num_foregrounds = torch.clamp(num_foregrounds / get_world_size(), min=1).item()
+        num_foregrounds = max(num_foregrounds / get_world_size(), 1)
 
         # objectness loss
         loss_objectness = self.obj_lossf(obj_preds.view(-1, 1), obj_targets.float())
