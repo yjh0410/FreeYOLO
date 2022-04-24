@@ -475,6 +475,8 @@ class SimOTA(object):
         total_num_anchors,                 # M
         num_gt,                            # N
     ):
+        # We have added the subpixel coords into anchors,
+        # so the anchors coords is the x_centers and y_centers
         x_centers_per_image = anchors_over_all_feature_maps[:, 0]
         y_centers_per_image = anchors_over_all_feature_maps[:, 1]
 
@@ -542,16 +544,16 @@ class SimOTA(object):
         
         gt_bboxes_per_image_l = (gt_centers_per_image[:, 0]).unsqueeze(1).repeat(
             1, total_num_anchors
-        ) - center_radius * strides_over_all_feature_maps.unsqueeze(0)
-        gt_bboxes_per_image_r = (gt_centers_per_image[:, 0]).unsqueeze(1).repeat(
-            1, total_num_anchors
-        ) + center_radius * strides_over_all_feature_maps.unsqueeze(0)
+        ) - center_radius * strides_over_all_feature_maps.unsqueeze(0) # x1
         gt_bboxes_per_image_t = (gt_centers_per_image[:, 1]).unsqueeze(1).repeat(
             1, total_num_anchors
-        ) - center_radius * strides_over_all_feature_maps.unsqueeze(0)
+        ) - center_radius * strides_over_all_feature_maps.unsqueeze(0) # y1
+        gt_bboxes_per_image_r = (gt_centers_per_image[:, 0]).unsqueeze(1).repeat(
+            1, total_num_anchors
+        ) + center_radius * strides_over_all_feature_maps.unsqueeze(0) # x2
         gt_bboxes_per_image_b = (gt_centers_per_image[:, 1]).unsqueeze(1).repeat(
             1, total_num_anchors
-        ) + center_radius * strides_over_all_feature_maps.unsqueeze(0)
+        ) + center_radius * strides_over_all_feature_maps.unsqueeze(0) # y2
 
         c_l = x_centers_per_image - gt_bboxes_per_image_l
         c_r = gt_bboxes_per_image_r - x_centers_per_image
