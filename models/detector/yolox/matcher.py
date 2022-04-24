@@ -385,8 +385,7 @@ class SimOTA(object):
         assert isinstance(anchors, torch.Tensor), type(anchors)
         assert isinstance(anchors, torch.Tensor), type(anchors)
 
-        deltas = torch.cat((anchors - bboxes[..., :2], 
-                            bboxes[..., 2:] - anchors), dim=-1)
+        deltas = torch.cat((anchors - bboxes[..., :2], bboxes[..., 2:] - anchors), dim=-1)
         return deltas
 
 
@@ -453,8 +452,14 @@ class SimOTA(object):
         ) = self.dynamic_k_matching(cost, pair_wise_ious, tgt_cls_per_image, num_gt, fg_mask)
         del pair_wise_cls_loss, cost, pair_wise_ious, pair_wise_ious_loss
 
+        # ground truth regression
+        gt_deltas = self.get_deltas(anchors_over_all_feature_maps, tgt_box_per_image.unsqueeze(1))  # [N, M, 4]
+        gt_matched_deltas = gt_deltas.new_zeros((num_anchor, 4))  # [M, 4]
+        gt_matched_deltas[fg_mask] = gt_deltas[matched_gt_inds, torch.arange(num_anchor)[fg_mask]]
+
         return (
             gt_matched_classes,
+            gt_matched_deltas,
             fg_mask,
             pred_ious_this_matching,
             matched_gt_inds,

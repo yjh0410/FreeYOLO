@@ -219,8 +219,8 @@ class Criterion(object):
         obj_preds = torch.cat(outputs['pred_obj'], dim=1)
         cls_preds = torch.cat(outputs['pred_cls'], dim=1)
         reg_preds = torch.cat(outputs['pred_reg'], dim=1)
-        box_x1y1_preds = anchors_ - reg_preds[..., :2]
-        box_x2y2_preds = anchors_ + reg_preds[..., 2:]
+        box_x1y1_preds = anchors_ - reg_preds[..., :2].clone().detach()
+        box_x2y2_preds = anchors_ + reg_preds[..., 2:].clone().detach()
         box_preds = torch.cat([box_x1y1_preds, 
                                box_x2y2_preds], dim=-1)
         del anchors_
@@ -243,6 +243,7 @@ class Criterion(object):
             else:
                 (
                     gt_matched_classes,
+                    gt_matched_deltas,
                     fg_mask,
                     pred_ious_this_matching,
                     matched_gt_inds,
@@ -258,8 +259,8 @@ class Criterion(object):
 
                 obj_target = fg_mask.unsqueeze(-1)
                 cls_target = F.one_hot(gt_matched_classes.long(), self.num_classes)
-                cls_target = cls_target * pred_ious_this_matching.unsqueeze(-1)
-                reg_target = tgt_box_per_image[matched_gt_inds]
+                # cls_target = cls_target * pred_ious_this_matching.unsqueeze(-1)
+                reg_target = gt_matched_deltas[fg_mask]
 
             cls_targets.append(cls_target)
             reg_targets.append(reg_target)
@@ -279,18 +280,19 @@ class Criterion(object):
         loss_objectness = self.obj_lossf(obj_preds.view(-1, 1), obj_targets.float())
         loss_objectness = loss_objectness.sum() / num_foregrounds
         
-        # classification loss
-        matched_cls_preds = cls_preds.view(-1, self.num_classes)[fg_masks]
-        loss_labels = self.obj_lossf(matched_cls_preds, cls_targets)
-        loss_labels = loss_labels.sum() / num_foregrounds
-
         # regression loss
-        matched_box_preds = box_preds.view(-1, 4)[fg_masks]
+        matched_box_preds = reg_preds.view(-1, 4)[fg_masks]
         ious = get_ious(matched_box_preds,
                         reg_targets,
-                        box_mode="xyxy",
+                        box_mode="ltrb",
                         iou_type='giou')
         loss_bboxes = (1.0 - ious).sum() / num_foregrounds
+
+        # classification loss
+        matched_cls_preds = cls_preds.view(-1, self.num_classes)[fg_masks]
+        loss_labels = self.obj_lossf(matched_cls_preds, cls_targets * ious.unsqueeze(1).clamp(0.))
+        loss_labels = loss_labels.sum() / num_foregrounds
+
 
         # total loss
         losses = self.loss_obj_weight * loss_objectness + \
