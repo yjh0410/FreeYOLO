@@ -484,25 +484,46 @@ class SimOTA(object):
 
         # [N,] -> [N, 1] -> [N, M]
         gt_bboxes_per_image_l = (
-            (gt_bboxes_per_image[:, 0] - 0.5 * gt_bboxes_per_image[:, 2])
+            gt_bboxes_per_image[:, 0]
             .unsqueeze(1)
-            .repeat(1, total_num_anchors)
-        )
+            .repeat(1, total_num_anchors) 
+        ) # x1
         gt_bboxes_per_image_r = (
-            (gt_bboxes_per_image[:, 0] + 0.5 * gt_bboxes_per_image[:, 2])
+            gt_bboxes_per_image[:, 2]
             .unsqueeze(1)
             .repeat(1, total_num_anchors)
-        )
+        ) # x2
         gt_bboxes_per_image_t = (
-            (gt_bboxes_per_image[:, 1] - 0.5 * gt_bboxes_per_image[:, 3])
+            gt_bboxes_per_image[:, 1]
             .unsqueeze(1)
             .repeat(1, total_num_anchors)
-        )
+        ) # y1
         gt_bboxes_per_image_b = (
-            (gt_bboxes_per_image[:, 1] + 0.5 * gt_bboxes_per_image[:, 3])
-            .unsqueeze(1)
-            .repeat(1, total_num_anchors)
-        )
+           gt_bboxes_per_image[:, 3]
+           .unsqueeze(1)
+           .repeat(1, total_num_anchors) 
+        ) # y2
+
+        # gt_bboxes_per_image_l = (
+        #     (gt_bboxes_per_image[:, 0] - 0.5 * gt_bboxes_per_image[:, 2])
+        #     .unsqueeze(1)
+        #     .repeat(1, total_num_anchors)
+        # )
+        # gt_bboxes_per_image_r = (
+        #     (gt_bboxes_per_image[:, 0] + 0.5 * gt_bboxes_per_image[:, 2])
+        #     .unsqueeze(1)
+        #     .repeat(1, total_num_anchors)
+        # )
+        # gt_bboxes_per_image_t = (
+        #     (gt_bboxes_per_image[:, 1] - 0.5 * gt_bboxes_per_image[:, 3])
+        #     .unsqueeze(1)
+        #     .repeat(1, total_num_anchors)
+        # )
+        # gt_bboxes_per_image_b = (
+        #     (gt_bboxes_per_image[:, 1] + 0.5 * gt_bboxes_per_image[:, 3])
+        #     .unsqueeze(1)
+        #     .repeat(1, total_num_anchors)
+        # )
 
         b_l = x_centers_per_image - gt_bboxes_per_image_l
         b_r = gt_bboxes_per_image_r - x_centers_per_image
