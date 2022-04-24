@@ -4,7 +4,7 @@
 yolox_config = {
     'yolox_s': {
         # input
-        'img_size': 640,
+        'img_size': 800,
         'random_size': [480, 512, 544, 576, 608, 640, 672, 704, 736, 768, 800],
         'mosaic': True,
         'mixup': True,
