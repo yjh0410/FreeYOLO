@@ -21,9 +21,9 @@ def build_dataset(cfg, args, device):
     print('==============================')
     print('TrainTransforms: {}'.format(trans_config))
     train_transform = TrainTransforms(trans_config=trans_config,
-                                      img_size=cfg['img_size'],
+                                      img_size=cfg['train_size'],
                                       format=cfg['format'])
-    val_transform = ValTransforms(img_size=cfg['img_size'],
+    val_transform = ValTransforms(img_size=cfg['test_size'],
                                   format=cfg['format'])
     # dataset
     
@@ -31,7 +31,7 @@ def build_dataset(cfg, args, device):
         data_dir = os.path.join(args.root, 'VOCdevkit')
         num_classes = 20
         # dataset
-        dataset = VOCDetection(img_size=cfg['img_size'],
+        dataset = VOCDetection(img_size=cfg['train_size'],
                                data_dir=data_dir, 
                                transform=train_transform,
                                mosaic=cfg['mosaic'],
@@ -46,7 +46,7 @@ def build_dataset(cfg, args, device):
         data_dir = os.path.join(args.root, 'COCO')
         num_classes = 80
         # dataset
-        dataset = COCODataset(img_size=cfg['img_size'],
+        dataset = COCODataset(img_size=cfg['train_size'],
                               data_dir=data_dir,
                               image_set='train2017',
                               transform=train_transform,

@@ -5,21 +5,21 @@ import os
 import torch
 import torch.backends.cudnn as cudnn
 
-from config.yolof_config import yolof_config
 from dataset.transforms import ValTransforms
 from dataset.coco import COCODataset, coco_class_index, coco_class_labels
 from utils.com_flops_params import FLOPs_and_Params
 from utils import fuse_conv_bn
 from utils.misc import load_weight
 
+from config import build_config
 from models.detector import build_model
 
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Object Detection Benchmark')
     # Model
-    parser.add_argument('-v', '--version', default='yolof50', type=str,
-                        help='build yolof')
+    parser.add_argument('-v', '--version', default='yolox_s', type=str,
+                        help='build yolox')
     parser.add_argument('--fuse_conv_bn', action='store_true', default=False,
                         help='fuse conv and bn')
     parser.add_argument('--conf_thresh', default=0.1, type=float,
@@ -32,9 +32,7 @@ def parse_args():
     parser.add_argument('--root', default='/mnt/share/ssd2/dataset',
                         help='data root')
     # basic
-    parser.add_argument('--min_size', default=800, type=int,
-                        help='the min size of input image')
-    parser.add_argument('--max_size', default=1333, type=int,
+    parser.add_argument('--img_size', default=640, type=int,
                         help='the min size of input image')
     parser.add_argument('--weight', default=None,
                         type=str, help='Trained state_dict file path to open')
@@ -61,8 +59,7 @@ def test(net, device, img_size, testset, transform):
                 print('Testing image {:d}/{:d}....'.format(index+1, num_images))
             image, _ = testset.pull_image(index)
 
-            h, w, _ = image.shape
-            orig_size = np.array([[w, h, w, h]])
+            orig_h, orig_w, _ = image.shape
 
             # prepare
             x = transform(image)[0]
@@ -76,7 +73,7 @@ def test(net, device, img_size, testset, transform):
             bboxes, scores, cls_inds = net(x)
             
             # rescale
-            bboxes *= orig_size
+            bboxes *= max(orig_h, orig_w)
 
             # end time
             torch.cuda.synchronize()
@@ -112,8 +109,9 @@ if __name__ == '__main__':
                 image_set='val2017',
                 img_size=args.img_size)
 
-    # YOLOF Config
-    cfg = yolof_config[args.version]
+    # config
+    cfg = build_config(args)
+
     # build model
     model = build_model(args=args, 
                         cfg=cfg,
@@ -133,12 +131,7 @@ if __name__ == '__main__':
         model = fuse_conv_bn(model)
 
     # transform
-    transform = ValTransforms(min_size=cfg['test_min_size'], 
-                              max_size=cfg['test_max_size'],
-                              pixel_mean=cfg['pixel_mean'],
-                              pixel_std=cfg['pixel_std'],
-                              format=cfg['format'],
-                              padding=cfg['val_padding'])
+    transform = ValTransforms(img_size=args.img_size, format=cfg['format'])
 
     # run
     test(net=model, 

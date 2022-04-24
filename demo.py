@@ -237,7 +237,7 @@ def run():
 
 
     # transform
-    transform = ValTransforms(img_size=cfg['img_size'], format=cfg['format'])
+    transform = ValTransforms(img_size=args.img_size, format=cfg['format'])
 
     # run
     detect(net=model, 

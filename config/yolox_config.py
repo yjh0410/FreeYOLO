@@ -4,8 +4,9 @@
 yolox_config = {
     'yolox_s': {
         # input
-        'img_size': 640,
-        'random_size': [320, 352, 384, 416, 448, 480, 512, 544, 576, 608, 640],
+        'train_size': 800,
+        'test_size': 640,
+        'random_size': [448, 480, 512, 544, 576, 608, 640, 672, 704, 736, 768, 800],
         'mosaic': True,
         'mixup': True,
         'format': 'RGB',
