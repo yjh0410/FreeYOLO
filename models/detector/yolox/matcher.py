@@ -2,6 +2,7 @@ import math
 import torch
 import torch.nn.functional as F
 from utils.box_ops import box_iou
+from utils.misc import SinkhornDistance
 
 
 class Matcher(object):
@@ -134,6 +135,227 @@ class Matcher(object):
                 gt_objectness.append(tgt_obj_i)
                 gt_classes.append(tgt_cls_i)
                 gt_anchors_deltas.append(tgt_reg_i)
+
+        # [B, M], [B, M], [B, M, 4]
+        return torch.stack(gt_objectness), torch.stack(gt_classes), torch.stack(gt_anchors_deltas)
+
+
+class OTA(object):
+    def __init__(self, 
+                 num_classes,
+                 center_sampling_radius,
+                 topk_candidate,
+                 eps=0.1,
+                 max_iter=50) -> None:
+        self.num_classes = num_classes
+        self.center_sampling_radius = center_sampling_radius
+        self.topk_candidate = topk_candidate
+        self.sinkhorn = SinkhornDistance(eps=eps, max_iter=max_iter)
+
+
+    @torch.no_grad()
+    def get_ious_and_iou_loss(self,
+                            inputs,
+                            targets,
+                            weight=None,
+                            box_mode="xyxy",
+                            loss_type="iou",
+                            reduction="none"):
+        """
+        Compute iou loss of type ['iou', 'giou', 'linear_iou']
+
+        Args:
+            inputs (tensor): pred values
+            targets (tensor): target values
+            weight (tensor): loss weight
+            box_mode (str): 'xyxy' or 'ltrb', 'ltrb' is currently supported.
+            loss_type (str): 'giou' or 'iou' or 'linear_iou'
+            reduction (str): reduction manner
+
+        Returns:
+            loss (tensor): computed iou loss.
+        """
+        if box_mode == "ltrb":
+            inputs = torch.cat((-inputs[..., :2], inputs[..., 2:]), dim=-1)
+            targets = torch.cat((-targets[..., :2], targets[..., 2:]), dim=-1)
+        elif box_mode != "xyxy":
+            raise NotImplementedError
+
+        eps = torch.finfo(torch.float32).eps
+
+        inputs_area = (inputs[..., 2] - inputs[..., 0]).clamp_(min=0) \
+            * (inputs[..., 3] - inputs[..., 1]).clamp_(min=0)
+        targets_area = (targets[..., 2] - targets[..., 0]).clamp_(min=0) \
+            * (targets[..., 3] - targets[..., 1]).clamp_(min=0)
+
+        w_intersect = (torch.min(inputs[..., 2], targets[..., 2])
+                    - torch.max(inputs[..., 0], targets[..., 0])).clamp_(min=0)
+        h_intersect = (torch.min(inputs[..., 3], targets[..., 3])
+                    - torch.max(inputs[..., 1], targets[..., 1])).clamp_(min=0)
+
+        area_intersect = w_intersect * h_intersect
+        area_union = targets_area + inputs_area - area_intersect
+        ious = area_intersect / area_union.clamp(min=eps)
+
+        if loss_type == "iou":
+            loss = -ious.clamp(min=eps).log()
+        elif loss_type == "linear_iou":
+            loss = 1 - ious
+        elif loss_type == "giou":
+            g_w_intersect = torch.max(inputs[..., 2], targets[..., 2]) \
+                - torch.min(inputs[..., 0], targets[..., 0])
+            g_h_intersect = torch.max(inputs[..., 3], targets[..., 3]) \
+                - torch.min(inputs[..., 1], targets[..., 1])
+            ac_uion = g_w_intersect * g_h_intersect
+            gious = ious - (ac_uion - area_union) / ac_uion.clamp(min=eps)
+            loss = 1 - gious
+        else:
+            raise NotImplementedError
+        if weight is not None:
+            loss = loss * weight.view(loss.size())
+            if reduction == "mean":
+                loss = loss.sum() / max(weight.sum().item(), eps)
+        else:
+            if reduction == "mean":
+                loss = loss.mean()
+        if reduction == "sum":
+            loss = loss.sum()
+
+        return ious, loss
+
+
+    def get_deltas(self, anchors, bboxes):
+        """
+        Get box regression transformation deltas (dl, dr) that can be used
+        to transform the `anchors` into the `boxes`. That is, the relation
+        ``boxes == self.apply_deltas(deltas, anchors)`` is true.
+
+        Args:
+            anchors (Tensor): anchors, e.g., feature map coordinates
+            bboxes (Tensor): target of the transformation, e.g., ground-truth bboxes.
+        """
+        assert isinstance(anchors, torch.Tensor), type(anchors)
+        assert isinstance(anchors, torch.Tensor), type(anchors)
+
+        deltas = torch.cat((anchors - bboxes[..., :2], bboxes[..., 2:] - anchors), dim=-1)
+        return deltas
+
+
+    @torch.no_grad()
+    def __call__(self, fpn_strides, anchors, obj_preds, cls_preds, reg_preds, targets):
+        gt_objectness = []
+        gt_classes = []
+        gt_anchors_deltas = []
+        device = anchors[0].device
+
+        # List[F, M, 2] -> [M, 2]
+        anchors_over_all_feature_maps = torch.cat(anchors, dim=0)
+
+        # [B, M, C]
+        obj_preds = torch.cat(obj_preds, dim=1)
+        cls_preds = torch.cat(cls_preds, dim=1)
+        reg_preds = torch.cat(reg_preds, dim=1)
+
+        for target, obj_pred, cls_pred, reg_pred in zip(targets, obj_preds, cls_preds, reg_preds):
+            # [N,]
+            tgt_cls = target["labels"].to(device)
+            # [N, 4]
+            tgt_box = target["boxes"].to(device)
+            # [N,]
+            tgt_obj = torch.ones_like(tgt_cls)
+            # [N, M, 4], N is the number of targets, M is the number of all anchors
+            deltas = self.get_deltas(anchors_over_all_feature_maps, tgt_box.unsqueeze(1))
+            # [N, M]
+            is_in_bboxes = deltas.min(dim=-1).values > 0.01
+
+            # targets bbox centers: [N, 2]
+            centers = (tgt_box[:, :2] + tgt_box[:, 2:]) * 0.5
+            is_in_centers = []
+            for stride, anchors_i in zip(fpn_strides, anchors):
+                radius = stride * self.center_sampling_radius
+                center_bboxes = torch.cat((
+                    torch.max(centers - radius, tgt_box[:, :2]),
+                    torch.min(centers + radius, tgt_box[:, 2:]),
+                ), dim=-1)
+                # [N, Mi, 2]
+                center_deltas = self.get_deltas(anchors_i, center_bboxes.unsqueeze(1))
+                is_in_centers.append(center_deltas.min(dim=-1).values > 0)
+            # [N, M], M = M1 + M2 + ... + MF
+            is_in_centers = torch.cat(is_in_centers, dim=1)
+
+            del centers, center_bboxes, deltas, center_deltas
+
+            # [N, M]
+            is_in_bboxes = (is_in_bboxes & is_in_centers)
+
+            num_gt = len(tgt_cls)               # N
+            num_anchor = len(anchors_over_all_feature_maps)   # M
+            shape = (num_gt, num_anchor, -1)                  # [N, M, -1]
+
+            tgt_cls_ = F.one_hot(tgt_cls, self.num_classes).float()
+
+            with torch.no_grad():
+                cls_pred_ = torch.sqrt(obj_pred.sigmoid() * cls_pred.sigmoid())
+                loss_cls = F.binary_cross_entropy_with_logits(
+                    cls_pred_.unsqueeze(0).expand(shape),     # [M, C] -> [1, M, C] -> [N, M, C]
+                    tgt_cls_.unsqueeze(1).expand(shape),   # [N, C] -> [N, 1, C] -> [N, M, C]
+                    reduction='none'
+                ).sum(dim=-1) # [N, M, C] -> [N, M]
+                loss_cls_bg = F.binary_cross_entropy_with_logits(
+                    cls_pred_,
+                    torch.zeros_like(cls_pred_),
+                    reduction='none'
+                ).sum(dim=-1) # [M, C] -> [M]
+
+                # [N, M, 4]
+                tgt_delta = self.get_deltas(anchors_over_all_feature_maps, tgt_box.unsqueeze(1))
+
+                # compute iou and iou loss between pred deltas and tgt deltas
+                ious, loss_delta = self.get_ious_and_iou_loss(
+                    reg_pred.unsqueeze(0).expand(shape), # [M, 4] -> [1, M, 4] -> [N, M, 4]
+                    tgt_delta,
+                    box_mode="ltrb",
+                    loss_type='iou'
+                ) # [N, M]
+
+                loss = loss_cls + 3.0 * loss_delta + 1e6 * (1 - is_in_bboxes.float())
+
+                # Performing Dynamic k Estimation, top_candidates = 20
+                topk_ious, _ = torch.topk(ious * is_in_bboxes.float(), self.topk_candidate, dim=1)
+                mu = ious.new_ones(num_gt + 1)
+                mu[:-1] = torch.clamp(topk_ious.sum(1).int(), min=1).float()
+                mu[-1] = num_anchor - mu[:-1].sum()
+                nu = ious.new_ones(num_anchor)
+                loss = torch.cat([loss, loss_cls_bg.unsqueeze(0)], dim=0)
+
+                # Solving Optimal-Transportation-Plan pi via Sinkhorn-Iteration.
+                _, pi = self.sinkhorn(mu, nu, loss)
+
+                # Rescale pi so that the max pi for each gt equals to 1.
+                rescale_factor, _ = pi.max(dim=1)
+                pi = pi / rescale_factor.unsqueeze(1)
+
+                # matched_gt_inds: [M,]
+                max_assigned_units, matched_gt_inds = torch.max(pi, dim=0)
+                # fg_mask: [M,]
+                fg_mask = matched_gt_inds != num_gt
+                # [M,]
+                tgt_cls_i = tgt_cls.new_ones(num_anchor) * self.num_classes
+                tgt_cls_i[fg_mask] = tgt_cls[matched_gt_inds[fg_mask]]
+                gt_classes.append(tgt_cls_i)
+
+                # ground truth objectness [M,]
+                # [M,]
+                tgt_obj_i = tgt_obj.new_ones(num_anchor) * 0
+                tgt_obj_i[fg_mask] = tgt_obj[matched_gt_inds[fg_mask]]
+                gt_objectness.append(tgt_obj_i)
+
+                # [M, 4]
+                tgt_delta_i = tgt_delta.new_zeros((num_anchor, 4))
+                tgt_delta_i[fg_mask] = \
+                    tgt_delta[matched_gt_inds[fg_mask], torch.arange(num_anchor)[fg_mask]]
+                gt_anchors_deltas.append(tgt_delta_i)
+
 
         # [B, M], [B, M], [B, M, 4]
         return torch.stack(gt_objectness), torch.stack(gt_classes), torch.stack(gt_anchors_deltas)
@@ -361,5 +583,3 @@ class SimOTA(object):
             fg_mask_inboxes
         ]
         return num_fg, gt_matched_classes, pred_ious_this_matching, matched_gt_inds
-
-

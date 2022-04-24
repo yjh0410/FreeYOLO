@@ -52,6 +52,10 @@ yolox_config = {
                                                            [64, 128], 
                                                            [128, float('inf')]],
                               'center_sampling_radius': 1.5},
+                    'ota': {'center_sampling_radius': 2.5,
+                            'topk_candidate': 10,
+                            'eps': 0.1,
+                            'max_iter': 50},
                     'sim_ota': {'center_sampling_radius': 2.5,
                                 'topk_candidate': 10}},
         # loss
@@ -61,7 +65,7 @@ yolox_config = {
         # training configuration
         'max_epoch': 300,
         'no_aug_epoch': 15,
-        'batch_size': 32,
+        'batch_size': 1,
         'base_lr': 0.01 / 64.,
         'min_lr_ratio': 0.05,
         # optimizer

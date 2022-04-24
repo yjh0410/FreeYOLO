@@ -44,7 +44,7 @@ def parse_args():
 
     # Matcher
     parser.add_argument('-m', '--matcher', default='sim_ota', type=str, 
-                        choices=['basic', 'sim_ota'],
+                        choices=['basic', 'ota', 'sim_ota'],
                         help='build matcher')
 
     # dataset
