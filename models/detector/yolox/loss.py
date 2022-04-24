@@ -290,7 +290,8 @@ class Criterion(object):
 
         # classification loss
         matched_cls_preds = cls_preds.view(-1, self.num_classes)[fg_masks]
-        loss_labels = self.obj_lossf(matched_cls_preds, cls_targets * ious.unsqueeze(1).clamp(0.))
+        matched_cls_targets = cls_targets * ious.unsqueeze(1).clamp(0.)
+        loss_labels = self.obj_lossf(matched_cls_preds, matched_cls_targets)
         loss_labels = loss_labels.sum() / num_foregrounds
 
 
