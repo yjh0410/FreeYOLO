@@ -483,22 +483,22 @@ class SimOTA(object):
         y_centers_per_image = y_centers_per_image.unsqueeze(0).repeat(num_gt, 1)
 
         # [N,] -> [N, 1] -> [N, M]
-        gt_bboxes_per_image_x1 = (
+        gt_bboxes_per_image_l = (
             gt_bboxes_per_image[:, 0]
             .unsqueeze(1)
             .repeat(1, total_num_anchors) 
         ) # x1
-        gt_bboxes_per_image_y1 = (
+        gt_bboxes_per_image_t = (
             gt_bboxes_per_image[:, 1]
             .unsqueeze(1)
             .repeat(1, total_num_anchors)
         ) # y1
-        gt_bboxes_per_image_x2 = (
+        gt_bboxes_per_image_r = (
             gt_bboxes_per_image[:, 2]
             .unsqueeze(1)
             .repeat(1, total_num_anchors)
         ) # x2
-        gt_bboxes_per_image_y2 = (
+        gt_bboxes_per_image_b = (
             gt_bboxes_per_image[:, 3]
             .unsqueeze(1)
             .repeat(1, total_num_anchors) 
@@ -525,10 +525,10 @@ class SimOTA(object):
         #     .repeat(1, total_num_anchors)
         # )
 
-        b_l = x_centers_per_image - gt_bboxes_per_image_x1
-        b_r = gt_bboxes_per_image_x2 - x_centers_per_image
-        b_t = y_centers_per_image - gt_bboxes_per_image_y1
-        b_b = gt_bboxes_per_image_y2 - y_centers_per_image
+        b_l = x_centers_per_image - gt_bboxes_per_image_l
+        b_r = gt_bboxes_per_image_r - x_centers_per_image
+        b_t = y_centers_per_image - gt_bboxes_per_image_t
+        b_b = gt_bboxes_per_image_b - y_centers_per_image
         bbox_deltas = torch.stack([b_l, b_t, b_r, b_b], 2)
 
         is_in_boxes = bbox_deltas.min(dim=-1).values > 0.0
