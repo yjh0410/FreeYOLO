@@ -42,7 +42,7 @@ def train_with_warmup(epoch,
                       optimizer, 
                       warmup_scheduler):
     epoch_size = len(dataloader)
-    img_size = cfg['img_size']
+    img_size = cfg['train_size']
     t0 = time.time()
     # train one epoch
     for iter_i, (images, targets) in enumerate(dataloader):
@@ -118,7 +118,7 @@ def train_one_epoch(epoch,
                     dataloader, 
                     optimizer):
     epoch_size = len(dataloader)
-    img_size = cfg["img_size"]
+    img_size = cfg["train_size"]
     t0 = time.time()
     # train one epoch
     for iter_i, (images, targets) in enumerate(dataloader):
