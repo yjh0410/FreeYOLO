@@ -172,7 +172,7 @@ def mosaic_augment(image_list, target_list, img_size, affine_params):
         target_size=(img_size*2, img_size*2),
         degrees=affine_params['degrees'],
         translate=affine_params['translate'],
-        scales=affine_params['scales'],
+        scales=affine_params['mosaic_scale'],
         shear=affine_params['shear'],
     )
     mosaic_img = cv2.resize(mosaic_img, (img_size, img_size))

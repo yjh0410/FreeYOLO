@@ -5,7 +5,7 @@ yolox_config = {
     'yolox_s': {
         # input
         'img_size': 640,
-        'random_size': [320, 352, 384, 416, 448, 480, 512, 544, 576, 608, 640],
+        'random_size': [480, 512, 544, 576, 608, 640, 672, 704, 736, 768, 800],
         'mosaic': True,
         'mixup': True,
         'format': 'RGB',
@@ -21,8 +21,8 @@ yolox_config = {
         'affine_params': {
             'degrees': 10.,
             'translate': 0.1,
-            'scales': (0.1, 2.0),  # mosaic scale
             'shear': 2.0,
+            'mosaic_scale': (0.1, 2.0),  # mosaic scale
             'mixup_scale': (0.5, 1.5)},
         # model
         'backbone': 'cspdarknet',
@@ -44,8 +44,8 @@ yolox_config = {
         'num_cls_head': 2,
         'num_reg_head': 2,
         # post process
-        'conf_thresh': 0.001,
-        'train_nms_thresh': 0.6,
+        'conf_thresh': 0.01,
+        'train_nms_thresh': 0.65,
         'test_nms_thresh': 0.45,
         # matcher
         'matcher': {'basic': {'object_sizes_of_interest': [[-1, 64], 

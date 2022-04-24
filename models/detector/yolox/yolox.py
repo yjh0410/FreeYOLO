@@ -55,7 +55,7 @@ class YOLOX(nn.Module):
 
         if trainable:
             # init bias
-            self._init_biases()
+            self.init_yolo()
 
         # criterion
         if matcher is not None:
@@ -68,15 +68,20 @@ class YOLOX(nn.Module):
                                        num_classes=num_classes)
 
 
-    def _init_biases(self):  
-        # init obj pred
+    def init_yolo(self):  
+        # Init yolo
+        for m in self.modules():
+            if isinstance(m, torch.nn.BatchNorm2d):
+                m.eps = 1e-3
+                m.momentum = 0.03
+
+        # Init head
         init_prob = 0.01
         bias_value = -torch.log(torch.tensor((1. - init_prob) / init_prob))
+        # init obj pred
         for obj_pred in self.obj_preds:
             nn.init.constant_(obj_pred.bias, bias_value)
         # init cls pred
-        init_prob = 0.01
-        bias_value = -torch.log(torch.tensor((1. - init_prob) / init_prob))
         for cls_pred in self.cls_preds:
             nn.init.constant_(cls_pred.bias, bias_value)
 
