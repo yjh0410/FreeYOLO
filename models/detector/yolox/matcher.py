@@ -435,6 +435,7 @@ class SimOTA(object):
         ) = self.dynamic_k_matching(cost, pair_wise_ious, tgt_cls_per_image, num_gt, fg_mask)
         del pair_wise_cls_loss, cost, pair_wise_ious, pair_wise_ious_loss
 
+        print(fg_mask, matched_gt_inds)
         return (
                 gt_matched_classes,
                 fg_mask,
