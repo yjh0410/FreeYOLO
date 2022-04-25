@@ -284,7 +284,7 @@ class Criterion(object):
         loss_labels = loss_labels.sum() / num_foregrounds
 
         # regression loss
-        matched_box_preds = reg_preds.view(-1, 4)[fg_masks]
+        matched_box_preds = box_preds.view(-1, 4)[fg_masks]
         ious = get_ious(matched_box_preds,
                         reg_targets,
                         box_mode="xyxy",

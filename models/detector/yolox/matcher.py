@@ -443,7 +443,6 @@ class SimOTA(object):
             + 3.0 * pair_wise_ious_loss
             + 100000.0 * (~is_in_boxes_and_center)
         ) # [N, M]
-        print(fg_mask.sum())
 
         (
             num_fg,
@@ -452,8 +451,6 @@ class SimOTA(object):
             matched_gt_inds,            # [num_fg,]
         ) = self.dynamic_k_matching(cost, pair_wise_ious, tgt_cls_per_image, num_gt, fg_mask)
         del pair_wise_cls_loss, cost, pair_wise_ious, pair_wise_ious_loss
-
-        print(fg_mask.sum(), matched_gt_inds.sum())
 
         return (
             gt_matched_classes,
