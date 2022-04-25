@@ -372,23 +372,6 @@ class SimOTA(object):
         self.topk_candidate = topk_candidate
 
 
-    def get_deltas(self, anchors, bboxes):
-        """
-        Get box regression transformation deltas (dl, dr) that can be used
-        to transform the `anchors` into the `boxes`. That is, the relation
-        ``boxes == self.apply_deltas(deltas, anchors)`` is true.
-
-        Args:
-            anchors (Tensor): anchors, e.g., feature map coordinates
-            bboxes (Tensor): target of the transformation, e.g., ground-truth bboxes.
-        """
-        assert isinstance(anchors, torch.Tensor), type(anchors)
-        assert isinstance(anchors, torch.Tensor), type(anchors)
-
-        deltas = torch.cat((anchors - bboxes[..., :2], bboxes[..., 2:] - anchors), dim=-1)
-        return deltas
-
-
     @torch.no_grad()
     def __call__(self, 
                  fpn_strides, 
@@ -453,11 +436,11 @@ class SimOTA(object):
         del pair_wise_cls_loss, cost, pair_wise_ious, pair_wise_ious_loss
 
         return (
-            gt_matched_classes,
-            fg_mask,
-            pred_ious_this_matching,
-            matched_gt_inds,
-            num_fg,
+                gt_matched_classes,
+                fg_mask,
+                pred_ious_this_matching,
+                matched_gt_inds,
+                num_fg,
         )
 
 

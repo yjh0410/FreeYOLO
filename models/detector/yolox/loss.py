@@ -230,9 +230,9 @@ class Criterion(object):
         fg_masks = []
 
         num_foregrounds = 0.0
-        for batxh_idx in range(bs):
-            tgt_cls_per_image = targets[batxh_idx]["labels"].to(device)
-            tgt_box_per_image = targets[batxh_idx]["boxes"].to(device)
+        for batch_idx in range(bs):
+            tgt_cls_per_image = targets[batch_idx]["labels"].to(device)
+            tgt_box_per_image = targets[batch_idx]["boxes"].to(device)
             num_gt = len(tgt_cls_per_image)
             if num_gt == 0:
                 cls_target = outputs.new_zeros((0, self.num_classes))
@@ -247,12 +247,12 @@ class Criterion(object):
                     matched_gt_inds,
                     num_fg_img,
                 ) = self.matcher(fpn_strides = fpn_strides,
-                                    anchors = anchors,
-                                    pred_obj_per_image = obj_preds[batxh_idx], 
-                                    pred_cls_per_image = cls_preds[batxh_idx], 
-                                    pred_box_per_image = box_preds[batxh_idx],
-                                    tgt_cls_per_image = tgt_cls_per_image,
-                                    tgt_box_per_image = tgt_box_per_image)
+                                 anchors = anchors,
+                                 pred_obj_per_image = obj_preds[batch_idx], 
+                                 pred_cls_per_image = cls_preds[batch_idx], 
+                                 pred_box_per_image = box_preds[batch_idx],
+                                 tgt_cls_per_image = tgt_cls_per_image,
+                                 tgt_box_per_image = tgt_box_per_image)
                 num_foregrounds += num_fg_img
 
                 obj_target = fg_mask.unsqueeze(-1)
