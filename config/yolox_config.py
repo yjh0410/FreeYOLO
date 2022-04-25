@@ -4,7 +4,7 @@
 yolox_config = {
     'yolox_s': {
         # input
-        'train_size': 640,
+        'train_size': 640, # 800
         'test_size': 640,
         'random_size': [320, 352, 384, 416, 448, 480, 512, 544, 576, 608, 640], # [448, 480, 512, 544, 576, 608, 640, 672, 704, 736, 768, 800],
         'mosaic': True,
@@ -66,7 +66,7 @@ yolox_config = {
         # training configuration
         'max_epoch': 300,
         'no_aug_epoch': 15,
-        'batch_size': 32,
+        'batch_size': 1,
         'base_lr': 0.01 / 64.,
         'min_lr_ratio': 0.05,
         # optimizer

@@ -226,8 +226,8 @@ if __name__ == "__main__":
                     {'name': 'PadImage'}]
     affine_params = {'degrees': 10.,
                      'translate': 0.1,
-                     'scales': (0.1, 2.0),
                      'shear': 2.0,
+                     'mosaic_scale': (0.1, 2.0),
                      'mixup_scale': (0.5, 1.5)}
     transform = TrainTransforms(trans_config=trans_config,
                                 img_size=img_size,

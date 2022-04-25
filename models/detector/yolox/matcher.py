@@ -452,6 +452,7 @@ class SimOTA(object):
         ) = self.dynamic_k_matching(cost, pair_wise_ious, tgt_cls_per_image, num_gt, fg_mask)
         del pair_wise_cls_loss, cost, pair_wise_ious, pair_wise_ious_loss
 
+        print(fg_mask.sum(), matched_gt_inds.sum())
         # ground truth regression
         gt_deltas = self.get_deltas(anchors_over_all_feature_maps, tgt_box_per_image.unsqueeze(1))  # [N, M, 4]
         gt_matched_deltas = gt_deltas.new_zeros((num_anchor, 4))  # [M, 4]
