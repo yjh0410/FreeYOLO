@@ -219,10 +219,9 @@ class Criterion(object):
         obj_preds = torch.cat(outputs['pred_obj'], dim=1)
         cls_preds = torch.cat(outputs['pred_cls'], dim=1)
         reg_preds = torch.cat(outputs['pred_reg'], dim=1)
-        box_x1y1_preds = anchors_ - reg_preds[..., :2].clone().detach()
-        box_x2y2_preds = anchors_ + reg_preds[..., 2:].clone().detach()
-        box_preds = torch.cat([box_x1y1_preds, 
-                               box_x2y2_preds], dim=-1)
+        box_x1y1_preds = anchors_ - reg_preds[..., :2]
+        box_x2y2_preds = anchors_ + reg_preds[..., 2:]
+        box_preds = torch.cat([box_x1y1_preds, box_x2y2_preds], dim=-1)
         del anchors_
 
         cls_targets = []
@@ -260,7 +259,7 @@ class Criterion(object):
                 obj_target = fg_mask.unsqueeze(-1)
                 cls_target = F.one_hot(gt_matched_classes.long(), self.num_classes)
                 cls_target = cls_target * pred_ious_this_matching.unsqueeze(-1)
-                reg_target = gt_matched_deltas[fg_mask]
+                reg_target = tgt_box_per_image[matched_gt_inds]
 
             cls_targets.append(cls_target)
             reg_targets.append(reg_target)
@@ -289,7 +288,7 @@ class Criterion(object):
         matched_box_preds = reg_preds.view(-1, 4)[fg_masks]
         ious = get_ious(matched_box_preds,
                         reg_targets,
-                        box_mode="ltrb",
+                        box_mode="xyxy",
                         iou_type='giou')
         loss_bboxes = (1.0 - ious).sum() / num_foregrounds
 
