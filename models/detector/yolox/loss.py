@@ -242,7 +242,6 @@ class Criterion(object):
             else:
                 (
                     gt_matched_classes,
-                    gt_matched_deltas,
                     fg_mask,
                     pred_ious_this_matching,
                     matched_gt_inds,

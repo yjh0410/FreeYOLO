@@ -443,6 +443,7 @@ class SimOTA(object):
             + 3.0 * pair_wise_ious_loss
             + 100000.0 * (~is_in_boxes_and_center)
         ) # [N, M]
+        print(fg_mask.sum())
 
         (
             num_fg,
@@ -453,14 +454,9 @@ class SimOTA(object):
         del pair_wise_cls_loss, cost, pair_wise_ious, pair_wise_ious_loss
 
         print(fg_mask.sum(), matched_gt_inds.sum())
-        # ground truth regression
-        gt_deltas = self.get_deltas(anchors_over_all_feature_maps, tgt_box_per_image.unsqueeze(1))  # [N, M, 4]
-        gt_matched_deltas = gt_deltas.new_zeros((num_anchor, 4))  # [M, 4]
-        gt_matched_deltas[fg_mask] = gt_deltas[matched_gt_inds, torch.arange(num_anchor)[fg_mask]]
 
         return (
             gt_matched_classes,
-            gt_matched_deltas,
             fg_mask,
             pred_ious_this_matching,
             matched_gt_inds,
