@@ -97,8 +97,8 @@ class VOCDetection(data.Dataset):
                  image_sets=[('2007', 'trainval'), ('2012', 'trainval')],
                  transform=None, 
                  target_transform=VOCAnnotationTransform(),
-                 mosaic=False,
-                 mixup=False,
+                 mosaic_prob=0.0,
+                 mixup_prob=0.0,
                  affine_params=None):
         self.root = data_dir
         self.img_size = img_size
@@ -113,12 +113,12 @@ class VOCDetection(data.Dataset):
                 self.ids.append((rootpath, line.strip()))
         # augmentation
         self.transform = transform
-        self.mosaic = mosaic
-        self.mixup = mixup
+        self.mosaic_prob = mosaic_prob
+        self.mixup_prob = mixup_prob
         self.affine_params = affine_params
-        if self.mosaic:
+        if self.mosaic_prob > 0.:
             print('use Mosaic Augmentation ...')
-        if self.mixup:
+        if self.mixup_prob > 0.:
             print('use Mixup Augmentation ...')
 
 
@@ -154,7 +154,7 @@ class VOCDetection(data.Dataset):
 
     def pull_item(self, index):
         # load a mosaic image
-        if self.mosaic:
+        if random.random() < self.mosaic_prob:
             ids_list_ = self.ids[:index] + self.ids[index+1:]
             # random sample other indexs
             id1 = self.ids[index]
@@ -177,7 +177,7 @@ class VOCDetection(data.Dataset):
             image, target = self.load_image_target(img_id)
 
         # load mixup image
-        if self.mixup:
+        if random.random() < self.mixup_prob:
             new_index = np.random.randint(0, len(self.ids))
             new_img_id = self.ids[new_index]
             new_image, new_target = self.load_image_target(new_img_id)
@@ -252,8 +252,8 @@ if __name__ == "__main__":
     dataset = VOCDetection(img_size=img_size,
                            data_dir='E:\\python_work\\object_detection\\dataset\\VOCdevkit',
                            transform=transform,
-                           mosaic=True,
-                           mixup=True,
+                           mosaic_prob=1.0,
+                           mixup_prob=1.0,
                            affine_params=affine_params)
     
     np.random.seed(0)

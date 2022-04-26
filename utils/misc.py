@@ -34,8 +34,8 @@ def build_dataset(cfg, args, device):
         dataset = VOCDetection(img_size=cfg['train_size'],
                                data_dir=data_dir, 
                                transform=train_transform,
-                               mosaic=cfg['mosaic'],
-                               mixup=cfg['mixup'],
+                               mosaic_prob=cfg['mosaic_prob'],
+                               mixup_prob=cfg['mixup_prob'],
                                affine_params=cfg['affine_params'])
         # evaluator
         evaluator = VOCAPIEvaluator(data_dir=data_dir,
@@ -50,8 +50,8 @@ def build_dataset(cfg, args, device):
                               data_dir=data_dir,
                               image_set='train2017',
                               transform=train_transform,
-                              mosaic=cfg['mosaic'],
-                              mixup=cfg['mixup'],
+                              mosaic_prob=cfg['mosaic_prob'],
+                              mixup_prob=cfg['mixup_prob'],
                               affine_params=cfg['affine_params'])
         # evaluator
         evaluator = COCOAPIEvaluator(data_dir=data_dir,

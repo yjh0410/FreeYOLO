@@ -46,8 +46,8 @@ class COCODataset(Dataset):
                  data_dir=None, 
                  image_set='train2017',
                  transform=None,
-                 mosaic=False,
-                 mixup=False,
+                 mosaic_prob=1.0,
+                 mixup_prob=1.0,
                  affine_params=None):
         """
         COCO dataset initialization. Annotation data are read into memory by COCO API.
@@ -71,12 +71,12 @@ class COCODataset(Dataset):
         self.class_ids = sorted(self.coco.getCatIds())
         # augmentation
         self.transform = transform
-        self.mosaic = mosaic
-        self.mixup = mixup
+        self.mosaic_prob = mosaic_prob
+        self.mixup_prob = mixup_prob
         self.affine_params = affine_params
-        if self.mosaic:
+        if self.mosaic_prob > 0.:
             print('use Mosaic Augmentation ...')
-        if self.mixup:
+        if self.mixup_prob > 0.:
             print('use Mixup Augmentation ...')
 
 
@@ -136,7 +136,7 @@ class COCODataset(Dataset):
 
     def pull_item(self, index):
         # load a mosaic image
-        if self.mosaic:
+        if random.random() < self.mosaic_prob:
             ids_list_ = self.ids[:index] + self.ids[index+1:]
             # random sample other indexs
             id1 = self.ids[index]
@@ -159,7 +159,7 @@ class COCODataset(Dataset):
             image, target = self.load_image_target(img_id)
 
         # load mixup image
-        if self.mixup:
+        if random.random() < self.mixup_prob:
             new_index = np.random.randint(0, len(self.ids))
             new_img_id = self.ids[new_index]
             new_image, new_target = self.load_image_target(new_img_id)
@@ -236,8 +236,8 @@ if __name__ == "__main__":
                           data_dir='E:\\python_work\\object_detection\\dataset\\COCO',
                           image_set='train2017',
                           transform=transform,
-                          mosaic=True,
-                          mixup=True,
+                           mosaic_prob=1.0,
+                           mixup_prob=1.0,
                           affine_params=affine_params)
     
     np.random.seed(0)

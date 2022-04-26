@@ -164,8 +164,11 @@ def mosaic_augment(image_list, target_list, img_size, affine_params):
             mosaic_labels.append(labels_i)
 
     mosaic_bboxes = np.concatenate(mosaic_bboxes)
-    mosaic_labels = np.concatenate(mosaic_labels)[..., None]
-    mosaic_tgts = np.concatenate([mosaic_bboxes, mosaic_labels], axis=-1)
+    mosaic_labels = np.concatenate(mosaic_labels)
+    mosaic_tgts = np.concatenate([mosaic_bboxes.clip(0, img_size * 2), 
+                                  mosaic_labels[..., None]], 
+                                  axis=-1)
+    # affine
     mosaic_img, mosaic_tgts = random_affine(
         mosaic_img,
         mosaic_tgts,

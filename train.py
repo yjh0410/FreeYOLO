@@ -220,13 +220,13 @@ def train():
                             path_to_save=path_to_save)
 
         # close mosaic augmentation
-        if cfg['mosaic'] and total_epochs- epoch == cfg['no_aug_epoch']:
+        if cfg['mosaic_prob'] > 0. and total_epochs - epoch == cfg['no_aug_epoch']:
             print('close Mosaic Augmentation ...')
-            dataloader.dataset.mosaic = False
+            dataloader.dataset.mosaic_prob = 0.
         # close mixup augmentation
-        if cfg['mixup'] and total_epochs - epoch == cfg['no_aug_epoch']:
+        if cfg['mixup_prob'] > 0. and total_epochs - epoch == cfg['no_aug_epoch']:
             print('close Mixup Augmentation ...')
-            dataloader.dataset.mixup = False
+            dataloader.dataset.mixup_prob = 0.
 
 
 if __name__ == '__main__':
