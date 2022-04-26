@@ -20,12 +20,14 @@ class DecoupledHead(nn.Module):
                                               self.head_dim, 
                                               k=3, p=1, s=1, 
                                               act_type=self.act_type, 
-                                              norm_type=self.norm_type) for _ in range(self.num_cls_head)])
+                                              norm_type=self.norm_type,
+                                              depthwise=cfg['depthwise']) for _ in range(self.num_cls_head)])
         self.reg_feats = nn.Sequential(*[Conv(self.head_dim, 
                                               self.head_dim, 
                                               k=3, p=1, s=1, 
                                               act_type=self.act_type, 
-                                              norm_type=self.norm_type) for _ in range(self.num_reg_head)])
+                                              norm_type=self.norm_type,
+                                              depthwise=cfg['depthwise']) for _ in range(self.num_reg_head)])
 
 
     def forward(self, x):
