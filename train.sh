@@ -4,4 +4,5 @@ python train.py \
         --root /mnt/share/ssd2/dataset/ \
         -v yolox_s \
         -m sim_ota \
-        --ema
+        --ema \
+        --eval_epoch 10 \
