@@ -276,8 +276,6 @@ def mixup_augment(origin_image, origin_target, new_image, new_target, img_size, 
         cp_bboxes_transformed_np[:, 1::2] - y_offset, 0, target_h
     )
 
-    r = np.random.beta(32.0, 32.0)  # mixup ratio, alpha=beta=32.0
-
     mixup_image = 0.5 * origin_image.astype(np.float32) + \
                   0.5 * padded_cropped_img.astype(np.float32)
     mixup_image = mixup_image.astype(np.uint8)
