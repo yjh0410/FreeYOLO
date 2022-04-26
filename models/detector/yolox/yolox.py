@@ -31,7 +31,7 @@ class YOLOX(nn.Module):
         # backbone
         self.backbone, bk_dim = build_backbone(cfg=cfg)
 
-        # neck
+        # fpn neck
         self.fpn = build_fpn(cfg=cfg, in_dims=bk_dim)
                                      
         # non-shared heads
