@@ -5,4 +5,4 @@ python train.py \
         -v yolox_s \
         -m sim_ota \
         --ema \
-        --eval_epoch 10 \
+        --eval_epoch 10
