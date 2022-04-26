@@ -209,7 +209,7 @@ def train():
                             optimizer=optimizer)
         
         # evaluation
-        if ((epoch + 1) % args.eval_epoch) == 0 or (epoch + 1 == total_epochs):
+        if (epoch % args.eval_epoch) == 0 or (epoch == total_epochs - 1):
             best_map = val_one_epoch(
                             args=args, 
                             model=ema.ema if args.ema else model_without_ddp, 
