@@ -33,6 +33,8 @@ def parse_args():
                         help='use tensorboard')
     parser.add_argument('--save_folder', default='weights/', type=str, 
                         help='path to save weight')
+    parser.add_argument('--eval_epoch', default=10, type=int, 
+                        help='after eval epoch, the model is evaluated on val dataset.')
 
     # model
     parser.add_argument('-v', '--version', default='yolox_d53', type=str,
@@ -166,6 +168,7 @@ def train():
         if args.distributed:
             dataloader.batch_sampler.sampler.set_epoch(epoch)            
 
+        # train one epoch
         if epoch < cfg['wp_epoch']:
             # warmup training loop
             train_with_warmup(epoch=epoch,
@@ -179,15 +182,6 @@ def train():
                               dataloader=dataloader, 
                               optimizer=optimizer, 
                               warmup_scheduler=warmup_scheduler)
-
-            # evaluation
-            best_map = val_one_epoch(args=args, 
-                          model=ema.ema if args.ema else model_without_ddp, 
-                          evaluator=evaluator,
-                          optimizer=optimizer,
-                          epoch=epoch,
-                          best_map=best_map,
-                          path_to_save=path_to_save)
 
         else:
             # use cos lr decay
@@ -214,14 +208,16 @@ def train():
                             dataloader=dataloader, 
                             optimizer=optimizer)
         
-            # evaluation
-            best_map = val_one_epoch(args=args, 
-                          model=ema.ema if args.ema else model_without_ddp, 
-                          evaluator=evaluator,
-                          optimizer=optimizer,
-                          epoch=epoch,
-                          best_map=best_map,
-                          path_to_save=path_to_save)
+        # evaluation
+        if (epoch % args.eval_epoch) == 0 or (epoch == total_epochs - 1):
+            best_map = val_one_epoch(
+                            args=args, 
+                            model=ema.ema if args.ema else model_without_ddp, 
+                            evaluator=evaluator,
+                            optimizer=optimizer,
+                            epoch=epoch,
+                            best_map=best_map,
+                            path_to_save=path_to_save)
 
         # close mosaic augmentation
         if cfg['mosaic'] and total_epochs- epoch == cfg['no_aug_epoch']:
