@@ -2,6 +2,6 @@ python train.py \
         --cuda \
         -d coco \
         --root /mnt/share/ssd2/dataset/ \
-        -v yolox_s \
+        -v yolox_t \
         -m sim_ota \
         --ema
