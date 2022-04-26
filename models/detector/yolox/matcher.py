@@ -562,7 +562,7 @@ class SimOTA(object):
         matching_matrix = torch.zeros_like(cost, dtype=torch.uint8)
 
         ious_in_boxes_matrix = pair_wise_ious
-        n_candidate_k = min(10, ious_in_boxes_matrix.size(1))
+        n_candidate_k = min(self.topk_candidate, ious_in_boxes_matrix.size(1))
         topk_ious, _ = torch.topk(ious_in_boxes_matrix, n_candidate_k, dim=1)
         dynamic_ks = torch.clamp(topk_ious.sum(1).int(), min=1)
         dynamic_ks = dynamic_ks.tolist()
