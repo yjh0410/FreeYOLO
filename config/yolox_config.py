@@ -480,5 +480,4 @@ yolox_config = {
         'wp_epoch': 5,
         },
 
-
 }
