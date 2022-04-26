@@ -152,38 +152,45 @@ class VOCDetection(data.Dataset):
         return image, target
 
 
+    def load_mosaic(self, index):
+        # load a mosaic image
+        ids_list_ = self.ids[:index] + self.ids[index+1:]
+        # random sample other indexs
+        id1 = self.ids[index]
+        id2, id3, id4 = random.sample(ids_list_, 3)
+        ids = [id1, id2, id3, id4]
+
+        image_list = []
+        target_list = []
+        # load image and target
+        for id_ in ids:
+            img_i, target_i = self.load_image_target(id_)
+            image_list.append(img_i)
+            target_list.append(target_i)
+
+        image, target = mosaic_augment(image_list, target_list, self.img_size, self.affine_params)
+        
+        return image, target
+
+
     def pull_item(self, index):
         # load a mosaic image
         if random.random() < self.mosaic_prob:
-            ids_list_ = self.ids[:index] + self.ids[index+1:]
-            # random sample other indexs
-            id1 = self.ids[index]
-            id2, id3, id4 = random.sample(ids_list_, 3)
-            ids = [id1, id2, id3, id4]
+            image, target = self.load_mosaic(index)
 
-            image_list = []
-            target_list = []
-            # load image and target
-            for id_ in ids:
-                img_i, target_i = self.load_image_target(id_)
-                image_list.append(img_i)
-                target_list.append(target_i)
+            # MixUp
+            if random.random() < self.mixup_prob:
+                new_index = np.random.randint(0, len(self.ids))
+                new_image, new_target = self.load_mosaic(new_index)
 
-            image, target = mosaic_augment(image_list, target_list, self.img_size, self.affine_params)
+                image, target = mixup_augment(image, target, new_image, new_target, 
+                                            self.img_size, self.affine_params['mixup_scale'])
 
         # load an image and target
         else:
             img_id = self.ids[index]
             image, target = self.load_image_target(img_id)
 
-        # load mixup image
-        if random.random() < self.mixup_prob:
-            new_index = np.random.randint(0, len(self.ids))
-            new_img_id = self.ids[new_index]
-            new_image, new_target = self.load_image_target(new_img_id)
-
-            image, target = mixup_augment(image, target, new_image, new_target, 
-                                          self.img_size, self.affine_params['mixup_scale'])
 
         # augment
         image, target = self.transform(image, target)
@@ -253,7 +260,7 @@ if __name__ == "__main__":
                            data_dir='E:\\python_work\\object_detection\\dataset\\VOCdevkit',
                            transform=transform,
                            mosaic_prob=1.0,
-                           mixup_prob=1.0,
+                           mixup_prob=0.1,
                            affine_params=affine_params)
     
     np.random.seed(0)
