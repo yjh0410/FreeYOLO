@@ -184,6 +184,10 @@ def train():
                               warmup_scheduler=warmup_scheduler)
 
         else:
+            if epoch == cfg['wp_epoch']:
+                print('Warmup is Over !!!')
+                warmup_scheduler.set_lr(optimizer, base_lr)
+                
             # use cos lr decay
             T_max = total_epochs - cfg['no_aug_epoch']
             if epoch > T_max:

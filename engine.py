@@ -103,9 +103,6 @@ def train_with_warmup(epoch,
             print(log, flush=True)
             
             t0 = time.time()
-    
-    print('Warmup is Over !!!')
-    warmup_scheduler.set_lr(optimizer, base_lr)
 
 
 def train_one_epoch(epoch,
