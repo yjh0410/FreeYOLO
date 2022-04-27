@@ -165,7 +165,9 @@ def mosaic_augment(image_list, target_list, img_size, affine_params):
 
     mosaic_bboxes = np.concatenate(mosaic_bboxes)
     mosaic_labels = np.concatenate(mosaic_labels)
-    mosaic_tgts = np.concatenate([mosaic_bboxes.clip(0, img_size * 2), 
+    # clip
+    mosaic_bboxes = mosaic_bboxes.clip(0, img_size * 2)
+    mosaic_tgts = np.concatenate([mosaic_bboxes, 
                                   mosaic_labels[..., None]], 
                                   axis=-1)
     # affine
@@ -178,7 +180,9 @@ def mosaic_augment(image_list, target_list, img_size, affine_params):
         scales=affine_params['mosaic_scale'],
         shear=affine_params['shear'],
     )
+    # resize mosaic image from mosaic size to input size
     mosaic_img = cv2.resize(mosaic_img, (img_size, img_size))
+    # modify mosaic bboxes after resize
     mosaic_bboxes = mosaic_tgts[..., :4] / 2.0
     mosaic_labels = mosaic_tgts[..., 4]
 
@@ -193,7 +197,8 @@ def mosaic_augment(image_list, target_list, img_size, affine_params):
         for box, label in zip(mosaic_bboxes, mosaic_labels):
             x1, y1, x2, y2 = box
             bw, bh = x2 - x1, y2 - y1
-            if bw > 10. and bh > 10.:
+            # We remove those extremely small objects
+            if bw > 5. and bh > 5.:
                 valid_bboxes.append([x1, y1, x2, y2])
                 valid_labels.append(label)
         if len(valid_labels) == 0:
