@@ -281,8 +281,9 @@ def mixup_augment(origin_image, origin_target, new_image, new_target, img_size, 
         cp_bboxes_transformed_np[:, 1::2] - y_offset, 0, target_h
     )
 
-    mixup_image = 0.5 * origin_image.astype(np.float32) + \
-                  0.5 * padded_cropped_img.astype(np.float32)
+    r = np.random.beta(32.0, 32.0)  # mixup ratio, alpha=beta=32.0
+    mixup_image = r * origin_image.astype(np.float32) + \
+                  (1.0 - r)* padded_cropped_img.astype(np.float32)
     mixup_image = mixup_image.astype(np.uint8)
     
     cls_labels = new_target["labels"].copy()
@@ -290,6 +291,31 @@ def mixup_augment(origin_image, origin_target, new_image, new_target, img_size, 
 
     mixup_bboxes = np.concatenate([origin_target["boxes"], box_labels], axis=0)
     mixup_labels = np.concatenate([origin_target["labels"], cls_labels], axis=0)
+    # check target
+    valid_bboxes = []
+    valid_labels = []
+    if len(mixup_bboxes) > 0:
+        # Cutout/Clip targets
+        np.clip(mixup_bboxes, 0, img_size, out=mixup_bboxes)
+
+        # check boxes
+        for box, label in zip(mixup_bboxes, mixup_labels):
+            x1, y1, x2, y2 = box
+            bw, bh = x2 - x1, y2 - y1
+            # We remove those extremely small objects
+            if bw > 5. and bh > 5.:
+                valid_bboxes.append([x1, y1, x2, y2])
+                valid_labels.append(label)
+        if len(valid_labels) == 0:
+                valid_bboxes.append([0., 0., 0., 0.])
+                valid_labels.append(0.)
+
+    # guard against no boxes via resizing
+    valid_bboxes = np.array(valid_bboxes).reshape(-1, 4)
+    valid_labels = np.array(valid_labels).reshape(-1)
+    mixup_bboxes = np.array(valid_bboxes)
+    mixup_labels = np.array(valid_labels)
+
     mixup_target = {
         "boxes": mixup_bboxes,
         "labels": mixup_labels,

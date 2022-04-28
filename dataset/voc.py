@@ -186,8 +186,8 @@ class VOCDetection(data.Dataset):
         # MixUp
         if random.random() < self.mixup_prob:
             new_index = np.random.randint(0, len(self.ids))
-            new_img_id = self.ids[new_index]
-            new_image, new_target = self.load_image_target(new_img_id)
+            # new_img_id = self.ids[new_index]
+            new_image, new_target = self.load_mosaic(new_index)
 
             image, target = mixup_augment(image, target, new_image, new_target, 
                                         self.img_size, self.affine_params['mixup_scale'])
@@ -260,7 +260,7 @@ if __name__ == "__main__":
                            data_dir='E:\\python_work\\object_detection\\dataset\\VOCdevkit',
                            transform=transform,
                            mosaic_prob=1.0,
-                           mixup_prob=1.0,
+                           mixup_prob=0.1,
                            affine_params=affine_params)
     
     np.random.seed(0)
