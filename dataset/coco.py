@@ -244,7 +244,7 @@ if __name__ == "__main__":
                           image_set='train2017',
                           transform=transform,
                            mosaic_prob=1.0,
-                           mixup_prob=0.5,
+                           mixup_prob=1.0,
                           affine_params=affine_params)
     
     np.random.seed(0)
