@@ -174,16 +174,13 @@ def mosaic_augment(image_list, target_list, img_size, affine_params):
     mosaic_img, mosaic_tgts = random_affine(
         mosaic_img,
         mosaic_tgts,
-        target_size=(img_size*2, img_size*2),
+        target_size=(img_size, img_size),
         degrees=affine_params['degrees'],
         translate=affine_params['translate'],
         scales=affine_params['mosaic_scale'],
         shear=affine_params['shear'],
     )
-    # resize mosaic image from mosaic size to input size
-    mosaic_img = cv2.resize(mosaic_img, (img_size, img_size))
-    # modify mosaic bboxes after resize
-    mosaic_bboxes = mosaic_tgts[..., :4] / 2.0
+    mosaic_bboxes = mosaic_tgts[..., :4]
     mosaic_labels = mosaic_tgts[..., 4]
 
     # check target

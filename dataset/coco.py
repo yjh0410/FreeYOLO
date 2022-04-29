@@ -168,8 +168,8 @@ class COCODataset(Dataset):
         # MixUp
         if random.random() < self.mixup_prob:
             new_index = np.random.randint(0, len(self.ids))
-            # mew_img_id = self.ids[new_index]
-            new_image, new_target = self.load_mosaic(new_index)
+            mew_img_id = self.ids[new_index]
+            new_image, new_target = self.load_image_target(mew_img_id)
 
             image, target = mixup_augment(image, target, new_image, new_target, 
                                         self.img_size, self.affine_params['mixup_scale'])
