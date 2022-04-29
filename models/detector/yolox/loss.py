@@ -235,10 +235,10 @@ class Criterion(object):
             tgt_box_per_image = targets[batch_idx]["boxes"].to(device)
             num_gt = len(tgt_cls_per_image)
             if num_gt == 0:
-                cls_target = outputs['pred_obj'].new_zeros((0, self.num_classes))
-                reg_target = outputs['pred_obj'].new_zeros((0, 4))
-                obj_target = outputs['pred_obj'].new_zeros((num_anchors, 1))
-                fg_mask = outputs['pred_obj'].new_zeros(num_anchors).bool()
+                cls_target = obj_preds.new_zeros((0, self.num_classes))
+                reg_target = obj_preds.new_zeros((0, 4))
+                obj_target = obj_preds.new_zeros((num_anchors, 1))
+                fg_mask = obj_preds.new_zeros(num_anchors).bool()
             else:
                 (
                     gt_matched_classes,
