@@ -409,7 +409,7 @@ yolox_config = {
         'test_size': 416,
         'random_size': [320, 352, 384, 416, 448, 480, 512, 544, 576, 608, 640],
         'mosaic_prob': 0.5,
-        'mixup_prob': 0.5,
+        'mixup_prob': 0.1,
         'format': 'RGB',
         'transforms': [{'name': 'DistortTransform',
                          'hue': 0.1,
