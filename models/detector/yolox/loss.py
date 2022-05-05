@@ -233,8 +233,10 @@ class Criterion(object):
         for batch_idx in range(bs):
             tgt_cls_per_image = targets[batch_idx]["labels"].to(device)
             tgt_box_per_image = targets[batch_idx]["boxes"].to(device)
-            num_gt = len(tgt_cls_per_image)
-            if num_gt == 0:
+
+            # check target
+            if tgt_box_per_image.max().item() == 0.:
+                # There is no valid gt
                 cls_target = obj_preds.new_zeros((0, self.num_classes))
                 reg_target = obj_preds.new_zeros((0, 4))
                 obj_target = obj_preds.new_zeros((num_anchors, 1))
