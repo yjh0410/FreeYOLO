@@ -564,7 +564,7 @@ class SimOTA(object):
 
                     # Dynamic k Estimation
                     topk_ious, _ = torch.topk(ious * is_in_bboxes.float(), self.topk_candidate, dim=1)
-                    dynamic_ks = torch.clamp(topk_ious.sum(1).int(), min=1)
+                    dynamic_ks = torch.clamp(topk_ious.sum(1).int(), min=1) # [N,]
                     dynamic_ks = dynamic_ks.tolist()
                     matching_matrix = torch.zeros_like(cost, dtype=torch.uint8) # [N, M]
                     
@@ -587,8 +587,8 @@ class SimOTA(object):
                     bg_mask = ~fg_mask                   # [M,]
                     bg_matching = bg_mask.float() * 1e6
 
-                    # [N+1, M]
-                    full_matching_matrix = torch.cat([matching_matrix, bg_matching.unsqueeze(0)])
+                    # [N+1, M], where N+1 is the background row.
+                    full_matching_matrix = torch.cat([matching_matrix, bg_matching.unsqueeze(0)], dim=0)
 
                     # matched_gt_inds: [M,]
                     max_assigned_units, matched_gt_inds = torch.max(full_matching_matrix, dim=0)
