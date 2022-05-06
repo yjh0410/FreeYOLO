@@ -548,11 +548,6 @@ class SimOTA(object):
                         tgt_cls_.unsqueeze(1).expand(shape),      # [N, C] -> [N, 1, C] -> [N, M, C]
                         reduction='none'
                     ).sum(dim=-1) # [N, M, C] -> [N, M]
-                    loss_cls_bg = F.binary_cross_entropy_with_logits(
-                        cls_pred_,
-                        torch.zeros_like(cls_pred_),
-                        reduction='none'
-                    ).sum(dim=-1) # [M, C] -> [M]
 
                     # [N, M, 4]
                     tgt_delta = self.get_deltas(anchors_over_all_feature_maps, tgt_box.unsqueeze(1))
@@ -565,20 +560,18 @@ class SimOTA(object):
                         loss_type='iou'
                     ) # [N, M]
 
-                    loss = loss_cls + 3.0 * loss_delta + 1e6 * (1 - is_in_bboxes.float())
-                    loss = torch.cat([loss, loss_cls_bg.unsqueeze(0)], dim=0)
+                    cost = loss_cls + 3.0 * loss_delta + 1e6 * (1 - is_in_bboxes.float())
 
                     # Dynamic k Estimation
                     topk_ious, _ = torch.topk(ious * is_in_bboxes.float(), self.topk_candidate, dim=1)
                     dynamic_ks = torch.clamp(topk_ious.sum(1).int(), min=1)
                     dynamic_ks = dynamic_ks.tolist()
-                    dynamic_ks.append(num_anchor - sum(dynamic_ks))
-                    matching_matrix = torch.zeros_like(loss, dtype=torch.uint8) # [N+1, M]
+                    matching_matrix = torch.zeros_like(cost, dtype=torch.uint8) # [N, M]
                     
                     # Dynamic K matching
-                    for gt_idx in range(num_gt + 1):
+                    for gt_idx in range(num_gt):
                         _, pos_idx = torch.topk(
-                            loss[gt_idx], k=dynamic_ks[gt_idx], largest=False
+                            cost[gt_idx], k=dynamic_ks[gt_idx], largest=False
                         )
                         matching_matrix[gt_idx][pos_idx] = 1
 
@@ -586,12 +579,19 @@ class SimOTA(object):
 
                     anchor_matching_gt = matching_matrix.sum(0)
                     if (anchor_matching_gt > 1).sum() > 0:
-                        _, cost_argmin = torch.min(loss[:, anchor_matching_gt > 1], dim=0)
+                        _, cost_argmin = torch.min(cost[:, anchor_matching_gt > 1], dim=0)
                         matching_matrix[:, anchor_matching_gt > 1] *= 0
                         matching_matrix[cost_argmin, anchor_matching_gt > 1] = 1
                     
+                    fg_mask = matching_matrix.sum(0) > 0 # [M,]
+                    bg_mask = ~fg_mask                   # [M,]
+                    bg_matching = bg_mask.float() * 1e6
+
+                    # [N+1, M]
+                    full_matching_matrix = torch.cat([matching_matrix, bg_matching.unsqueeze(0)])
+
                     # matched_gt_inds: [M,]
-                    max_assigned_units, matched_gt_inds = torch.max(matching_matrix, dim=0)
+                    max_assigned_units, matched_gt_inds = torch.max(full_matching_matrix, dim=0)
 
                     # fg_mask: [M,]
                     fg_mask = (matched_gt_inds != num_gt)
