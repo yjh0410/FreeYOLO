@@ -196,118 +196,6 @@ class Criterion(object):
         return loss_dict
     
 
-    def sim_ota_loss(self, outputs, targets, anchors=None):
-        """
-            outputs['pred_obj']: (Tensor) [B, M, 1]
-            outputs['pred_cls']: (Tensor) [B, M, C]
-            outputs['pred_reg']: (Tensor) [B, M, 4]
-            outputs['strides']: (List) [8, 16, 32, ...] stride of the model output
-            targets: (List) [dict{'boxes': [...], 
-                                 'labels': [...], 
-                                 'orig_size': ...}, ...]
-            anchors: (List of Tensor) List[Tensor[M, 4]], len(anchors) == num_fpn_levels
-        """
-        device = outputs['pred_cls'][0].device
-        fpn_strides = outputs['strides']
-        bs = outputs['pred_cls'][0].shape[0]
-
-        # List[F, Mi, 2] -> [M, 2] -> [B, M, 2]
-        anchors_ = torch.cat(anchors, dim=0).unsqueeze(0).repeat(bs, 1, 1)
-        num_anchors = anchors_.shape[1]
-
-        # List[B, Mi, C] -> [B, M, C]
-        obj_preds = torch.cat(outputs['pred_obj'], dim=1)
-        cls_preds = torch.cat(outputs['pred_cls'], dim=1)
-        reg_preds = torch.cat(outputs['pred_reg'], dim=1)
-        box_x1y1_preds = anchors_ - reg_preds[..., :2]
-        box_x2y2_preds = anchors_ + reg_preds[..., 2:]
-        box_preds = torch.cat([box_x1y1_preds, box_x2y2_preds], dim=-1)
-        del anchors_
-
-        cls_targets = []
-        reg_targets = []
-        obj_targets = []
-        fg_masks = []
-
-        num_foregrounds = 0.0
-        for batch_idx in range(bs):
-            tgt_cls_per_image = targets[batch_idx]["labels"].to(device)
-            tgt_box_per_image = targets[batch_idx]["boxes"].to(device)
-
-            # check target
-            if tgt_box_per_image.max().item() == 0.:
-                # There is no valid gt
-                cls_target = obj_preds.new_zeros((0, self.num_classes))
-                reg_target = obj_preds.new_zeros((0, 4))
-                obj_target = obj_preds.new_zeros((num_anchors, 1))
-                fg_mask = obj_preds.new_zeros(num_anchors).bool()
-            else:
-                (
-                    gt_matched_classes,
-                    fg_mask,
-                    pred_ious_this_matching,
-                    matched_gt_inds,
-                    num_fg_img,
-                ) = self.matcher(fpn_strides = fpn_strides,
-                                 anchors = anchors,
-                                 pred_obj_per_image = obj_preds[batch_idx], 
-                                 pred_cls_per_image = cls_preds[batch_idx], 
-                                 pred_box_per_image = box_preds[batch_idx],
-                                 tgt_cls_per_image = tgt_cls_per_image,
-                                 tgt_box_per_image = tgt_box_per_image)
-                num_foregrounds += num_fg_img
-
-                obj_target = fg_mask.unsqueeze(-1)
-                cls_target = F.one_hot(gt_matched_classes.long(), self.num_classes)
-                cls_target = cls_target * pred_ious_this_matching.unsqueeze(-1)
-                reg_target = tgt_box_per_image[matched_gt_inds]
-
-            cls_targets.append(cls_target)
-            reg_targets.append(reg_target)
-            obj_targets.append(obj_target)
-            fg_masks.append(fg_mask)
-
-        cls_targets = torch.cat(cls_targets, 0)
-        reg_targets = torch.cat(reg_targets, 0)
-        obj_targets = torch.cat(obj_targets, 0)
-        fg_masks = torch.cat(fg_masks, 0)
-
-        if is_dist_avail_and_initialized():
-            torch.distributed.all_reduce(num_foregrounds)
-        num_foregrounds = max(num_foregrounds / get_world_size(), 1)
-
-        # objectness loss
-        loss_objectness = self.obj_lossf(obj_preds.view(-1, 1), obj_targets.float())
-        loss_objectness = loss_objectness.sum() / num_foregrounds
-        
-        # classification loss
-        matched_cls_preds = cls_preds.view(-1, self.num_classes)[fg_masks]
-        loss_labels = self.obj_lossf(matched_cls_preds, cls_targets)
-        loss_labels = loss_labels.sum() / num_foregrounds
-
-        # regression loss
-        matched_box_preds = box_preds.view(-1, 4)[fg_masks]
-        ious = get_ious(matched_box_preds,
-                        reg_targets,
-                        box_mode="xyxy",
-                        iou_type='giou')
-        loss_bboxes = (1.0 - ious).sum() / num_foregrounds
-
-        # total loss
-        losses = self.loss_obj_weight * loss_objectness + \
-                 self.loss_cls_weight * loss_labels + \
-                 self.loss_reg_weight * loss_bboxes
-
-        loss_dict = dict(
-                loss_objectness = loss_objectness,
-                loss_labels = loss_labels,
-                loss_bboxes = loss_bboxes,
-                losses = losses
-        )
-
-        return loss_dict
-
-
     def __call__(self, outputs, targets, anchors=None):
         """
             outputs['pred_obj']: (Tensor) [B, M, 1]
@@ -324,7 +212,7 @@ class Criterion(object):
         elif self.matcher_name == 'ota':
             return self.ota_loss(outputs, targets, anchors)
         elif self.matcher_name == 'sim_ota':
-            return self.sim_ota_loss(outputs, targets, anchors)
+            return self.ota_loss(outputs, targets, anchors)
 
 
 if __name__ == "__main__":
