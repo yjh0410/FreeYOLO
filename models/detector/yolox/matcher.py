@@ -510,13 +510,12 @@ class SimOTA(object):
                 gt_anchors_deltas.append(tgt_reg_i)
 
             else:            
-                # [N, M, 4], N is the number of targets, M is the number of all anchors
-                print(anchors_over_all_feature_maps)
+                # [N, M, 4]
                 deltas = self.get_deltas(anchors_over_all_feature_maps, tgt_box.unsqueeze(1))
                 # [N, M]
-                is_in_bboxes = deltas.min(dim=-1).values > 0.01
+                is_in_bboxes = (deltas.min(dim=-1).values > 0.0)
                 # [M,]
-                is_in_boxes_all = is_in_bboxes.sum(dim=0) > 0
+                is_in_boxes_all = (is_in_bboxes.sum(dim=0) > 0)
 
                 # targets bbox centers: [N, 2]
                 centers = (tgt_box[:, :2] + tgt_box[:, 2:]) * 0.5
@@ -535,7 +534,7 @@ class SimOTA(object):
                 # [M,]
                 is_in_centers_all = is_in_centers.sum(dim=0) > 0
 
-                del centers, center_bboxes, deltas, center_deltas
+                # del centers, center_bboxes, deltas, center_deltas
 
                 # posotive candidates: [M,]
                 is_in_boxes_anchor = is_in_boxes_all | is_in_centers_all
@@ -597,11 +596,10 @@ class SimOTA(object):
                         )
                         matching_matrix[gt_idx][pos_idx] = 1
                     except:
-                        print(cost.shape)
-                        print(cost[gt_idx].shape)
                         print(is_in_boxes_anchor.sum())
                         print(is_in_bboxes.sum())
                         print(is_in_centers.sum())
+                        print(deltas.max())
 
                 del topk_ious, dynamic_ks, pos_idx
 
