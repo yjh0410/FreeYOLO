@@ -511,6 +511,7 @@ class SimOTA(object):
 
             else:            
                 # [N, M, 4], N is the number of targets, M is the number of all anchors
+                print(anchors_over_all_feature_maps)
                 deltas = self.get_deltas(anchors_over_all_feature_maps, tgt_box.unsqueeze(1))
                 # [N, M]
                 is_in_bboxes = deltas.min(dim=-1).values > 0.01
@@ -601,7 +602,6 @@ class SimOTA(object):
                         print(is_in_boxes_anchor.sum())
                         print(is_in_bboxes.sum())
                         print(is_in_centers.sum())
-                        print(tgt_cls, tgt_box)
 
                 del topk_ious, dynamic_ks, pos_idx
 
