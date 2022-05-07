@@ -598,6 +598,8 @@ class SimOTA(object):
                     except:
                         print(cost[gt_idx].shape)
                         print(is_in_boxes_anchor.sum())
+                        print(is_in_bboxes.sum())
+                        print(is_in_centers.sum())
 
                 del topk_ious, dynamic_ks, pos_idx
 
