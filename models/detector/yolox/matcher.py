@@ -539,6 +539,7 @@ class SimOTA(object):
                 # posotive candidates: [M,]
                 is_in_boxes_anchor = is_in_boxes_all | is_in_centers_all
                 fg_mask = is_in_boxes_anchor
+                print(is_in_boxes_anchor.sum())
 
                 # both in bboxes and center: [Mp,]
                 is_in_boxes_and_center = (
