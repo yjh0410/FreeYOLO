@@ -204,7 +204,7 @@ class VOCDetection(data.Dataset):
 
         if len(target_bboxes) > 0:
             # Cutout/Clip targets
-            target_bboxes = torch.clamp(target_bboxes, 0, img_size)
+            target_bboxes = torch.clamp(target_bboxes, 0, self.img_size)
 
             # check boxes
             for box, label in zip(target_bboxes, target_labels):
