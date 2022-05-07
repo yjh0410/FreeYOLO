@@ -273,6 +273,39 @@ def mixup_augment(origin_image, origin_target, new_image, new_target, img_size, 
     return mixup_image, mixup_target
     
 
+def refine_targets(target, img_size):
+    # check target
+    valid_bboxes = []
+    valid_labels = []
+    target_bboxes = target['boxes'].clone()
+    target_labels = target['labels'].clone()
+
+    if len(target_bboxes) > 0:
+        # Cutout/Clip targets
+        target_bboxes = torch.clamp(target_bboxes, 0, img_size)
+
+        # check boxes
+        for box, label in zip(target_bboxes, target_labels):
+            x1, y1, x2, y2 = box.tolist()
+            bw, bh = x2 - x1, y2 - y1
+            # We remove those extremely small objects
+            if bw > 5. and bh > 5.:
+                valid_bboxes.append([x1, y1, x2, y2])
+                valid_labels.append(label.item())
+        if len(valid_labels) == 0:
+                valid_bboxes.append([0., 0., 0., 0.])
+                valid_labels.append(0)
+
+    # guard against no boxes via resizing
+    valid_bboxes = torch.as_tensor(valid_bboxes).reshape(-1, 4)
+    valid_labels = torch.as_tensor(valid_labels).reshape(-1)
+
+    target['boxes'] = valid_bboxes
+    target['labels'] = valid_labels
+
+    return target
+
+
 class Compose(object):
     """Composes several augmentations together.
     Args:
@@ -555,7 +588,10 @@ class TrainTransforms(object):
 
 
     def __call__(self, image, target):
-        return self.transforms(image, target)
+        image, target = self.transforms(image, target)
+        target = refine_targets(target, self.img_size)
+
+        return image, target
 
 
 # ValTransform
