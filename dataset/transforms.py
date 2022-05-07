@@ -183,31 +183,6 @@ def mosaic_augment(image_list, target_list, img_size, affine_params):
     mosaic_bboxes = mosaic_tgts[..., :4]
     mosaic_labels = mosaic_tgts[..., 4]
 
-    # check target
-    valid_bboxes = []
-    valid_labels = []
-    if len(mosaic_bboxes) > 0:
-        # Cutout/Clip targets
-        np.clip(mosaic_bboxes, 0, img_size, out=mosaic_bboxes)
-
-        # check boxes
-        for box, label in zip(mosaic_bboxes, mosaic_labels):
-            x1, y1, x2, y2 = box
-            bw, bh = x2 - x1, y2 - y1
-            # We remove those extremely small objects
-            if bw > 5. and bh > 5.:
-                valid_bboxes.append([x1, y1, x2, y2])
-                valid_labels.append(label)
-        if len(valid_labels) == 0:
-                valid_bboxes.append([0., 0., 0., 0.])
-                valid_labels.append(0.)
-
-    # guard against no boxes via resizing
-    valid_bboxes = np.array(valid_bboxes).reshape(-1, 4)
-    valid_labels = np.array(valid_labels).reshape(-1)
-    mosaic_bboxes = np.array(valid_bboxes)
-    mosaic_labels = np.array(valid_labels)
-
     # target
     mosaic_target = {
         "boxes": mosaic_bboxes,
@@ -288,30 +263,6 @@ def mixup_augment(origin_image, origin_target, new_image, new_target, img_size, 
 
     mixup_bboxes = np.concatenate([origin_target["boxes"], box_labels], axis=0)
     mixup_labels = np.concatenate([origin_target["labels"], cls_labels], axis=0)
-    # check target
-    valid_bboxes = []
-    valid_labels = []
-    if len(mixup_bboxes) > 0:
-        # Cutout/Clip targets
-        np.clip(mixup_bboxes, 0, img_size, out=mixup_bboxes)
-
-        # check boxes
-        for box, label in zip(mixup_bboxes, mixup_labels):
-            x1, y1, x2, y2 = box
-            bw, bh = x2 - x1, y2 - y1
-            # We remove those extremely small objects
-            if bw > 5. and bh > 5.:
-                valid_bboxes.append([x1, y1, x2, y2])
-                valid_labels.append(label)
-        if len(valid_labels) == 0:
-                valid_bboxes.append([0., 0., 0., 0.])
-                valid_labels.append(0.)
-
-    # guard against no boxes via resizing
-    valid_bboxes = np.array(valid_bboxes).reshape(-1, 4)
-    valid_labels = np.array(valid_labels).reshape(-1)
-    mixup_bboxes = np.array(valid_bboxes)
-    mixup_labels = np.array(valid_labels)
 
     mixup_target = {
         "boxes": mixup_bboxes,
