@@ -596,10 +596,12 @@ class SimOTA(object):
                         )
                         matching_matrix[gt_idx][pos_idx] = 1
                     except:
+                        print(cost.shape)
                         print(cost[gt_idx].shape)
                         print(is_in_boxes_anchor.sum())
                         print(is_in_bboxes.sum())
                         print(is_in_centers.sum())
+                        print(tgt_cls, tgt_box)
 
                 del topk_ious, dynamic_ks, pos_idx
 
