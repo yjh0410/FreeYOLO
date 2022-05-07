@@ -292,9 +292,10 @@ def refine_targets(target, img_size):
             if bw > 5. and bh > 5.:
                 valid_bboxes.append([x1, y1, x2, y2])
                 valid_labels.append(label.item())
+        
         if len(valid_labels) == 0:
-                valid_bboxes.append([0., 0., 0., 0.])
-                valid_labels.append(0)
+            valid_bboxes.append([0., 0., 0., 0.])
+            valid_labels.append(0)
 
     # guard against no boxes via resizing
     valid_bboxes = torch.as_tensor(valid_bboxes).reshape(-1, 4)

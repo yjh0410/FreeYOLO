@@ -37,6 +37,8 @@ At least, please make sure your torch is version 1.x.
 
 `Basic` matcher is leveraged from `FCOS`, so it is a fixed label assignment method.
 
+Recently, I am trying my best to fix the bug in `SimOTA` ...
+
 # Main results on COCO-val
 
 | Model                 |  Scale   |   mAP   | Weight |
@@ -67,7 +69,7 @@ You can change the configurations of `train_ddp.sh`, according to your own situa
 ```Shell
 python test.py -d coco \
                --cuda \
-               -v yolox_d53 \
+               -v yolox_s \
                --img_size 640 \
                --weight path/to/weight \
                --root path/to/dataset/ \
@@ -80,11 +82,10 @@ I have provide some images in `data/demo/images/`, so you can run following comm
 ```Shell
 python demo.py --mode image \
                --path_to_img data/demo/images/ \
-               -v yolox_d53 \
+               -v yolox_s \
                --img_size 640 \
                --cuda \
-               --weight path/to/weight \
-               --show
+               --weight path/to/weight
 ```
 
 If you want run a demo of streaming video detection, you need to set `--mode` to `video`, and give the path to video `--path_to_vid`。
@@ -92,20 +93,18 @@ If you want run a demo of streaming video detection, you need to set `--mode` to
 ```Shell
 python demo.py --mode video \
                --path_to_img data/demo/videos/your_video \
-               -v yolox_d53 \
+               -v yolox_s \
                --img_size 640 \
                --cuda \
-               --weight path/to/weight \
-               --show
+               --weight path/to/weight
 ```
 
 If you want run video detection with your camera, you need to set `--mode` to `camera`。
 
 ```Shell
 python demo.py --mode camera \
-               -v yolox_d53 \
+               -v yolox_s \
                --img_size 640 \
                --cuda \
-               --weight path/to/weight \
-               --show
+               --weight path/to/weight
 ```
