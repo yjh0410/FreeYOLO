@@ -600,6 +600,7 @@ class SimOTA(object):
                         print(is_in_bboxes.sum())
                         print(is_in_centers.sum())
                         print(tgt_box)
+                        print(tgt_box.max().item)
 
                 del topk_ious, dynamic_ks, pos_idx
 
