@@ -3,7 +3,7 @@ python train.py \
         -d voc \
         --root /mnt/share/ssd2/dataset/ \
         -v yolox_s \
-        -m sim_ota \
+        -m ota \
         --ema \
         --fp16 \
         --eval_epoch 10
