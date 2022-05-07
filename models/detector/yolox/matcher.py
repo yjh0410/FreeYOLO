@@ -499,7 +499,7 @@ class SimOTA(object):
             tgt_obj = torch.ones_like(tgt_cls)
 
             # check target
-            if tgt_box.max().item == 0.:
+            if tgt_box.max().item() == 0.:
                 # There is no valid gt
                 tgt_obj_i = torch.zeros(anchors_over_all_feature_maps.shape[0], device=device)
                 tgt_cls_i = torch.zeros(anchors_over_all_feature_maps.shape[0], device=device) + self.num_classes
@@ -600,7 +600,7 @@ class SimOTA(object):
                         print(is_in_bboxes.sum())
                         print(is_in_centers.sum())
                         print(tgt_box)
-                        print(tgt_box.max().item)
+                        print(tgt_box.max().item())
 
                 del topk_ious, dynamic_ks, pos_idx
 
