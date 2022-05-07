@@ -539,7 +539,6 @@ class SimOTA(object):
                 # posotive candidates: [M,]
                 is_in_boxes_anchor = is_in_boxes_all | is_in_centers_all
                 fg_mask = is_in_boxes_anchor
-                print(is_in_boxes_anchor.sum())
 
                 # both in bboxes and center: [Mp,]
                 is_in_boxes_and_center = (
@@ -591,10 +590,14 @@ class SimOTA(object):
                 
                 # Dynamic K matching
                 for gt_idx in range(num_gt):
-                    _, pos_idx = torch.topk(
-                        cost[gt_idx], k=dynamic_ks[gt_idx], largest=False
-                    )
-                    matching_matrix[gt_idx][pos_idx] = 1
+                    try:
+                        _, pos_idx = torch.topk(
+                            cost[gt_idx], k=dynamic_ks[gt_idx], largest=False
+                        )
+                        matching_matrix[gt_idx][pos_idx] = 1
+                    except:
+                        print(cost[gt_idx].shape)
+                        print(is_in_boxes_anchor.sum())
 
                 del topk_ious, dynamic_ks, pos_idx
 
