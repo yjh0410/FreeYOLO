@@ -2,6 +2,7 @@ import os
 import random
 import numpy as np
 
+import torch
 from torch.utils.data import Dataset
 import cv2
 
@@ -177,6 +178,35 @@ class COCODataset(Dataset):
         # augment
         image, target = self.transform(image, target)
             
+        # check target
+        valid_bboxes = []
+        valid_labels = []
+        target_bboxes = target['boxes']
+        target_labels = target['labels']
+
+        if len(target_bboxes) > 0:
+            # Cutout/Clip targets
+            target_bboxes = torch.clamp(target_bboxes, 0, self.img_size)
+
+            # check boxes
+            for box, label in zip(target_bboxes, target_labels):
+                x1, y1, x2, y2 = box
+                bw, bh = x2 - x1, y2 - y1
+                # We remove those extremely small objects
+                if bw > 5. and bh > 5.:
+                    valid_bboxes.append([x1, y1, x2, y2])
+                    valid_labels.append(label)
+            if len(valid_labels) == 0:
+                    valid_bboxes.append([0., 0., 0., 0.])
+                    valid_labels.append(0.)
+
+        # guard against no boxes via resizing
+        valid_bboxes = torch.as_tensor(valid_bboxes).reshape(-1, 4)
+        valid_labels = torch.as_tensor(valid_labels).reshape(-1)
+
+        target['boxes'] = valid_bboxes
+        target['labels'] = valid_labels
+
         return image, target
 
 

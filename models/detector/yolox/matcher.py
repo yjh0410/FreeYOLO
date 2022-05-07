@@ -65,7 +65,7 @@ class Matcher(object):
             # [N, M, 4], M = M1 + M2 + ... + MF
             deltas = self.get_deltas(anchors_over_all_feature_maps, tgt_box.unsqueeze(1))
 
-            has_gt = (len(tgt_cls) > 0)
+            has_gt = (tgt_box.max().items() > 0)
             if has_gt:
                 if self.center_sampling_radius > 0:
                     # bbox centers: [N, 2]
@@ -265,7 +265,7 @@ class OTA(object):
             tgt_obj = torch.ones_like(tgt_cls)
 
             # check target
-            if tgt_box.max().item == 0.:
+            if tgt_box.max().item() == 0.:
                 # There is no valid gt
                 tgt_obj_i = torch.zeros(anchors_over_all_feature_maps.shape[0], device=device)
                 tgt_cls_i = torch.zeros(anchors_over_all_feature_maps.shape[0], device=device) + self.num_classes
