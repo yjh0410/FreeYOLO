@@ -5,4 +5,5 @@ python train.py \
         -v yolox_s \
         -m sim_ota \
         --ema \
+        --fp16 \
         --eval_epoch 10

@@ -514,6 +514,8 @@ class SimOTA(object):
                 deltas = self.get_deltas(anchors_over_all_feature_maps, tgt_box.unsqueeze(1))
                 # [N, M]
                 is_in_bboxes = deltas.min(dim=-1).values > 0.01
+                # [M,]
+                is_in_boxes_all = is_in_bboxes.sum(dim=0) > 0
 
                 # targets bbox centers: [N, 2]
                 centers = (tgt_box[:, :2] + tgt_box[:, 2:]) * 0.5
@@ -529,89 +531,102 @@ class SimOTA(object):
                     is_in_centers.append(center_deltas.min(dim=-1).values > 0)
                 # [N, M], M = M1 + M2 + ... + MF
                 is_in_centers = torch.cat(is_in_centers, dim=1)
+                # [M,]
+                is_in_centers_all = is_in_centers.sum(dim=0) > 0
 
                 del centers, center_bboxes, deltas, center_deltas
 
-                # [N, M]
-                is_in_bboxes = (is_in_bboxes & is_in_centers)
+                # posotive candidates: [M,]
+                is_in_boxes_anchor = is_in_boxes_all | is_in_centers_all
+                fg_mask = is_in_boxes_anchor
 
-                num_gt = len(tgt_cls)               # N
-                num_anchor = len(anchors_over_all_feature_maps)   # M
-                shape = (num_gt, num_anchor, -1)                  # [N, M, -1]
+                # both in bboxes and center: [Mp,]
+                is_in_boxes_and_center = (
+                    is_in_bboxes[:, is_in_boxes_anchor] & is_in_centers[:, is_in_boxes_anchor]
+                )
+
+                obj_pred_ = obj_pred[fg_mask]                      # [Mp, 1]
+                cls_pred_ = cls_pred[fg_mask]                      # [Mp, C]
+                reg_pred_ = reg_pred[fg_mask]                      # [Mp, 4]
+                anchors_ = anchors_over_all_feature_maps[fg_mask]   # [Mp, 2]
+                num_in_boxes_anchor = obj_pred_.shape[0]
+                num_gt = len(tgt_cls)
+                num_anchor = obj_pred.shape[0]
+                shape = (num_gt, num_in_boxes_anchor, -1)          # [N, Mp, -1]
+
+                # [N, Mp, 4]
+                tgt_delta_ = self.get_deltas(anchors_, tgt_box.unsqueeze(1))
+                pair_wise_ious, pair_wise_ious_loss = self.get_ious_and_iou_loss(
+                    reg_pred_.unsqueeze(0).expand(shape), # [M, 4] -> [1, M, 4] -> [N, M, 4]
+                    tgt_delta_,
+                    box_mode="ltrb",
+                    loss_type='iou'
+                ) # [N, M]
 
                 tgt_cls_ = F.one_hot(tgt_cls, self.num_classes).float()
 
-                with torch.no_grad():
-                    cls_pred_ = torch.sqrt(obj_pred.sigmoid() * cls_pred.sigmoid())
-                    loss_cls = F.binary_cross_entropy_with_logits(
-                        cls_pred_.unsqueeze(0).expand(shape),     # [M, C] -> [1, M, C] -> [N, M, C]
-                        tgt_cls_.unsqueeze(1).expand(shape),      # [N, C] -> [N, 1, C] -> [N, M, C]
+                with torch.cuda.amp.autocast(enabled=False):
+                    scores_ = torch.sqrt(obj_pred_.sigmoid() * cls_pred_.sigmoid())
+                    pair_wise_cls_loss = F.binary_cross_entropy_with_logits(
+                        scores_.unsqueeze(0).expand(shape),     # [Mp, C] -> [1, Mp, C] -> [N, Mp, C]
+                        tgt_cls_.unsqueeze(1).expand(shape),    # [N, C] -> [N, 1, C] -> [N, Mp, C]
                         reduction='none'
-                    ).sum(dim=-1) # [N, M, C] -> [N, M]
+                    ).sum(dim=-1) # [N, Mp, C] -> [N, Mp]
+                del scores_
 
-                    # [N, M, 4]
-                    tgt_delta = self.get_deltas(anchors_over_all_feature_maps, tgt_box.unsqueeze(1))
+                # [N, Mp]
+                cost = (
+                    pair_wise_cls_loss
+                    + 3.0 * pair_wise_ious_loss
+                    + 1e6 * (1 - is_in_boxes_and_center.float())
+                )
 
-                    # compute iou and iou loss between pred deltas and tgt deltas
-                    ious, loss_delta = self.get_ious_and_iou_loss(
-                        reg_pred.unsqueeze(0).expand(shape), # [M, 4] -> [1, M, 4] -> [N, M, 4]
-                        tgt_delta,
-                        box_mode="ltrb",
-                        loss_type='iou'
-                    ) # [N, M]
+                # Dynamic k Estimation
+                matching_matrix = torch.zeros_like(cost, dtype=torch.uint8)
+                n_candidate_k = min(self.topk_candidate, pair_wise_ious.size(1))
+                topk_ious, _ = torch.topk(pair_wise_ious, n_candidate_k, dim=1)
+                dynamic_ks = torch.clamp(topk_ious.sum(1).int(), min=1) # [N,]
+                dynamic_ks = dynamic_ks.tolist()
+                
+                # Dynamic K matching
+                for gt_idx in range(num_gt):
+                    _, pos_idx = torch.topk(
+                        cost[gt_idx], k=dynamic_ks[gt_idx], largest=False
+                    )
+                    matching_matrix[gt_idx][pos_idx] = 1
 
-                    cost = loss_cls + 3.0 * loss_delta + 1e6 * (1 - is_in_bboxes.float())
+                del topk_ious, dynamic_ks, pos_idx
 
-                    # Dynamic k Estimation
-                    topk_ious, _ = torch.topk(ious * is_in_bboxes.float(), self.topk_candidate, dim=1)
-                    dynamic_ks = torch.clamp(topk_ious.sum(1).int(), min=1) # [N,]
-                    dynamic_ks = dynamic_ks.tolist()
-                    matching_matrix = torch.zeros_like(cost, dtype=torch.uint8) # [N, M]
-                    
-                    # Dynamic K matching
-                    for gt_idx in range(num_gt):
-                        _, pos_idx = torch.topk(
-                            cost[gt_idx], k=dynamic_ks[gt_idx], largest=False
-                        )
-                        matching_matrix[gt_idx][pos_idx] = 1
+                anchor_matching_gt = matching_matrix.sum(0)
+                if (anchor_matching_gt > 1).sum() > 0:
+                    _, cost_argmin = torch.min(cost[:, anchor_matching_gt > 1], dim=0)
+                    matching_matrix[:, anchor_matching_gt > 1] *= 0
+                    matching_matrix[cost_argmin, anchor_matching_gt > 1] = 1
+                # [Mp,]
+                fg_mask_inboxes = matching_matrix.sum(0) > 0
 
-                    del topk_ious, dynamic_ks, pos_idx
+                # [M,]
+                fg_mask[fg_mask.clone()] = fg_mask_inboxes
 
-                    anchor_matching_gt = matching_matrix.sum(0)
-                    if (anchor_matching_gt > 1).sum() > 0:
-                        _, cost_argmin = torch.min(cost[:, anchor_matching_gt > 1], dim=0)
-                        matching_matrix[:, anchor_matching_gt > 1] *= 0
-                        matching_matrix[cost_argmin, anchor_matching_gt > 1] = 1
-                    
-                    fg_mask = matching_matrix.sum(0) > 0 # [M,]
-                    bg_mask = ~fg_mask                   # [M,]
-                    bg_matching = bg_mask.float() * 1e6
+                # [Mp,]
+                matched_gt_inds = matching_matrix[:, fg_mask_inboxes].argmax(0)
 
-                    # [N+1, M], where N+1 is the background row.
-                    full_matching_matrix = torch.cat([matching_matrix, bg_matching.unsqueeze(0)], dim=0)
+                # ground truth objectness [M,]
+                tgt_obj_i = tgt_obj.new_ones(num_anchor) * 0
+                tgt_obj_i[fg_mask] = tgt_obj[matched_gt_inds]
+                gt_objectness.append(tgt_obj_i)
 
-                    # matched_gt_inds: [M,]
-                    max_assigned_units, matched_gt_inds = torch.max(full_matching_matrix, dim=0)
+                # ground truth classification [M,]               
+                tgt_cls_i = tgt_cls.new_ones(num_anchor) * self.num_classes
+                tgt_cls_i[fg_mask] = tgt_cls[matched_gt_inds]
+                gt_classes.append(tgt_cls_i)
 
-                    # fg_mask: [M,]
-                    fg_mask = (matched_gt_inds != num_gt)
-
-                    # [M,]
-                    tgt_cls_i = tgt_cls.new_ones(num_anchor) * self.num_classes
-                    tgt_cls_i[fg_mask] = tgt_cls[matched_gt_inds[fg_mask]]
-                    gt_classes.append(tgt_cls_i)
-
-                    # ground truth objectness [M,]
-                    # [M,]
-                    tgt_obj_i = tgt_obj.new_ones(num_anchor) * 0
-                    tgt_obj_i[fg_mask] = tgt_obj[matched_gt_inds[fg_mask]]
-                    gt_objectness.append(tgt_obj_i)
-
-                    # [M, 4]
-                    tgt_delta_i = tgt_delta.new_zeros((num_anchor, 4))
-                    tgt_delta_i[fg_mask] = \
-                        tgt_delta[matched_gt_inds[fg_mask], torch.arange(num_anchor)[fg_mask]]
-                    gt_anchors_deltas.append(tgt_delta_i)
+                # ground truth regression [M, 4]               
+                tgt_delta = self.get_deltas(anchors_over_all_feature_maps, tgt_box.unsqueeze(1))
+                tgt_delta_i = tgt_delta.new_zeros((num_anchor, 4))
+                tgt_delta_i[fg_mask] = \
+                    tgt_delta[matched_gt_inds, torch.arange(num_anchor)[fg_mask]]
+                gt_anchors_deltas.append(tgt_delta_i)
 
         return (
                     torch.stack(gt_objectness),     # [B, M]

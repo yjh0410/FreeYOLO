@@ -9,6 +9,7 @@ import torch
 import torch.backends.cudnn as cudnn
 import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel as DDP
+import torch.cuda.amp as amp
 
 from utils import distributed_utils
 from utils.com_flops_params import FLOPs_and_Params
@@ -35,6 +36,8 @@ def parse_args():
                         help='path to save weight')
     parser.add_argument('--eval_epoch', default=10, type=int, 
                         help='after eval epoch, the model is evaluated on val dataset.')
+    parser.add_argument('--fp16', dest="fp16", action="store_true", default=False,
+                        help="Adopting mix precision training.")
 
     # model
     parser.add_argument('-v', '--version', default='yolox_d53', type=str,
@@ -94,6 +97,9 @@ def train():
         device = torch.device("cuda")
     else:
         device = torch.device("cpu")
+
+    # amp
+    scaler = torch.cuda.amp.GradScaler(enabled=args.fp16)
 
     # config
     cfg = build_config(args)
@@ -178,10 +184,10 @@ def train():
                               ema=ema,
                               model=model, 
                               cfg=cfg, 
-                              base_lr=base_lr, 
                               dataloader=dataloader, 
                               optimizer=optimizer, 
-                              warmup_scheduler=warmup_scheduler)
+                              warmup_scheduler=warmup_scheduler,
+                              scaler=scaler)
 
         else:
             if epoch == cfg['wp_epoch']:
