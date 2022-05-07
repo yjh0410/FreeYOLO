@@ -1,3 +1,4 @@
+from cgitb import enable
 import torch
 import torch.distributed as dist
 
@@ -63,8 +64,9 @@ def train_with_warmup(epoch,
             images, targets = rescale_image_targets(images, targets, img_size)
 
         # inference
-        loss_dict = model(images, targets=targets)
-        losses = loss_dict['losses']
+        with torch.cuda.amp.autocast(enabled=args.fp16):
+            loss_dict = model(images, targets=targets)
+            losses = loss_dict['losses']
 
         # reduce            
         loss_dict_reduced = distributed_utils.reduce_dict(loss_dict)
@@ -135,8 +137,9 @@ def train_one_epoch(epoch,
             images, targets = rescale_image_targets(images, targets, img_size)
 
         # inference
-        loss_dict = model(images, targets=targets)
-        losses = loss_dict['losses']
+        with torch.cuda.amp.autocast(enabled=args.fp16):
+            loss_dict = model(images, targets=targets)
+            losses = loss_dict['losses']
 
         # reduce            
         loss_dict_reduced = distributed_utils.reduce_dict(loss_dict)
