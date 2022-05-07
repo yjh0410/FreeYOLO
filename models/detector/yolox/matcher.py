@@ -534,7 +534,7 @@ class SimOTA(object):
                 # [M,]
                 is_in_centers_all = is_in_centers.sum(dim=0) > 0
 
-                # del centers, center_bboxes, deltas, center_deltas
+                del centers, center_bboxes, deltas, center_deltas
 
                 # posotive candidates: [M,]
                 is_in_boxes_anchor = is_in_boxes_all | is_in_centers_all
@@ -599,7 +599,7 @@ class SimOTA(object):
                         print(is_in_boxes_anchor.sum())
                         print(is_in_bboxes.sum())
                         print(is_in_centers.sum())
-                        print(deltas.max())
+                        print(tgt_box)
 
                 del topk_ious, dynamic_ks, pos_idx
 
