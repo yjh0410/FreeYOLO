@@ -209,14 +209,15 @@ def train():
 
             # train one epoch
             train_one_epoch(epoch=epoch,
-                              total_epochs=total_epochs,
-                              args=args, 
+                            total_epochs=total_epochs,
+                            args=args, 
                             device=device,
                             ema=ema, 
                             model=model, 
                             cfg=cfg, 
                             dataloader=dataloader, 
-                            optimizer=optimizer)
+                            optimizer=optimizer,
+                            scaler=scaler)
         
         # evaluation
         if (epoch % args.eval_epoch) == 0 or (epoch == total_epochs - 1):
