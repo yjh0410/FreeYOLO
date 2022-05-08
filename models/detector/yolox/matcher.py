@@ -308,7 +308,7 @@ class OTA(object):
                 tgt_cls_ = F.one_hot(tgt_cls, self.num_classes).float()
 
                 with torch.no_grad():
-                    cls_pred_ = torch.sqrt(obj_pred.sigmoid() * cls_pred.sigmoid())
+                    cls_pred_ = obj_pred.sigmoid() * cls_pred.sigmoid()
                     loss_cls = F.binary_cross_entropy_with_logits(
                         cls_pred_.unsqueeze(0).expand(shape),     # [M, C] -> [1, M, C] -> [N, M, C]
                         tgt_cls_.unsqueeze(1).expand(shape),   # [N, C] -> [N, 1, C] -> [N, M, C]
@@ -433,7 +433,7 @@ class SimOTA(object):
                 * obj_preds_.float().unsqueeze(0).repeat(num_gt, 1, 1).sigmoid_()
             ) # [N, M, C]
             pair_wise_cls_loss = F.binary_cross_entropy(
-                score_preds_.sqrt_(), gt_cls_per_image, reduction="none"
+                score_preds_, gt_cls_per_image, reduction="none"
             ).sum(-1) # [N, M]
         del score_preds_
 
