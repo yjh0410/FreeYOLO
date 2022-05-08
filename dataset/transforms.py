@@ -289,7 +289,7 @@ def refine_targets(target, img_size):
             x1, y1, x2, y2 = box.tolist()
             bw, bh = x2 - x1, y2 - y1
             # We remove those extremely small objects
-            if bw > 5. and bh > 5.:
+            if bw > 8. and bh > 8.:
                 valid_bboxes.append([x1, y1, x2, y2])
                 valid_labels.append(label.item())
         
