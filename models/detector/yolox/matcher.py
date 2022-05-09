@@ -65,7 +65,7 @@ class Matcher(object):
             # [N, M, 4], M = M1 + M2 + ... + MF
             deltas = self.get_deltas(anchors_over_all_feature_maps, tgt_box.unsqueeze(1))
 
-            has_gt = (tgt_box.max().items() > 0)
+            has_gt = (tgt_box.max().item() > 0.)
             if has_gt:
                 if self.center_sampling_radius > 0:
                     # bbox centers: [N, 2]
