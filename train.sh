@@ -1,9 +1,9 @@
 python train.py \
         --cuda \
-        -d voc \
+        -d coco \
         --root /mnt/share/ssd2/dataset/ \
-        -v yolox_s \
-        -m sim_ota \
+        -v yolox_t \
+        -m basic \
         --ema \
         --fp16 \
         --eval_epoch 10
