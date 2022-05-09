@@ -14,15 +14,15 @@ from models.detector import build_model
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description='YOLOX')
+    parser = argparse.ArgumentParser(description='FreeYOLO')
     # basic
     parser.add_argument('-size', '--img_size', default=640, type=int,
                         help='the max size of input image')
     parser.add_argument('--cuda', action='store_true', default=False,
                         help='Use cuda')
     # model
-    parser.add_argument('-v', '--version', default='yolox_d53', type=str,
-                        help='build YOLOX')
+    parser.add_argument('-v', '--version', default='yolo_x', type=str,
+                        help='build YOLO')
     parser.add_argument('--weight', default='weight/',
                         type=str, help='Trained state_dict file path to open')
     parser.add_argument('--conf_thresh', default=0.001, type=float,

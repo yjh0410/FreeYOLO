@@ -1,5 +1,5 @@
 import torch
-from .yolox.yolox import YOLOX
+from .yolo.yolo import FreeYOLO
 
 
 # build object detector
@@ -12,15 +12,15 @@ def build_model(args,
     print('==============================')
     print('Build {} ...'.format(args.version.upper()))
     
-    if 'yolox' in args.version:
-        model = YOLOX(cfg=cfg,
-                     device=device, 
-                     num_classes=num_classes, 
-                     trainable=trainable,
-                     conf_thresh=cfg['conf_thresh'],
-                     nms_thresh=cfg['train_nms_thresh'] if trainable else cfg['test_nms_thresh'],
-                     topk=args.topk,
-                     matcher=args.matcher if trainable else None)
+    if 'yolo' in args.version:
+        model = FreeYOLO(cfg=cfg,
+                         device=device, 
+                         num_classes=num_classes, 
+                         trainable=trainable,
+                         conf_thresh=cfg['conf_thresh'],
+                         nms_thresh=cfg['train_nms_thresh'] if trainable else cfg['test_nms_thresh'],
+                         topk=args.topk,
+                         matcher=args.matcher if trainable else None)
 
 
     print('==============================')

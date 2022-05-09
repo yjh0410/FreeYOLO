@@ -8,7 +8,7 @@ from ...head.decoupled_head import DecoupledHead
 from .loss import Criterion
 
 
-class YOLOX(nn.Module):
+class FreeYOLO(nn.Module):
     def __init__(self, 
                  cfg,
                  device, 
@@ -18,7 +18,7 @@ class YOLOX(nn.Module):
                  trainable = False, 
                  topk = 1000,
                  matcher=None):
-        super(YOLOX, self).__init__()
+        super(FreeYOLO, self).__init__()
         self.cfg = cfg
         self.device = device
         self.stride = cfg['stride']

@@ -16,10 +16,10 @@ from models.detector import build_model
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description='Object Detection Benchmark')
+    parser = argparse.ArgumentParser(description='FreeYOLO')
     # Model
-    parser.add_argument('-v', '--version', default='yolox_s', type=str,
-                        help='build yolox')
+    parser.add_argument('-v', '--version', default='yolo_s', type=str,
+                        help='build yolo')
     parser.add_argument('--fuse_conv_bn', action='store_true', default=False,
                         help='fuse conv and bn')
     parser.add_argument('--conf_thresh', default=0.1, type=float,

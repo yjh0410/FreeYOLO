@@ -1,10 +1,10 @@
-# yolox config
+# yolo config
 
 
-yolox_config = {
-    'yolox_x': {
+yolo_config = {
+    'yolo_x': {
         # input
-        # If you have many GPUs, you could use large input size to enhance YOLOX.
+        # If you have many GPUs, you could use large input size to enhance FreeYOLO.
         # 'train_size': 800,
         # 'test_size': 640,
         # 'random_size': [448, 480, 512, 544, 576, 608, 640, 672, 704, 736, 768, 800],
@@ -56,13 +56,7 @@ yolox_config = {
         'matcher': {'basic': {'object_sizes_of_interest': [[-1, 64], 
                                                            [64, 128], 
                                                            [128, float('inf')]],
-                              'center_sampling_radius': 1.5},
-                    'ota': {'center_sampling_radius': 2.5,
-                            'topk_candidate': 10,
-                            'eps': 0.1,
-                            'max_iter': 50},
-                    'sim_ota': {'center_sampling_radius': 2.5,
-                                'topk_candidate': 10}},
+                              'center_sampling_radius': 1.5}},
         # loss
         'loss_obj_weight': 1.0,
         'loss_cls_weight': 1.0,
@@ -83,9 +77,9 @@ yolox_config = {
         'wp_epoch': 5,
         },
 
-    'yolox_l': {
+    'yolo_l': {
         # input
-        # If you have many GPUs, you could use large input size to enhance YOLOX.
+        # If you have many GPUs, you could use large input size to enhance YOLO.
         # 'train_size': 800,
         # 'test_size': 640,
         # 'random_size': [448, 480, 512, 544, 576, 608, 640, 672, 704, 736, 768, 800],
@@ -137,13 +131,7 @@ yolox_config = {
         'matcher': {'basic': {'object_sizes_of_interest': [[-1, 64], 
                                                            [64, 128], 
                                                            [128, float('inf')]],
-                              'center_sampling_radius': 1.5},
-                    'ota': {'center_sampling_radius': 2.5,
-                            'topk_candidate': 10,
-                            'eps': 0.1,
-                            'max_iter': 50},
-                    'sim_ota': {'center_sampling_radius': 2.5,
-                                'topk_candidate': 10}},
+                              'center_sampling_radius': 1.5}},
         # loss
         'loss_obj_weight': 1.0,
         'loss_cls_weight': 1.0,
@@ -164,9 +152,9 @@ yolox_config = {
         'wp_epoch': 5,
         },
 
-    'yolox_m': {
+    'yolo_m': {
         # input
-        # If you have many GPUs, you could use large input size to enhance YOLOX.
+        # If you have many GPUs, you could use large input size to enhance YOLO.
         # 'train_size': 800,
         # 'test_size': 640,
         # 'random_size': [448, 480, 512, 544, 576, 608, 640, 672, 704, 736, 768, 800],
@@ -218,13 +206,7 @@ yolox_config = {
         'matcher': {'basic': {'object_sizes_of_interest': [[-1, 64], 
                                                            [64, 128], 
                                                            [128, float('inf')]],
-                              'center_sampling_radius': 1.5},
-                    'ota': {'center_sampling_radius': 2.5,
-                            'topk_candidate': 10,
-                            'eps': 0.1,
-                            'max_iter': 50},
-                    'sim_ota': {'center_sampling_radius': 2.5,
-                                'topk_candidate': 10}},
+                              'center_sampling_radius': 1.5}},
         # loss
         'loss_obj_weight': 1.0,
         'loss_cls_weight': 1.0,
@@ -245,9 +227,9 @@ yolox_config = {
         'wp_epoch': 5,
         },
 
-    'yolox_s': {
+    'yolo_s': {
         # input
-        # If you have many GPUs, you could use large input size to enhance YOLOX.
+        # If you have many GPUs, you could use large input size to enhance YOLO.
         # 'train_size': 800,
         # 'test_size': 640,
         # 'random_size': [448, 480, 512, 544, 576, 608, 640, 672, 704, 736, 768, 800],
@@ -299,13 +281,7 @@ yolox_config = {
         'matcher': {'basic': {'object_sizes_of_interest': [[-1, 64], 
                                                            [64, 128], 
                                                            [128, float('inf')]],
-                              'center_sampling_radius': 1.5},
-                    'ota': {'center_sampling_radius': 2.5,
-                            'topk_candidate': 10,
-                            'eps': 0.1,
-                            'max_iter': 50},
-                    'sim_ota': {'center_sampling_radius': 2.5,
-                                'topk_candidate': 10}},
+                              'center_sampling_radius': 1.5}},
         # loss
         'loss_obj_weight': 1.0,
         'loss_cls_weight': 1.0,
@@ -326,7 +302,7 @@ yolox_config = {
         'wp_epoch': 5,
         },
 
-    'yolox_t': {
+    'yolo_t': {
         # input
         'train_size': 640,
         'test_size': 416,
@@ -376,13 +352,7 @@ yolox_config = {
         'matcher': {'basic': {'object_sizes_of_interest': [[-1, 64], 
                                                            [64, 128], 
                                                            [128, float('inf')]],
-                              'center_sampling_radius': 1.5},
-                    'ota': {'center_sampling_radius': 2.5,
-                            'topk_candidate': 10,
-                            'eps': 0.1,
-                            'max_iter': 50},
-                    'sim_ota': {'center_sampling_radius': 2.5,
-                                'topk_candidate': 10}},
+                              'center_sampling_radius': 1.5}},
         # loss
         'loss_obj_weight': 1.0,
         'loss_cls_weight': 1.0,
@@ -403,7 +373,7 @@ yolox_config = {
         'wp_epoch': 5,
         },
 
-    'yolox_n': {
+    'yolo_n': {
         # input
         'train_size': 640,
         'test_size': 416,
@@ -453,13 +423,7 @@ yolox_config = {
         'matcher': {'basic': {'object_sizes_of_interest': [[-1, 64], 
                                                            [64, 128], 
                                                            [128, float('inf')]],
-                              'center_sampling_radius': 1.5},
-                    'ota': {'center_sampling_radius': 2.5,
-                            'topk_candidate': 10,
-                            'eps': 0.1,
-                            'max_iter': 50},
-                    'sim_ota': {'center_sampling_radius': 2.5,
-                                'topk_candidate': 10}},
+                              'center_sampling_radius': 1.5}},
         # loss
         'loss_obj_weight': 1.0,
         'loss_cls_weight': 1.0,

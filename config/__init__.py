@@ -1,11 +1,11 @@
-from .yolox_config import yolox_config
+from .yolo_config import yolo_config
 
 
 def build_config(args):
     print('==============================')
     print('Build {} ...'.format(args.version.upper()))
     
-    if 'yolox' in args.version:
-        cfg = yolox_config[args.version]
+    if 'yolo' in args.version:
+        cfg = yolo_config[args.version]
 
     return cfg

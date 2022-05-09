@@ -1,15 +1,15 @@
-# YOLOX
-This project is my reproduce of **YOLOX**.
+# FreeYOLO
+Anchor-free YOLO detector.
 
 # Requirements
 - We recommend you to use Anaconda to create a conda environment:
 ```Shell
-conda create -n yolox python=3.6
+conda create -n yolo python=3.6
 ```
 
 - Then, activate the environment:
 ```Shell
-conda activate yolox
+conda activate yolo
 ```
 
 - Requirements:
@@ -26,29 +26,18 @@ At least, please make sure your torch is version 1.x.
 - [x] Multi scale training
 - [x] Cosine Annealing Schedule
 - [x] Training from Scratch
-- [x] Simple OTA
-
-# Main results on VOC 2007 test
-
-| Model                 |  Scale   |   Matcher   |   mAP@0.5   | Weight |
-|-----------------------|----------|-------------|-------------|--------|
-| YOLOX-S               |  640     |    Basic    |     78.2    |    -   |
-| YOLOX-S               |  640     |   SimOTA    |     |    -   |
-
-`Basic` matcher is leveraged from `FCOS`, so it is a fixed label assignment method.
-
-Recently, I am trying my best to fix the bug in `SimOTA` ...
+- [] Simple OTA
 
 # Main results on COCO-val
 
 | Model                 |  Scale   |   mAP   | Weight |
 |-----------------------|----------|---------|--------|
-| YOLOX-S               |  640     |         |    -   |
-| YOLOX-M               |  640     |         |    -   |
-| YOLOX-L               |  640     |         |    -   |
-| YOLOX-X               |  640     |         |    -   |
-| YOLOX-T               |  416     |         |    -   |
-| YOLOX-N               |  416     |         |    -   |
+| FreeYOLO-S            |  640     |         |    -   |
+| FreeYOLO-M            |  640     |         |    -   |
+| FreeYOLO-L            |  640     |         |    -   |
+| FreeYOLO-X            |  640     |         |    -   |
+| FreeYOLO-T            |  640     |         |    -   |
+| FreeYOLO-N            |  640     |         |    -   |
 
 # Train
 ## Single GPU
@@ -69,7 +58,7 @@ You can change the configurations of `train_ddp.sh`, according to your own situa
 ```Shell
 python test.py -d coco \
                --cuda \
-               -v yolox_s \
+               -v yolo_s \
                --img_size 640 \
                --weight path/to/weight \
                --root path/to/dataset/ \
@@ -82,7 +71,7 @@ I have provide some images in `data/demo/images/`, so you can run following comm
 ```Shell
 python demo.py --mode image \
                --path_to_img data/demo/images/ \
-               -v yolox_s \
+               -v yolo_s \
                --img_size 640 \
                --cuda \
                --weight path/to/weight
@@ -93,7 +82,7 @@ If you want run a demo of streaming video detection, you need to set `--mode` to
 ```Shell
 python demo.py --mode video \
                --path_to_img data/demo/videos/your_video \
-               -v yolox_s \
+               -v yolo_s \
                --img_size 640 \
                --cuda \
                --weight path/to/weight
@@ -103,7 +92,7 @@ If you want run video detection with your camera, you need to set `--mode` to `c
 
 ```Shell
 python demo.py --mode camera \
-               -v yolox_s \
+               -v yolo_s \
                --img_size 640 \
                --cuda \
                --weight path/to/weight

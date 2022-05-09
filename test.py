@@ -15,7 +15,7 @@ from models.detector import build_model
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description='Object Detection Benchmark')
+    parser = argparse.ArgumentParser(description='FreeYOLO')
 
     # basic
     parser.add_argument('-size', '--img_size', default=640, type=int,
@@ -30,8 +30,8 @@ def parse_args():
                         help='Final confidence threshold')
 
     # model
-    parser.add_argument('-v', '--version', default='yolox_s', type=str,
-                        help='build yolox')
+    parser.add_argument('-v', '--version', default='yolo_s', type=str,
+                        help='build yolo')
     parser.add_argument('--weight', default='weight/',
                         type=str, help='Trained state_dict file path to open')
     parser.add_argument('--topk', default=100, type=int,
