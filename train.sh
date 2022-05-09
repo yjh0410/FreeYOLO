@@ -2,7 +2,7 @@ python train.py \
         --cuda \
         -d coco \
         --root /mnt/share/ssd2/dataset/ \
-        -v yolo_s \
+        -v yolo_t \
         -m basic \
         --ema \
         --fp16 \

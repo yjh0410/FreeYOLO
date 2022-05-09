@@ -308,7 +308,7 @@ yolo_config = {
         'test_size': 416,
         'random_size': [320, 352, 384, 416, 448, 480, 512, 544, 576, 608, 640],
         'mosaic_prob': 1.0,
-        'mixup_prob': 1.0,
+        'mixup_prob': 0.5,
         'format': 'RGB',
         'transforms': [{'name': 'DistortTransform',
                          'hue': 0.1,
