@@ -26,7 +26,7 @@ At least, please make sure your torch is version 1.x.
 - [x] Multi scale training
 - [x] Cosine Annealing Schedule
 - [x] Training from Scratch
-- [] Simple OTA
+<!-- - [] Simple OTA -->
 
 # Main results on COCO-val
 
