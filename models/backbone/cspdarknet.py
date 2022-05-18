@@ -5,6 +5,26 @@ import torch
 import torch.nn as nn
 
 
+model_cfg = {
+    '0.33+0.25': 'cspdarknet_n',
+    '0.33+0.375': 'cspdarknet_t',
+    '0.33+0.5':  'cspdarknet_s',
+    '0.67+0.75': 'cspdarknet_m',
+    '1.0+1.0':   'cspdarknet_l',
+    '1.33+1.25': 'cspdarknet_x'
+}
+
+
+model_urls = {
+    "cspdarknet_s": "https://github.com/yjh0410/YOLOX-Backbone/releases/download/YOLOX-Backbone/yolox_cspdarknet_s.pth",
+    "cspdarknet_m": "https://github.com/yjh0410/YOLOX-Backbone/releases/download/YOLOX-Backbone/yolox_cspdarknet_m.pth",
+    "cspdarknet_l": "https://github.com/yjh0410/YOLOX-Backbone/releases/download/YOLOX-Backbone/yolox_cspdarknet_l.pth",
+    "cspdarknet_x": "https://github.com/yjh0410/YOLOX-Backbone/releases/download/YOLOX-Backbone/yolox_cspdarknet_x.pth",
+    "cspdarknet_t": "https://github.com/yjh0410/YOLOX-Backbone/releases/download/YOLOX-Backbone/yolox_cspdarknet_tiny.pth",
+    "cspdarknet_n": "https://github.com/yjh0410/YOLOX-Backbone/releases/download/YOLOX-Backbone/yolox_cspdarknet_nano.pth",
+}
+
+
 class SiLU(nn.Module):
     """export-friendly version of nn.SiLU()"""
 
@@ -283,14 +303,25 @@ class CSPDarknet(nn.Module):
         return outputs
 
 
+# Build CSPDarkNet
 def build_cspdarknet(depth=1.0, width=1.0, depthwise=False, act_type='silu'):
     # build backbone
     backbone = CSPDarknet(dep_mul=depth, 
                           wid_mul=width, 
                           depthwise=depthwise, 
                           act=act_type)
-    basic_feat_dims = [256, 512, 1024]
-    feat_dims = [int(f * width) for f in basic_feat_dims]
+    feat_dims = [int(256 * width),
+                 int(512 * width),
+                 int(1024 * width)
+                 ]
+
+    # load weight
+    model_name = model_cfg[str(depth) + '+' + str(width)]
+    print('Loading pretrained {} ...'.format(model_name))
+    url = model_urls[model_name]
+    checkpoint = torch.hub.load_state_dict_from_url(
+        url=url, map_location="cpu", check_hash=True)
+    backbone.load_state_dict(checkpoint)
 
     return backbone, feat_dims
 

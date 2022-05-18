@@ -234,10 +234,7 @@ class VOCDetection(data.Dataset):
 
 if __name__ == "__main__":
     from transforms import TrainTransforms, ValTransforms
-    # format = 'BGR'
-    # pixel_mean = [103.53, 116.28, 123.675]
-    # pixel_std = [1.0, 1.0, 1.0]
-
+    
     img_size = 640
     format = 'RGB'
     trans_config = [{'name': 'DistortTransform',
@@ -258,7 +255,7 @@ if __name__ == "__main__":
                                 format=format)
 
     dataset = VOCDetection(img_size=img_size,
-                           data_dir='E:\\python_work\\object_detection\\dataset\\VOCdevkit',
+                           data_dir='D:\\python_work\\object-detection\\dataset\\VOCdevkit',
                            transform=transform,
                            mosaic_prob=1.0,
                            mixup_prob=1.0,

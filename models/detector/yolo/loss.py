@@ -27,12 +27,10 @@ class Criterion(object):
         self.obj_lossf = nn.BCEWithLogitsLoss(reduction='none')
         self.cls_lossf = nn.BCEWithLogitsLoss(reduction='none')
         # matcher
-        matcher_cfg = cfg['matcher'][matcher]
-        if matcher == 'basic':
-            self.matcher = Matcher(
-                num_classes=num_classes,
-                center_sampling_radius=matcher_cfg['center_sampling_radius'],
-                object_sizes_of_interest=matcher_cfg['object_sizes_of_interest'])
+        self.matcher = Matcher(
+            num_classes=num_classes,
+            center_sampling_radius=cfg['matcher']['center_sampling_radius'],
+            object_sizes_of_interest=cfg['matcher']['object_sizes_of_interest'])
 
 
     def __call__(self, outputs, targets, anchors=None):

@@ -4,10 +4,6 @@
 yolo_config = {
     'yolo_x': {
         # input
-        # If you have many GPUs, you could use large input size to enhance FreeYOLO.
-        # 'train_size': 800,
-        # 'test_size': 640,
-        # 'random_size': [448, 480, 512, 544, 576, 608, 640, 672, 704, 736, 768, 800],
         'train_size': 640,
         'test_size': 640,
         'random_size': [320, 352, 384, 416, 448, 480, 512, 544, 576, 608, 640],
@@ -50,23 +46,20 @@ yolo_config = {
         'num_reg_head': 2,
         # post process
         'conf_thresh': 0.01,
-        'train_nms_thresh': 0.65,
-        'test_nms_thresh': 0.45,
+        'nms_thresh': 0.5,
         # matcher
-        'matcher': {'basic': {'object_sizes_of_interest': [[-1, 64], 
-                                                           [64, 128], 
-                                                           [128, float('inf')]],
-                              'center_sampling_radius': 1.5}},
+        'matcher': {'object_sizes_of_interest': [[-1, 64], [64, 128], [128, float('inf')]],
+                    'center_sampling_radius': 1.5},
         # loss
         'loss_obj_weight': 1.0,
         'loss_cls_weight': 1.0,
         'loss_reg_weight': 5.0,
         # training configuration
-        'max_epoch': 300,
+        'max_epoch': 150,
         'no_aug_epoch': 15,
         'batch_size': 32,
         'base_lr': 0.01 / 64.,
-        'min_lr_ratio': 0.05,
+        'min_lr_ratio': 0.01,
         # optimizer
         'optimizer': 'sgd',
         'momentum': 0.9,
@@ -79,10 +72,6 @@ yolo_config = {
 
     'yolo_l': {
         # input
-        # If you have many GPUs, you could use large input size to enhance YOLO.
-        # 'train_size': 800,
-        # 'test_size': 640,
-        # 'random_size': [448, 480, 512, 544, 576, 608, 640, 672, 704, 736, 768, 800],
         'train_size': 640,
         'test_size': 640,
         'random_size': [320, 352, 384, 416, 448, 480, 512, 544, 576, 608, 640],
@@ -125,23 +114,20 @@ yolo_config = {
         'num_reg_head': 2,
         # post process
         'conf_thresh': 0.01,
-        'train_nms_thresh': 0.65,
-        'test_nms_thresh': 0.45,
+        'nms_thresh': 0.5,
         # matcher
-        'matcher': {'basic': {'object_sizes_of_interest': [[-1, 64], 
-                                                           [64, 128], 
-                                                           [128, float('inf')]],
-                              'center_sampling_radius': 1.5}},
+        'matcher': {'object_sizes_of_interest': [[-1, 64], [64, 128], [128, float('inf')]],
+                    'center_sampling_radius': 1.5},
         # loss
         'loss_obj_weight': 1.0,
         'loss_cls_weight': 1.0,
         'loss_reg_weight': 5.0,
         # training configuration
-        'max_epoch': 300,
+        'max_epoch': 150,
         'no_aug_epoch': 15,
         'batch_size': 32,
         'base_lr': 0.01 / 64.,
-        'min_lr_ratio': 0.05,
+        'min_lr_ratio': 0.01,
         # optimizer
         'optimizer': 'sgd',
         'momentum': 0.9,
@@ -154,15 +140,11 @@ yolo_config = {
 
     'yolo_m': {
         # input
-        # If you have many GPUs, you could use large input size to enhance YOLO.
-        # 'train_size': 800,
-        # 'test_size': 640,
-        # 'random_size': [448, 480, 512, 544, 576, 608, 640, 672, 704, 736, 768, 800],
         'train_size': 640,
         'test_size': 640,
         'random_size': [320, 352, 384, 416, 448, 480, 512, 544, 576, 608, 640],
         'mosaic_prob': 1.0,
-        'mixup_prob': 0.5,
+        'mixup_prob': 1.0,
         'format': 'RGB',
         'transforms': [{'name': 'DistortTransform',
                          'hue': 0.1,
@@ -200,23 +182,20 @@ yolo_config = {
         'num_reg_head': 2,
         # post process
         'conf_thresh': 0.01,
-        'train_nms_thresh': 0.65,
-        'test_nms_thresh': 0.45,
+        'nms_thresh': 0.5,
         # matcher
-        'matcher': {'basic': {'object_sizes_of_interest': [[-1, 64], 
-                                                           [64, 128], 
-                                                           [128, float('inf')]],
-                              'center_sampling_radius': 1.5}},
+        'matcher': {'object_sizes_of_interest': [[-1, 64], [64, 128], [128, float('inf')]],
+                    'center_sampling_radius': 1.5},
         # loss
         'loss_obj_weight': 1.0,
         'loss_cls_weight': 1.0,
         'loss_reg_weight': 5.0,
         # training configuration
-        'max_epoch': 300,
+        'max_epoch': 150,
         'no_aug_epoch': 15,
         'batch_size': 32,
         'base_lr': 0.01 / 64.,
-        'min_lr_ratio': 0.05,
+        'min_lr_ratio': 0.01,
         # optimizer
         'optimizer': 'sgd',
         'momentum': 0.9,
@@ -229,10 +208,6 @@ yolo_config = {
 
     'yolo_s': {
         # input
-        # If you have many GPUs, you could use large input size to enhance YOLO.
-        # 'train_size': 800,
-        # 'test_size': 640,
-        # 'random_size': [448, 480, 512, 544, 576, 608, 640, 672, 704, 736, 768, 800],
         'train_size': 640,
         'test_size': 640,
         'random_size': [320, 352, 384, 416, 448, 480, 512, 544, 576, 608, 640],
@@ -275,23 +250,20 @@ yolo_config = {
         'num_reg_head': 2,
         # post process
         'conf_thresh': 0.01,
-        'train_nms_thresh': 0.65,
-        'test_nms_thresh': 0.45,
+        'nms_thresh': 0.5,
         # matcher
-        'matcher': {'basic': {'object_sizes_of_interest': [[-1, 64], 
-                                                           [64, 128], 
-                                                           [128, float('inf')]],
-                              'center_sampling_radius': 1.5}},
+        'matcher': {'object_sizes_of_interest': [[-1, 64], [64, 128], [128, float('inf')]],
+                    'center_sampling_radius': 1.5},
         # loss
         'loss_obj_weight': 1.0,
         'loss_cls_weight': 1.0,
         'loss_reg_weight': 5.0,
         # training configuration
-        'max_epoch': 300,
+        'max_epoch': 150,
         'no_aug_epoch': 15,
         'batch_size': 32,
         'base_lr': 0.01 / 64.,
-        'min_lr_ratio': 0.05,
+        'min_lr_ratio': 0.01,
         # optimizer
         'optimizer': 'sgd',
         'momentum': 0.9,
@@ -308,7 +280,7 @@ yolo_config = {
         'test_size': 416,
         'random_size': [320, 352, 384, 416, 448, 480, 512, 544, 576, 608, 640],
         'mosaic_prob': 1.0,
-        'mixup_prob': 0.5,
+        'mixup_prob': 0.1,
         'format': 'RGB',
         'transforms': [{'name': 'DistortTransform',
                          'hue': 0.1,
@@ -346,23 +318,20 @@ yolo_config = {
         'num_reg_head': 2,
         # post process
         'conf_thresh': 0.01,
-        'train_nms_thresh': 0.65,
-        'test_nms_thresh': 0.45,
+        'nms_thresh': 0.5,
         # matcher
-        'matcher': {'basic': {'object_sizes_of_interest': [[-1, 64], 
-                                                           [64, 128], 
-                                                           [128, float('inf')]],
-                              'center_sampling_radius': 1.5}},
+        'matcher': {'object_sizes_of_interest': [[-1, 64], [64, 128], [128, float('inf')]],
+                    'center_sampling_radius': 1.5},
         # loss
         'loss_obj_weight': 1.0,
         'loss_cls_weight': 1.0,
         'loss_reg_weight': 5.0,
         # training configuration
-        'max_epoch': 300,
+        'max_epoch': 150,
         'no_aug_epoch': 15,
         'batch_size': 32,
         'base_lr': 0.01 / 64.,
-        'min_lr_ratio': 0.05,
+        'min_lr_ratio': 0.01,
         # optimizer
         'optimizer': 'sgd',
         'momentum': 0.9,
@@ -379,7 +348,7 @@ yolo_config = {
         'test_size': 416,
         'random_size': [320, 352, 384, 416, 448, 480, 512, 544, 576, 608, 640],
         'mosaic_prob': 0.5,
-        'mixup_prob': 0.5,
+        'mixup_prob': 0.0,
         'format': 'RGB',
         'transforms': [{'name': 'DistortTransform',
                          'hue': 0.1,
@@ -417,23 +386,20 @@ yolo_config = {
         'num_reg_head': 2,
         # post process
         'conf_thresh': 0.01,
-        'train_nms_thresh': 0.65,
-        'test_nms_thresh': 0.45,
+        'nms_thresh': 0.5,
         # matcher
-        'matcher': {'basic': {'object_sizes_of_interest': [[-1, 64], 
-                                                           [64, 128], 
-                                                           [128, float('inf')]],
-                              'center_sampling_radius': 1.5}},
+        'matcher': {'object_sizes_of_interest': [[-1, 64], [64, 128], [128, float('inf')]],
+                    'center_sampling_radius': 1.5},
         # loss
         'loss_obj_weight': 1.0,
         'loss_cls_weight': 1.0,
         'loss_reg_weight': 5.0,
         # training configuration
-        'max_epoch': 300,
+        'max_epoch': 150,
         'no_aug_epoch': 15,
         'batch_size': 64,
         'base_lr': 0.01 / 64.,
-        'min_lr_ratio': 0.05,
+        'min_lr_ratio': 0.01,
         # optimizer
         'optimizer': 'sgd',
         'momentum': 0.9,
