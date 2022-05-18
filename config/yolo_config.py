@@ -55,11 +55,11 @@ yolo_config = {
         'loss_cls_weight': 1.0,
         'loss_reg_weight': 5.0,
         # training configuration
-        'max_epoch': 150,
+        'max_epoch': 300,
         'no_aug_epoch': 15,
         'batch_size': 32,
         'base_lr': 0.01 / 64.,
-        'min_lr_ratio': 0.01,
+        'min_lr_ratio': 0.05,
         # optimizer
         'optimizer': 'sgd',
         'momentum': 0.9,
@@ -123,11 +123,11 @@ yolo_config = {
         'loss_cls_weight': 1.0,
         'loss_reg_weight': 5.0,
         # training configuration
-        'max_epoch': 150,
+        'max_epoch': 300,
         'no_aug_epoch': 15,
         'batch_size': 32,
         'base_lr': 0.01 / 64.,
-        'min_lr_ratio': 0.01,
+        'min_lr_ratio': 0.05,
         # optimizer
         'optimizer': 'sgd',
         'momentum': 0.9,
@@ -191,11 +191,11 @@ yolo_config = {
         'loss_cls_weight': 1.0,
         'loss_reg_weight': 5.0,
         # training configuration
-        'max_epoch': 150,
+        'max_epoch': 300,
         'no_aug_epoch': 15,
         'batch_size': 32,
         'base_lr': 0.01 / 64.,
-        'min_lr_ratio': 0.01,
+        'min_lr_ratio': 0.05,
         # optimizer
         'optimizer': 'sgd',
         'momentum': 0.9,
@@ -259,11 +259,11 @@ yolo_config = {
         'loss_cls_weight': 1.0,
         'loss_reg_weight': 5.0,
         # training configuration
-        'max_epoch': 150,
+        'max_epoch': 300,
         'no_aug_epoch': 15,
         'batch_size': 32,
         'base_lr': 0.01 / 64.,
-        'min_lr_ratio': 0.01,
+        'min_lr_ratio': 0.05,
         # optimizer
         'optimizer': 'sgd',
         'momentum': 0.9,
@@ -327,11 +327,11 @@ yolo_config = {
         'loss_cls_weight': 1.0,
         'loss_reg_weight': 5.0,
         # training configuration
-        'max_epoch': 150,
+        'max_epoch': 300,
         'no_aug_epoch': 15,
         'batch_size': 32,
         'base_lr': 0.01 / 64.,
-        'min_lr_ratio': 0.01,
+        'min_lr_ratio': 0.05,
         # optimizer
         'optimizer': 'sgd',
         'momentum': 0.9,
@@ -395,11 +395,11 @@ yolo_config = {
         'loss_cls_weight': 1.0,
         'loss_reg_weight': 5.0,
         # training configuration
-        'max_epoch': 150,
+        'max_epoch': 300,
         'no_aug_epoch': 15,
         'batch_size': 64,
         'base_lr': 0.01 / 64.,
-        'min_lr_ratio': 0.01,
+        'min_lr_ratio': 0.05,
         # optimizer
         'optimizer': 'sgd',
         'momentum': 0.9,
