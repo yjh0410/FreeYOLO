@@ -50,7 +50,7 @@ yolo_config = {
         'loss_cls_weight': 1.0,
         'loss_reg_weight': 1.0,
         # training configuration
-        'max_epoch': 300,
+        'max_epoch': 250,
         'no_aug_epoch': 15,
         'batch_size': 16,
         'base_lr': 0.01 / 64.,
@@ -62,7 +62,7 @@ yolo_config = {
         # warmup strategy
         'warmup': 'linear',
         'warmup_factor': 0.00066667,
-        'wp_epoch': 5,
+        'wp_epoch': 1,
         },
 
 }
