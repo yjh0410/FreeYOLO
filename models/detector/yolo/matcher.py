@@ -125,9 +125,10 @@ class Matcher(object):
                 gt_anchors_deltas.append(tgt_reg_i)
                 
             else:
-                tgt_obj_i = torch.zeros(anchors_over_all_feature_maps.shape[0], device=device)
-                tgt_cls_i = torch.zeros(anchors_over_all_feature_maps.shape[0], device=device) + self.num_classes
-                tgt_reg_i = torch.zeros([anchors_over_all_feature_maps.shape[0], 4], device=device)
+                num_anchors = anchors_over_all_feature_maps.shape[0]
+                tgt_obj_i = torch.zeros(num_anchors, device=device)
+                tgt_cls_i = torch.zeros(num_anchors, device=device) + self.num_classes
+                tgt_reg_i = torch.zeros([num_anchors, 4], device=device)
 
                 gt_objectness.append(tgt_obj_i)
                 gt_classes.append(tgt_cls_i)
