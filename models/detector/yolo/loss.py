@@ -78,8 +78,6 @@ class Criterion(object):
         # regression loss
         matched_pred_delta = pred_delta[foreground_idxs]
         matched_tgt_delta = gt_shifts_deltas[foreground_idxs]
-        print(num_foreground)
-        print(matched_tgt_delta)
         ious = get_ious(matched_pred_delta,
                         matched_tgt_delta,
                         box_mode="ltrb",
