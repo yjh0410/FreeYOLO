@@ -237,9 +237,9 @@ if __name__ == "__main__":
     
     img_size = 640
     random_size = [320, 416, 512, 544, 608, 640]
-    format = 'BGR'
-    pixel_mean = [103.530, 116.280, 123.675]
-    pixel_std = [1.0, 1.0, 1.0]
+    format = 'RGB'
+    pixel_mean = [123.675, 116.28, 103.53]
+    pixel_std = [58.395, 57.12, 57.375]
     trans_config = [{'name': 'DistortTransform',
                      'hue': 0.1,
                      'saturation': 1.5,
