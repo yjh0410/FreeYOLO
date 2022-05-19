@@ -407,6 +407,7 @@ class PadImage(object):
 class BaseTransforms(object):
     def __init__(self, 
                  img_size=640, 
+                 random_size=None,
                  pixel_mean=(123.675, 116.28, 103.53), 
                  pixel_std=(58.395, 57.12, 57.375),
                  format='RGB'):
@@ -418,7 +419,7 @@ class BaseTransforms(object):
             DistortTransform(),
             RandomHorizontalFlip(),
             ToTensor(format=format),
-            Resize(img_size=img_size, random_size=None),
+            Resize(img_size=img_size, random_size=random_size),
             Normalize(pixel_mean, pixel_std),
             PadImage(img_size=img_size)
         ])
