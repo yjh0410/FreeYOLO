@@ -1,334 +1,308 @@
-#!/usr/bin/env python
-# -*- encoding: utf-8 -*-
-# Copyright (c) 2014-2021 Megvii Inc. All rights reserved.
+"""
+    This is a CSPDarkNet-53 with Mish.
+"""
+import os
 import torch
 import torch.nn as nn
 
 
-model_cfg = {
-    '0.33+0.25': 'cspdarknet_n',
-    '0.33+0.375': 'cspdarknet_t',
-    '0.33+0.5':  'cspdarknet_s',
-    '0.67+0.75': 'cspdarknet_m',
-    '1.0+1.0':   'cspdarknet_l',
-    '1.33+1.25': 'cspdarknet_x'
-}
-
-
 model_urls = {
-    "cspdarknet_s": "https://github.com/yjh0410/YOLOX-Backbone/releases/download/YOLOX-Backbone/yolox_cspdarknet_s.pth",
-    "cspdarknet_m": "https://github.com/yjh0410/YOLOX-Backbone/releases/download/YOLOX-Backbone/yolox_cspdarknet_m.pth",
-    "cspdarknet_l": "https://github.com/yjh0410/YOLOX-Backbone/releases/download/YOLOX-Backbone/yolox_cspdarknet_l.pth",
-    "cspdarknet_x": "https://github.com/yjh0410/YOLOX-Backbone/releases/download/YOLOX-Backbone/yolox_cspdarknet_x.pth",
-    "cspdarknet_t": "https://github.com/yjh0410/YOLOX-Backbone/releases/download/YOLOX-Backbone/yolox_cspdarknet_tiny.pth",
-    "cspdarknet_n": "https://github.com/yjh0410/YOLOX-Backbone/releases/download/YOLOX-Backbone/yolox_cspdarknet_nano.pth",
+    "cspdarknet53": "https://github.com/yjh0410/PyTorch_YOLO-Family/releases/download/yolo-weight/cspdarknet53.pth",
 }
 
 
-class SiLU(nn.Module):
-    """export-friendly version of nn.SiLU()"""
 
-    @staticmethod
-    def forward(x):
-        return x * torch.sigmoid(x)
-
-
-def get_activation(name="silu", inplace=True):
-    if name == "silu":
-        module = nn.SiLU(inplace=inplace)
-    elif name == "relu":
-        module = nn.ReLU(inplace=inplace)
-    elif name == "lrelu":
-        module = nn.LeakyReLU(0.1, inplace=inplace)
-    else:
-        raise AttributeError("Unsupported act type: {}".format(name))
-    return module
-
-
-class BaseConv(nn.Module):
-    """A Conv2d -> Batchnorm -> silu/leaky relu block"""
-
-    def __init__(
-        self, in_channels, out_channels, ksize, stride, groups=1, bias=False, act="silu"
-    ):
-        super().__init__()
-        # same padding
-        pad = (ksize - 1) // 2
-        self.conv = nn.Conv2d(
-            in_channels,
-            out_channels,
-            kernel_size=ksize,
-            stride=stride,
-            padding=pad,
-            groups=groups,
-            bias=bias,
-        )
-        self.bn = nn.BatchNorm2d(out_channels)
-        self.act = get_activation(act, inplace=True)
-
-    def forward(self, x):
-        return self.act(self.bn(self.conv(x)))
-
-    def fuseforward(self, x):
-        return self.act(self.conv(x))
+def ConvNormActivation(inplanes,
+                       planes,
+                       kernel_size=3,
+                       stride=1,
+                       padding=0,
+                       dilation=1,
+                       groups=1):
+    """
+    A help function to build a 'conv-bn-activation' module
+    """
+    layers = []
+    layers.append(nn.Conv2d(inplanes,
+                            planes,
+                            kernel_size=kernel_size,
+                            stride=stride,
+                            padding=padding,
+                            dilation=dilation,
+                            groups=groups,
+                            bias=False))
+    layers.append(nn.BatchNorm2d(planes, eps=1e-4, momentum=0.03))
+    layers.append(nn.Mish(inplace=True))
+    return nn.Sequential(*layers)
 
 
-class DWConv(nn.Module):
-    """Depthwise Conv + Conv"""
+def make_cspdark_layer(block,
+                       inplanes,
+                       planes,
+                       num_blocks,
+                       is_csp_first_stage,
+                       dilation=1):
+    downsample = ConvNormActivation(
+        inplanes=planes,
+        planes=planes if is_csp_first_stage else inplanes,
+        kernel_size=1,
+        stride=1,
+        padding=0
+    )
 
-    def __init__(self, in_channels, out_channels, ksize, stride=1, act="silu"):
-        super().__init__()
-        self.dconv = BaseConv(
-            in_channels,
-            in_channels,
-            ksize=ksize,
-            stride=stride,
-            groups=in_channels,
-            act=act
-        )
-        self.pconv = BaseConv(
-            in_channels, 
-            out_channels, 
-            ksize=1, 
-            stride=1, 
-            groups=1, 
-            act=act
-        )
-
-    def forward(self, x):
-        x = self.dconv(x)
-        return self.pconv(x)
-
-
-class Bottleneck(nn.Module):
-    # Standard bottleneck
-    def __init__(
-        self,
-        in_channels,
-        out_channels,
-        shortcut=True,
-        expansion=0.5,
-        depthwise=False,
-        act="silu"
-    ):
-        super().__init__()
-        hidden_channels = int(out_channels * expansion)
-        Conv = DWConv if depthwise else BaseConv
-        self.conv1 = BaseConv(in_channels, hidden_channels, 1, stride=1, act=act)
-        self.conv2 = Conv(hidden_channels, out_channels, 3, stride=1, act=act)
-        self.use_add = shortcut and in_channels == out_channels
-
-    def forward(self, x):
-        y = self.conv2(self.conv1(x))
-        if self.use_add:
-            y = y + x
-        return y
-
-
-class SPPBottleneck(nn.Module):
-    """Spatial pyramid pooling layer used in YOLOv3-SPP"""
-
-    def __init__(
-        self, in_channels, out_channels, kernel_sizes=(5, 9, 13), activation="silu"
-    ):
-        super().__init__()
-        hidden_channels = in_channels // 2
-        self.conv1 = BaseConv(in_channels, hidden_channels, 1, stride=1, act=activation)
-        self.m = nn.ModuleList(
-            [
-                nn.MaxPool2d(kernel_size=ks, stride=1, padding=ks // 2)
-                for ks in kernel_sizes
-            ]
-        )
-        conv2_channels = hidden_channels * (len(kernel_sizes) + 1)
-        self.conv2 = BaseConv(conv2_channels, out_channels, 1, stride=1, act=activation)
-
-    def forward(self, x):
-        x = self.conv1(x)
-        x = torch.cat([x] + [m(x) for m in self.m], dim=1)
-        x = self.conv2(x)
-        return x
-
-
-class CSPLayer(nn.Module):
-    """C3 in yolov5, CSP Bottleneck with 3 convolutions"""
-
-    def __init__(
-        self,
-        in_channels,
-        out_channels,
-        n=1,
-        shortcut=True,
-        expansion=0.5,
-        depthwise=False,
-        act="silu"
-    ):
-        """
-        Args:
-            in_channels (int): input channels.
-            out_channels (int): output channels.
-            n (int): number of Bottlenecks. Default value: 1.
-        """
-        # ch_in, ch_out, number, shortcut, groups, expansion
-        super().__init__()
-        hidden_channels = int(out_channels * expansion)  # hidden channels
-        self.conv1 = BaseConv(in_channels, hidden_channels, 1, stride=1, act=act)
-        self.conv2 = BaseConv(in_channels, hidden_channels, 1, stride=1, act=act)
-        self.conv3 = BaseConv(2 * hidden_channels, out_channels, 1, stride=1, act=act)
-        module_list = [
-            Bottleneck(
-                hidden_channels, hidden_channels, shortcut, 1.0, depthwise, act=act
+    layers = []
+    for i in range(0, num_blocks):
+        layers.append(
+            block(
+                inplanes=inplanes,
+                planes=planes if is_csp_first_stage else inplanes,
+                downsample=downsample if i == 0 else None,
+                dilation=dilation
             )
-            for _ in range(n)
-        ]
-        self.m = nn.Sequential(*module_list)
+        )
+    return nn.Sequential(*layers)
+
+
+class DarkBlock(nn.Module):
+
+    def __init__(self,
+                 inplanes,
+                 planes,
+                 dilation=1,
+                 downsample=None):
+        """Residual Block for DarkNet.
+        This module has the dowsample layer (optional),
+        1x1 conv layer and 3x3 conv layer.
+        """
+        super(DarkBlock, self).__init__()
+
+        self.downsample = downsample
+
+        self.bn1 = nn.BatchNorm2d(inplanes, eps=1e-4, momentum=0.03)
+        self.bn2 = nn.BatchNorm2d(planes, eps=1e-4, momentum=0.03)
+
+        self.conv1 = nn.Conv2d(
+            planes,
+            inplanes,
+            kernel_size=1,
+            stride=1,
+            padding=0,
+            bias=False
+        )
+
+        self.conv2 = nn.Conv2d(
+            inplanes,
+            planes,
+            kernel_size=3,
+            stride=1,
+            padding=dilation,
+            dilation=dilation,
+            bias=False
+        )
+
+        self.activation = nn.Mish(inplace=True)
 
     def forward(self, x):
-        x_1 = self.conv1(x)
-        x_2 = self.conv2(x)
-        x_1 = self.m(x_1)
-        x = torch.cat((x_1, x_2), dim=1)
-        return self.conv3(x)
+        if self.downsample is not None:
+            x = self.downsample(x)
+
+        identity = x
+
+        out = self.conv1(x)
+        out = self.bn1(out)
+        out = self.activation(out)
+
+        out = self.conv2(out)
+        out = self.bn2(out)
+        out = self.activation(out)
+
+        out += identity
+
+        return out
 
 
-class Focus(nn.Module):
-    """Focus width and height information into channel space."""
+class CrossStagePartialBlock(nn.Module):
+    """CSPNet: A New Backbone that can Enhance Learning Capability of CNN.
+    Refer to the paper for more details: https://arxiv.org/abs/1911.11929.
+    In this module, the inputs go throuth the base conv layer at the first,
+    and then pass the two partial transition layers.
+    1. go throuth basic block (like DarkBlock)
+        and one partial transition layer.
+    2. go throuth the other partial transition layer.
+    At last, They are concat into fuse transition layer.
+    Args:
+        inplanes (int): number of input channels.
+        planes (int): number of output channels
+        stage_layers (nn.Module): the basic block which applying CSPNet.
+        is_csp_first_stage (bool): Is the first stage or not.
+            The number of input and output channels in the first stage of
+            CSPNet is different from other stages.
+        dilation (int): conv dilation
+        stride (int): stride for the base layer
+    """
 
-    def __init__(self, in_channels, out_channels, ksize=1, stride=1, act="silu"):
-        super().__init__()
-        self.conv = BaseConv(in_channels * 4, out_channels, ksize, stride, act=act)
+    def __init__(self,
+                 inplanes,
+                 planes,
+                 stage_layers,
+                 is_csp_first_stage,
+                 dilation=1,
+                 stride=2):
+        super(CrossStagePartialBlock, self).__init__()
+
+        self.base_layer = ConvNormActivation(
+            inplanes,
+            planes,
+            kernel_size=3,
+            stride=stride,
+            padding=dilation,
+            dilation=dilation
+        )
+        self.partial_transition1 = ConvNormActivation(
+            inplanes=planes,
+            planes=inplanes if not is_csp_first_stage else planes,
+            kernel_size=1,
+            stride=1,
+            padding=0
+        )
+        self.stage_layers = stage_layers
+
+        self.partial_transition2 = ConvNormActivation(
+            inplanes=inplanes if not is_csp_first_stage else planes,
+            planes=inplanes if not is_csp_first_stage else planes,
+            kernel_size=1,
+            stride=1,
+            padding=0
+        )
+        self.fuse_transition = ConvNormActivation(
+            inplanes=planes if not is_csp_first_stage else planes * 2,
+            planes=planes,
+            kernel_size=1,
+            stride=1,
+            padding=0
+        )
 
     def forward(self, x):
-        # shape of x (b,c,w,h) -> y(b,4c,w/2,h/2)
-        patch_top_left = x[..., ::2, ::2]
-        patch_top_right = x[..., ::2, 1::2]
-        patch_bot_left = x[..., 1::2, ::2]
-        patch_bot_right = x[..., 1::2, 1::2]
-        x = torch.cat(
-            (
-                patch_top_left,
-                patch_bot_left,
-                patch_top_right,
-                patch_bot_right,
-            ),
-            dim=1,
-        )
-        return self.conv(x)
+        x = self.base_layer(x)
+
+        out1 = self.partial_transition1(x)
+
+        out2 = self.stage_layers(x)
+        out2 = self.partial_transition2(out2)
+
+        out = torch.cat([out2, out1], dim=1)
+        out = self.fuse_transition(out)
+
+        return out
 
 
-# CSPDarkNet
-class CSPDarknet(nn.Module):
-    def __init__(
-        self,
-        dep_mul,
-        wid_mul,
-        out_features=("dark3", "dark4", "dark5"),
-        depthwise=False,
-        act="silu"
-    ):
-        super().__init__()
-        assert out_features, "please provide output features of Darknet"
-        self.out_features = out_features
-        Conv = DWConv if depthwise else BaseConv
+class CSPDarkNet53(nn.Module):
+    """CSPDarkNet backbone.
+    Refer to the paper for more details: https://arxiv.org/pdf/1804.02767
+    Args:
+        depth (int): Depth of Darknet, from {53}.
+        num_stages (int): Darknet stages, normally 5.
+        with_csp (bool): Use cross stage partial connection or not.
+        out_features (List[str]): Output features.
+        norm_type (str): type of normalization layer.
+        res5_dilation (int): dilation for the last stage
+    """
 
-        base_channels = int(wid_mul * 64)  # 64
-        base_depth = max(round(dep_mul * 3), 1)  # 3
+    def __init__(self):
+        super(CSPDarkNet53, self).__init__()
+     
+        self.block =  DarkBlock
+        self.stage_blocks = (1, 2, 8, 8, 4)
+        self.with_csp = True
+        self.inplanes = 32
 
-        # stem
-        self.stem = Focus(3, base_channels, ksize=3, act=act)
+        self.backbone = nn.ModuleDict()
+        self.layer_names = []
+        # First stem layer
+        self.backbone["conv1"] = nn.Conv2d(3, self.inplanes, kernel_size=3, padding=1, bias=False)
+        self.backbone["bn1"] = nn.BatchNorm2d(self.inplanes, eps=1e-4, momentum=0.03)
+        self.backbone["act1"] = nn.Mish(inplace=True)
 
-        # dark2
-        self.dark2 = nn.Sequential(
-            Conv(base_channels, base_channels * 2, 3, 2, act=act),
-            CSPLayer(
-                base_channels * 2,
-                base_channels * 2,
-                n=base_depth,
-                depthwise=depthwise,
-                act=act
-            ),
-        )
-
-        # dark3
-        self.dark3 = nn.Sequential(
-            Conv(base_channels * 2, base_channels * 4, 3, 2, act=act),
-            CSPLayer(
-                base_channels * 4,
-                base_channels * 4,
-                n=base_depth * 3,
-                depthwise=depthwise,
-                act=act
-            ),
-        )
-
-        # dark4
-        self.dark4 = nn.Sequential(
-            Conv(base_channels * 4, base_channels * 8, 3, 2, act=act),
-            CSPLayer(
-                base_channels * 8,
-                base_channels * 8,
-                n=base_depth * 3,
-                depthwise=depthwise,
-                act=act
-            ),
-        )
-
-        # dark5
-        self.dark5 = nn.Sequential(
-            Conv(base_channels * 8, base_channels * 16, 3, 2, act=act),
-            SPPBottleneck(base_channels * 16, base_channels * 16, activation=act),
-            CSPLayer(
-                base_channels * 16,
-                base_channels * 16,
-                n=base_depth,
-                shortcut=False,
-                depthwise=depthwise,
-                act=act
-            ),
-        )
+        for i, num_blocks in enumerate(self.stage_blocks):
+            planes = 64 * 2 ** i
+            dilation = 1
+            stride = 2
+            layer = make_cspdark_layer(
+                block=self.block,
+                inplanes=self.inplanes,
+                planes=planes,
+                num_blocks=num_blocks,
+                is_csp_first_stage=True if i == 0 else False,
+                dilation=dilation
+            )
+            layer = CrossStagePartialBlock(
+                self.inplanes,
+                planes,
+                stage_layers=layer,
+                is_csp_first_stage=True if i == 0 else False,
+                dilation=dilation,
+                stride=stride
+            )
+            self.inplanes = planes
+            layer_name = 'layer{}'.format(i + 1)
+            self.backbone[layer_name]=layer
+            self.layer_names.append(layer_name)
 
 
     def forward(self, x):
-        outputs = dict()
-        c1 = self.stem(x)
-        c2 = self.dark2(c1)
-        c3 = self.dark3(c2)
-        c4 = self.dark4(c3)
-        c5 = self.dark5(c4)
+        outs = []
+        x = self.backbone["conv1"](x)
+        x = self.backbone["bn1"](x)
+        x = self.backbone["act1"](x)
 
-        outputs["layer2"] = c3
-        outputs["layer3"] = c4
-        outputs["layer4"] = c5
+        for i, layer_name in enumerate(self.layer_names):
+            layer = self.backbone[layer_name]
+            x = layer(x)
+            outs.append(x)
 
+        outputs = {
+            'layer2': outs[-3],
+            'layer3': outs[-2],
+            'layer4': outs[-1]
+        }
         return outputs
 
 
 # Build CSPDarkNet
-def build_cspdarknet(depth=1.0, width=1.0, depthwise=False, act_type='silu'):
+def build_cspdarknet(pretrained=False):
     # build backbone
-    backbone = CSPDarknet(dep_mul=depth, 
-                          wid_mul=width, 
-                          depthwise=depthwise, 
-                          act=act_type)
-    feat_dims = [int(256 * width),
-                 int(512 * width),
-                 int(1024 * width)
-                 ]
+    backbone = CSPDarkNet53()
+    feat_dims = [256, 512, 1024]
 
     # load weight
-    model_name = model_cfg[str(depth) + '+' + str(width)]
-    print('Loading pretrained {} ...'.format(model_name))
-    url = model_urls[model_name]
-    checkpoint = torch.hub.load_state_dict_from_url(
-        url=url, map_location="cpu", check_hash=True)
-    backbone.load_state_dict(checkpoint)
+    if pretrained:
+        print('Loading pretrained weight ...')
+        url = model_urls['cspdarknet53']
+        checkpoint = torch.hub.load_state_dict_from_url(
+            url=url, map_location="cpu", check_hash=True)
+        # checkpoint state dict
+        checkpoint_state_dict = checkpoint.pop("model")
+        # model state dict
+        model_state_dict = backbone.state_dict()
+        # check
+        for k in list(checkpoint_state_dict.keys()):
+            if k in model_state_dict:
+                shape_model = tuple(model_state_dict[k].shape)
+                shape_checkpoint = tuple(checkpoint_state_dict[k].shape)
+                if shape_model != shape_checkpoint:
+                    checkpoint_state_dict.pop(k)
+            else:
+                checkpoint_state_dict.pop(k)
+                print(k)
+
+        backbone.load_state_dict(checkpoint_state_dict)
 
     return backbone, feat_dims
 
 
 if __name__ == '__main__':
     import time
-    model, feats = build_cspdarknet(depth=1.0, width=1.0, depthwise=False)
+    model, feats = build_cspdarknet(pretrained=True)
     x = torch.randn(1, 3, 224, 224)
     t0 = time.time()
     outputs = model(x)

@@ -1,21 +1,18 @@
-from .yolopafpn import YoloPaFPN
+from .spp import SPPBlockCSP
 
 
-
-def build_fpn(cfg, in_dims):
-    model = cfg['fpn']
+def build_neck(cfg, in_dim, out_dim):
+    model = cfg['neck']
     print('==============================')
-    print('FPN: {}'.format(model))
+    print('Neck: {}'.format(model))
     # build neck
-    if model == 'yolo_pafpn':
-        fpn_net = YoloPaFPN(in_dims=in_dims,
-                            out_dim=cfg['head_dim'],
-                            depth=cfg['depth'],
-                            width=cfg['width'],
-                            depthwise=cfg['depthwise'],
-                            norm_type=cfg['fpn_norm'],
-                            act_type=cfg['fpn_act'])
+    if model == 'spp_block':
+        neck = SPPBlockCSP(in_dim, 
+                           out_dim, 
+                           expand_ratio=cfg['expand_ratio'], 
+                           pooling_size=cfg['pooling_size'],
+                           act_type=cfg['neck_act'],
+                           norm_type=cfg['neck_norm'],
+                           depthwise=cfg['neck_depthwise'])
 
-
-    return fpn_net
-
+    return neck

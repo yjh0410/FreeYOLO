@@ -24,7 +24,7 @@ from models.detector import build_model
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description='YOLO')
+    parser = argparse.ArgumentParser(description='FreeYOLO')
     # basic
     parser.add_argument('--cuda', action='store_true', default=False,
                         help='use cuda.')
@@ -40,17 +40,12 @@ def parse_args():
                         help="Adopting mix precision training.")
 
     # model
-    parser.add_argument('-v', '--version', default='yolo_s', type=str,
+    parser.add_argument('-v', '--version', default='free_yolo_csp_d53', type=str,
                         help='build yolo')
     parser.add_argument('--topk', default=1000, type=int,
                         help='topk candidates for evaluation')
     parser.add_argument('-p', '--coco_pretrained', default=None, type=str,
                         help='coco pretrained weight')
-
-    # Matcher
-    parser.add_argument('-m', '--matcher', default='sim_ota', type=str, 
-                        choices=['basic', 'ota', 'sim_ota'],
-                        help='build matcher')
 
     # dataset
     parser.add_argument('--root', default='/mnt/share/ssd2/dataset',

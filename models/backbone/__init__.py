@@ -5,11 +5,8 @@ def build_backbone(cfg):
     print('==============================')
     print('Backbone: {}'.format(cfg['backbone'].upper()))
 
-    if 'cspdarknet' in cfg['backbone']:
-        model, feat_dim = build_cspdarknet(depth=cfg['depth'], 
-                                           width=cfg['width'], 
-                                           depthwise=cfg['depthwise'],
-                                           act_type=cfg['act_type'])
+    if 'cspdarknet53' in cfg['backbone']:
+        model, feat_dim = build_cspdarknet(pretrained=cfg['pretrained'])
 
     else:
         print('Unknown Backbone ...')

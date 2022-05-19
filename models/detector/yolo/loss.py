@@ -11,14 +11,12 @@ class Criterion(object):
     def __init__(self, 
                  cfg, 
                  device, 
-                 matcher,
                  loss_obj_weight=1.0, 
                  loss_cls_weight=1.0,
                  loss_reg_weight=1.0,
                  num_classes=80):
         self.cfg = cfg
         self.device = device
-        self.matcher_name = matcher
         self.num_classes = num_classes
         self.loss_obj_weight = loss_obj_weight
         self.loss_cls_weight = loss_cls_weight

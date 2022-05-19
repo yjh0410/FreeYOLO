@@ -47,9 +47,9 @@ class COCODataset(Dataset):
                  data_dir=None, 
                  image_set='train2017',
                  transform=None,
+                 color_augment=None,
                  mosaic_prob=1.0,
-                 mixup_prob=1.0,
-                 affine_params=None):
+                 mixup_prob=1.0):
         """
         COCO dataset initialization. Annotation data are read into memory by COCO API.
         Args:
@@ -72,9 +72,9 @@ class COCODataset(Dataset):
         self.class_ids = sorted(self.coco.getCatIds())
         # augmentation
         self.transform = transform
+        self.color_augment = color_augment
         self.mosaic_prob = mosaic_prob
         self.mixup_prob = mixup_prob
-        self.affine_params = affine_params
         if self.mosaic_prob > 0.:
             print('use Mosaic Augmentation ...')
         if self.mixup_prob > 0.:
@@ -161,23 +161,24 @@ class COCODataset(Dataset):
         if random.random() < self.mosaic_prob:
             image, target = self.load_mosaic(index)
 
+            # MixUp
+            if random.random() < self.mixup_prob:
+                new_index = np.random.randint(0, len(self.ids))
+                new_image, new_target = self.load_mosaic(new_index)
+
+                image, target = mixup_augment(image, target, new_image, new_target)
+
+            # augment
+            image, target = self.color_augment(image, target)
+            
         # load an image and target
         else:
             img_id = self.ids[index]
             image, target = self.load_image_target(img_id)
 
-        # MixUp
-        if random.random() < self.mixup_prob:
-            new_index = np.random.randint(0, len(self.ids))
-            mew_img_id = self.ids[new_index]
-            new_image, new_target = self.load_image_target(mew_img_id)
+            # augment
+            image, target = self.transform(image, target)
 
-            image, target = mixup_augment(image, target, new_image, new_target, 
-                                        self.img_size, self.affine_params['mixup_scale'])
-    
-        # augment
-        image, target = self.transform(image, target)
-            
         return image, target
 
 
@@ -220,33 +221,45 @@ class COCODataset(Dataset):
 
 
 if __name__ == "__main__":
-    from transforms import TrainTransforms, ValTransforms
-
+    from transforms import BaseTransforms, TrainTransforms, ValTransforms
+    
     img_size = 640
-    format = 'RGB'
+    random_size = [320, 416, 512, 544, 608, 640]
+    format = 'BGR'
+    pixel_mean = [103.530, 116.280, 123.675]
+    pixel_std = [1.0, 1.0, 1.0]
     trans_config = [{'name': 'DistortTransform',
                      'hue': 0.1,
                      'saturation': 1.5,
                      'exposure': 1.5},
                     {'name': 'RandomHorizontalFlip'},
+                    {'name': 'JitterCrop', 'jitter_ratio': 0.3},
                     {'name': 'ToTensor'},
                     {'name': 'Resize'},
+                    {'name': 'Normalize'},
                     {'name': 'PadImage'}]
-    affine_params = {'degrees': 10.,
-                     'translate': 0.1,
-                     'shear': 2.0,
-                     'mosaic_scale': (0.1, 2.0),
-                     'mixup_scale': (0.5, 1.5)}
-    transform = TrainTransforms(trans_config=trans_config,
-                                img_size=img_size,
-                                format=format)
+    transform = TrainTransforms(
+        trans_config=trans_config,
+        img_size=img_size,
+        random_size=random_size,
+        pixel_mean=pixel_mean,
+        pixel_std=pixel_std,
+        format=format
+        )
+    color_augment = BaseTransforms(
+        img_size=img_size,
+        pixel_mean=pixel_mean,
+        pixel_std=pixel_std,
+        format=format
+        )
+
     dataset = COCODataset(img_size=img_size,
                           data_dir='E:\\python_work\\object_detection\\dataset\\COCO',
                           image_set='train2017',
                           transform=transform,
-                           mosaic_prob=1.0,
-                           mixup_prob=1.0,
-                          affine_params=affine_params)
+                          color_augment=color_augment,
+                          mosaic_prob=0.5,
+                          mixup_prob=0.5)
     
     np.random.seed(0)
     class_colors = [(np.random.randint(255),
@@ -260,8 +273,11 @@ if __name__ == "__main__":
         image = image.permute(1, 2, 0).numpy()
         # to BGR format
         if format == 'RGB':
+            # denormalize
+            image = image * pixel_std + pixel_mean
             image = image[:, :, (2, 1, 0)].astype(np.uint8)
         elif format == 'BGR':
+            image = image * pixel_std + pixel_mean
             image = image.astype(np.uint8)
         image = image.copy()
         img_h, img_w = image.shape[:2]

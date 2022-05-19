@@ -11,7 +11,7 @@ from evaluator.coco_evaluator import COCOAPIEvaluator
 from evaluator.voc_evaluator import VOCAPIEvaluator
 from dataset.voc import VOCDetection
 from dataset.coco import COCODataset
-from dataset.transforms import TrainTransforms, ValTransforms
+from dataset.transforms import BaseTransforms, TrainTransforms, ValTransforms
 
 
 
@@ -25,18 +25,40 @@ def build_dataset(cfg, args, device):
                                       format=cfg['format'])
     val_transform = ValTransforms(img_size=cfg['test_size'],
                                   format=cfg['format'])
+    color_augment = BaseTransforms(
+        img_size=cfg['train_size'],
+        pixel_mean=cfg['pixel_mean'],
+        pixel_std=cfg['pixel_std'],
+        format=cfg['format']
+    )
+    train_transform = TrainTransforms(
+        trans_config=trans_config,
+        img_size=cfg['train_size'],
+        random_size=cfg['random_size'],
+        format=cfg['format'],
+        pixel_mean=cfg['pixel_mean'],
+        pixel_std=cfg['pixel_std']
+        )
+    val_transform = ValTransforms(
+        img_size=cfg['test_size'],
+        format=cfg['format'],
+        pixel_mean=cfg['pixel_mean'],
+        pixel_std=cfg['pixel_std']
+        )
     # dataset
     
     if args.dataset == 'voc':
         data_dir = os.path.join(args.root, 'VOCdevkit')
         num_classes = 20
         # dataset
-        dataset = VOCDetection(img_size=cfg['train_size'],
-                               data_dir=data_dir, 
-                               transform=train_transform,
-                               mosaic_prob=cfg['mosaic_prob'],
-                               mixup_prob=cfg['mixup_prob'],
-                               affine_params=cfg['affine_params'])
+        dataset = VOCDetection(
+            img_size=cfg['train_size'],
+            data_dir=data_dir,
+            transform=train_transform,
+            color_augment=color_augment,
+            mosaic_prob=cfg['mosaic_prob'],
+            mixup_prob=cfg['mixup_prob']
+            )
         # evaluator
         evaluator = VOCAPIEvaluator(data_dir=data_dir,
                                     device=device,
@@ -46,13 +68,15 @@ def build_dataset(cfg, args, device):
         data_dir = os.path.join(args.root, 'COCO')
         num_classes = 80
         # dataset
-        dataset = COCODataset(img_size=cfg['train_size'],
-                              data_dir=data_dir,
-                              image_set='train2017',
-                              transform=train_transform,
-                              mosaic_prob=cfg['mosaic_prob'],
-                              mixup_prob=cfg['mixup_prob'],
-                              affine_params=cfg['affine_params'])
+        dataset = COCODataset(
+            img_size=cfg['train_size'],
+            data_dir=data_dir,
+            image_set='train2017',
+            transform=train_transform,
+            color_augment=color_augment,
+            mosaic_prob=cfg['mosaic_prob'],
+            mixup_prob=cfg['mixup_prob']
+            )
         # evaluator
         evaluator = COCOAPIEvaluator(data_dir=data_dir,
                                      device=device,

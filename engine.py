@@ -8,28 +8,6 @@ import numpy as np
 from utils import distributed_utils
 
 
-def rescale_image_targets(images, targets, new_img_size):
-    """
-        Deployed for Multi scale trick.
-    """
-    # During training phase, the shape of input image is square.
-    old_img_size = images.shape[-1]
-    # interpolate
-    images = torch.nn.functional.interpolate(
-                        input=images, 
-                        size=new_img_size, 
-                        mode='bilinear', 
-                        align_corners=False)
-    # rescale targets
-    for tgt in targets:
-        boxes = tgt["boxes"].clone()
-        boxes[:, [0, 2]] = boxes[:, [0, 2]] / old_img_size * new_img_size
-        boxes[:, [1, 3]] = boxes[:, [1, 3]] / old_img_size * new_img_size
-        tgt["boxes"] = boxes
-
-    return images, targets
-
-
 def train_with_warmup(epoch,
                       total_epochs,
                       args, 
@@ -52,15 +30,6 @@ def train_with_warmup(epoch,
 
         # to device
         images = images.to(device)
-
-        # multi scale
-        # # choose a new image size
-        if ni % 10 == 0 and cfg['random_size']:
-            idx = np.random.randint(len(cfg['random_size']))
-            img_size = cfg['random_size'][idx]
-        # # rescale data with new image size
-        if cfg['random_size']:
-            images, targets = rescale_image_targets(images, targets, img_size)
 
         # inference
         with torch.cuda.amp.autocast(enabled=args.fp16):
@@ -125,15 +94,6 @@ def train_one_epoch(epoch,
         ni = iter_i + epoch * epoch_size
         # to device
         images = images.to(device)
-
-        # multi scale
-        # # choose a new image size
-        if ni % 10 == 0 and cfg['random_size']:
-            idx = np.random.randint(len(cfg['random_size']))
-            img_size = cfg['random_size'][idx]
-        # # rescale data with new image size
-        if cfg['random_size']:
-            images, targets = rescale_image_targets(images, targets, img_size)
 
         # inference
         with torch.cuda.amp.autocast(enabled=args.fp16):

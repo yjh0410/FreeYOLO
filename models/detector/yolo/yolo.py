@@ -3,11 +3,12 @@ import numpy as np
 import torch.nn as nn
 
 from ...backbone import build_backbone
-from ...neck import build_fpn
-from ...head.decoupled_head import DecoupledHead
+from ...neck import build_neck
+from ...head import build_fpn
 from .loss import Criterion
 
 
+# Anchor-free YOLO
 class FreeYOLO(nn.Module):
     def __init__(self, 
                  cfg,
@@ -16,8 +17,7 @@ class FreeYOLO(nn.Module):
                  conf_thresh = 0.05,
                  nms_thresh = 0.6,
                  trainable = False, 
-                 topk = 1000,
-                 matcher=None):
+                 topk = 1000):
         super(FreeYOLO, self).__init__()
         self.cfg = cfg
         self.device = device
@@ -31,26 +31,16 @@ class FreeYOLO(nn.Module):
         # backbone
         self.backbone, bk_dim = build_backbone(cfg=cfg)
 
-        # fpn neck
+        # neck
+        self.neck = build_neck(cfg=cfg, in_dim=bk_dim[-1], out_dim=bk_dim[-1])
+        
+        # fpn
         self.fpn = build_fpn(cfg=cfg, in_dims=bk_dim)
                                      
-        # non-shared heads
-        self.non_shared_heads = nn.ModuleList([DecoupledHead(cfg) for _ in range(len(cfg['stride']))])
-
         # pred
-        head_dim = int(cfg['head_dim']*cfg['width'])
-        self.obj_preds = nn.ModuleList(
-                            [nn.Conv2d(head_dim, 1, kernel_size=1) 
-                              for _ in range(len(cfg['stride']))
-                              ]) 
-        self.cls_preds = nn.ModuleList(
-                            [nn.Conv2d(head_dim, self.num_classes, kernel_size=1) 
-                              for _ in range(len(cfg['stride']))
-                              ]) 
-        self.reg_preds = nn.ModuleList(
-                            [nn.Conv2d(head_dim, 4, kernel_size=1) 
-                              for _ in range(len(cfg['stride']))
-                              ]) 
+        self.pred_layers = nn.ModuleList([
+            nn.Conv2d(dim, 1 + self.num_classes + 4, kernel_size=1)
+            for dim in bk_dim]) 
 
 
         if trainable:
@@ -58,10 +48,9 @@ class FreeYOLO(nn.Module):
             self.init_yolo()
 
         # criterion
-        if matcher is not None:
+        if trainable:
             self.criterion = Criterion(cfg=cfg,
                                        device=device,
-                                       matcher=matcher,
                                        loss_obj_weight=cfg['loss_obj_weight'],
                                        loss_cls_weight=cfg['loss_cls_weight'],
                                        loss_reg_weight=cfg['loss_reg_weight'],
@@ -69,21 +58,11 @@ class FreeYOLO(nn.Module):
 
 
     def init_yolo(self):  
-        # Init yolo
-        for m in self.modules():
-            if isinstance(m, torch.nn.BatchNorm2d):
-                m.eps = 1e-3
-                m.momentum = 0.03
-
-        # Init head
         init_prob = 0.01
         bias_value = -torch.log(torch.tensor((1. - init_prob) / init_prob))
-        # init obj pred
-        for obj_pred in self.obj_preds:
-            nn.init.constant_(obj_pred.bias, bias_value)
-        # init cls pred
-        for cls_pred in self.cls_preds:
-            nn.init.constant_(cls_pred.bias, bias_value)
+        # init pred bias
+        for pred in self.pred_layers:
+            nn.init.constant_(pred.bias[..., :-4], bias_value)
 
 
     def generate_anchors(self, level, fmp_size):
@@ -152,22 +131,24 @@ class FreeYOLO(nn.Module):
         img_h, img_w = x.shape[2:]
         # backbone
         feats = self.backbone(x)
-        pyramid_feats = [feats['layer2'], feats['layer3'], feats['layer4']]
 
         # neck
+        feats['layer4'] = self.neck(feats['layer4'])
+
+        # fpn
+        pyramid_feats = [feats['layer2'], feats['layer3'], feats['layer4']]
         pyramid_feats = self.fpn(pyramid_feats)
 
         # shared head
         all_scores = []
         all_labels = []
         all_bboxes = []
-        for level, (feat, head) in enumerate(zip(pyramid_feats, self.non_shared_heads)):
-            cls_feat, reg_feat = head(feat)
-
+        for level, feat in enumerate(pyramid_feats):
+            preds = self.pred_layers[level](feat)
             # [1, C, H, W]
-            obj_pred = self.obj_preds[level](reg_feat)
-            cls_pred = self.cls_preds[level](cls_feat)
-            reg_pred = self.reg_preds[level](reg_feat)
+            obj_pred = preds[:, :1, :, :]
+            cls_pred = preds[:, 1:-4, :, :]
+            reg_pred = preds[:, -4:, :, :]
 
             # decode box
             _, _, H, W = cls_pred.size()
@@ -241,23 +222,26 @@ class FreeYOLO(nn.Module):
         else:
             # backbone
             feats = self.backbone(x)
-            pyramid_feats = [feats['layer2'], feats['layer3'], feats['layer4']]
 
             # neck
-            pyramid_feats = self.fpn(pyramid_feats) # [P3, P4, P5, P6, P7]
+            feats['layer4'] = self.neck(feats['layer4'])
+
+            # fpn
+            pyramid_feats = [feats['layer2'], feats['layer3'], feats['layer4']]
+            pyramid_feats = self.fpn(pyramid_feats)
+
 
             # shared head
             all_anchors = []
             all_obj_preds = []
             all_cls_preds = []
             all_reg_preds = []
-            for level, (feat, head) in enumerate(zip(pyramid_feats, self.non_shared_heads)):
-                cls_feat, reg_feat = head(feat)
-
-                # [B, C, H, W]
-                obj_pred = self.obj_preds[level](reg_feat)
-                cls_pred = self.cls_preds[level](cls_feat)
-                reg_pred = self.reg_preds[level](reg_feat)
+            for level, feat in enumerate(pyramid_feats):
+                preds = self.pred_layers[level](feat)
+                # [1, C, H, W]
+                obj_pred = preds[:, :1, :, :]
+                cls_pred = preds[:, 1:-4, :, :]
+                reg_pred = preds[:, -4:, :, :]
 
                 B, _, H, W = cls_pred.size()
                 fmp_size = [H, W]
