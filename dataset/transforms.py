@@ -355,6 +355,7 @@ class Resize(object):
         else:
             img_size = self.img_size
         img_h0, img_w0 = image.shape[1:]
+        print(img_size)
 
         r = img_size / max(img_h0, img_w0)
         if r != 1: 
