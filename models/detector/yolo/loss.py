@@ -71,6 +71,10 @@ class Criterion(object):
         gt_classes_target[foreground_idxs, gt_classes[foreground_idxs]] = 1
 
         # TO DO:
+        # objectness loss
+        loss_objectness = self.obj_lossf(pred_obj, gt_objectness)
+        loss_objectness = loss_objectness.sum() / num_foreground
+
         # regression loss
         matched_pred_delta = pred_delta[foreground_idxs]
         matched_tgt_delta = gt_shifts_deltas[foreground_idxs]
@@ -79,18 +83,12 @@ class Criterion(object):
                         box_mode="ltrb",
                         iou_type='giou')
         loss_bboxes = (1.0 - ious).sum() / num_foreground
-        
+
         # classification loss
         matched_pred_cls = pred_cls[foreground_idxs]
-        matched_tgt_cls = gt_classes_target[foreground_idxs]
+        matched_tgt_cls = gt_classes_target[foreground_idxs] * ious.unsqueeze(1).clamp(0.)
         loss_labels = self.cls_lossf(matched_pred_cls, matched_tgt_cls)
         loss_labels = loss_labels.sum() / num_foreground
-
-        # objectness loss
-        print(gt_objectness.shape, ious.shape)
-        gt_objectness = gt_objectness * ious.unsqueeze(1).clamp(0.)
-        loss_objectness = self.obj_lossf(pred_obj, gt_objectness)
-        loss_objectness = loss_objectness.sum() / num_foreground
 
         # total loss
         losses = self.loss_obj_weight * loss_objectness + \
