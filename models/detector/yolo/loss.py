@@ -87,6 +87,7 @@ class Criterion(object):
         loss_labels = loss_labels.sum() / num_foreground
 
         # objectness loss
+        print(gt_objectness.shape, ious.shape)
         gt_objectness = gt_objectness * ious.unsqueeze(1).clamp(0.)
         loss_objectness = self.obj_lossf(pred_obj, gt_objectness)
         loss_objectness = loss_objectness.sum() / num_foreground
