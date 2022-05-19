@@ -6,6 +6,40 @@ import torch
 import torchvision.transforms.functional as F
 
 
+def refine_targets(target, img_size):
+    # check target
+    valid_bboxes = []
+    valid_labels = []
+    target_bboxes = target['boxes'].clone()
+    target_labels = target['labels'].clone()
+
+    if len(target_bboxes) > 0:
+        # Cutout/Clip targets
+        target_bboxes = torch.clamp(target_bboxes, 0, img_size)
+
+        # check boxes
+        for box, label in zip(target_bboxes, target_labels):
+            x1, y1, x2, y2 = box.tolist()
+            bw, bh = x2 - x1, y2 - y1
+            # We remove those extremely small objects
+            if bw > 8. and bh > 8.:
+                valid_bboxes.append([x1, y1, x2, y2])
+                valid_labels.append(label.item())
+        
+        if len(valid_labels) == 0:
+            valid_bboxes.append([0., 0., 0., 0.])
+            valid_labels.append(0)
+
+    # guard against no boxes via resizing
+    valid_bboxes = torch.as_tensor(valid_bboxes).reshape(-1, 4)
+    valid_labels = torch.as_tensor(valid_labels).reshape(-1)
+
+    target['boxes'] = valid_bboxes
+    target['labels'] = valid_labels
+
+    return target
+
+
 def mosaic_augment(image_list, target_list, img_size):
     mosaic_img = np.zeros([img_size*2, img_size*2, image_list[0].shape[2]], dtype=np.uint8)
     # mosaic center
@@ -68,6 +102,7 @@ def mosaic_augment(image_list, target_list, img_size):
     # resize mosaic
     mosaic_img = cv2.resize(mosaic_img, (img_size, img_size))
     mosaic_bboxes = mosaic_bboxes / 2.0
+    mosaic_bboxes = np.clip(mosaic_bboxes, a_min=0., a_max=img_size)
     
     # target
     mosaic_target = {
@@ -96,43 +131,9 @@ def mixup_augment(origin_image, origin_target, new_image, new_target):
         "labels": mixup_labels,
         'orig_size': mixup_image.shape[:2]
     }
-
+    
     return mixup_image, mixup_target
     
-
-def refine_targets(target, img_size):
-    # check target
-    valid_bboxes = []
-    valid_labels = []
-    target_bboxes = target['boxes'].clone()
-    target_labels = target['labels'].clone()
-
-    if len(target_bboxes) > 0:
-        # Cutout/Clip targets
-        target_bboxes = torch.clamp(target_bboxes, 0, img_size)
-
-        # check boxes
-        for box, label in zip(target_bboxes, target_labels):
-            x1, y1, x2, y2 = box.tolist()
-            bw, bh = x2 - x1, y2 - y1
-            # We remove those extremely small objects
-            if bw > 8. and bh > 8.:
-                valid_bboxes.append([x1, y1, x2, y2])
-                valid_labels.append(label.item())
-        
-        if len(valid_labels) == 0:
-            valid_bboxes.append([0., 0., 0., 0.])
-            valid_labels.append(0)
-
-    # guard against no boxes via resizing
-    valid_bboxes = torch.as_tensor(valid_bboxes).reshape(-1, 4)
-    valid_labels = torch.as_tensor(valid_labels).reshape(-1)
-
-    target['boxes'] = valid_bboxes
-    target['labels'] = valid_labels
-
-    return target
-
 
 class Compose(object):
     """Composes several augmentations together.

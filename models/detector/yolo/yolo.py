@@ -19,6 +19,7 @@ class FreeYOLO(nn.Module):
                  trainable = False, 
                  topk = 1000):
         super(FreeYOLO, self).__init__()
+        # --------- Basic Parameters ----------
         self.cfg = cfg
         self.device = device
         self.stride = cfg['stride']
@@ -27,27 +28,28 @@ class FreeYOLO(nn.Module):
         self.conf_thresh = conf_thresh
         self.nms_thresh = nms_thresh
         self.topk = topk
-
-        # backbone
+        
+        # --------- Network Parameters ----------
+        ## backbone
         self.backbone, bk_dim = build_backbone(cfg=cfg)
 
-        # neck
+        ## neck
         self.neck = build_neck(cfg=cfg, in_dim=bk_dim[-1], out_dim=bk_dim[-1])
         
-        # fpn
+        ## fpn
         self.fpn = build_fpn(cfg=cfg, in_dims=bk_dim)
                                      
-        # pred
+        ## pred
         self.pred_layers = nn.ModuleList([
             nn.Conv2d(dim, 1 + self.num_classes + 4, kernel_size=1)
             for dim in bk_dim]) 
 
-
+        # --------- Network Initialization ----------
         if trainable:
             # init bias
             self.init_yolo()
 
-        # criterion
+        # --------- Criterion for Training ----------
         if trainable:
             self.criterion = Criterion(cfg=cfg,
                                        device=device,

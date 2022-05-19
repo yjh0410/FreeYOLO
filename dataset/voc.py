@@ -260,6 +260,7 @@ if __name__ == "__main__":
         )
     color_augment = BaseTransforms(
         img_size=img_size,
+        random_size=random_size,
         pixel_mean=pixel_mean,
         pixel_std=pixel_std,
         format=format
