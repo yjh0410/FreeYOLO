@@ -40,7 +40,7 @@ def parse_args():
                         help="Adopting mix precision training.")
 
     # model
-    parser.add_argument('-v', '--version', default='free_yolo_csp_d53', type=str,
+    parser.add_argument('-v', '--version', default='yolo_free', type=str,
                         help='build yolo')
     parser.add_argument('--topk', default=1000, type=int,
                         help='topk candidates for evaluation')

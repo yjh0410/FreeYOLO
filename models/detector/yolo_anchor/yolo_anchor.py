@@ -8,8 +8,8 @@ from ...head import build_fpn
 from .loss import Criterion
 
 
-# Anchor-free YOLO
-class FreeYOLO(nn.Module):
+# Anchor-based YOLO
+class AnchorYOLO(nn.Module):
     def __init__(self, 
                  cfg,
                  device, 
@@ -18,7 +18,7 @@ class FreeYOLO(nn.Module):
                  nms_thresh = 0.6,
                  trainable = False, 
                  topk = 1000):
-        super(FreeYOLO, self).__init__()
+        super(AnchorYOLO, self).__init__()
         # --------- Basic Parameters ----------
         self.cfg = cfg
         self.device = device
@@ -28,6 +28,12 @@ class FreeYOLO(nn.Module):
         self.conf_thresh = conf_thresh
         self.nms_thresh = nms_thresh
         self.topk = topk
+        ## anchor config
+        self.num_levels = len(cfg['stride'])
+        self.num_anchors = cfg['num_anchors']
+        self.anchor_size = torch.as_tensor(
+            cfg['anchor_size']
+            ).view(self.num_levels, self.num_anchors, 2) # [S, KA, 2]
         
         # --------- Network Parameters ----------
         ## backbone
@@ -41,7 +47,7 @@ class FreeYOLO(nn.Module):
                                      
         ## pred
         self.pred_layers = nn.ModuleList([
-            nn.Conv2d(dim, 1 + self.num_classes + 4, kernel_size=1)
+            nn.Conv2d(dim, self.num_anchors*(1 + self.num_classes + 4), kernel_size=1)
             for dim in bk_dim]) 
 
         # --------- Network Initialization ----------
@@ -64,33 +70,43 @@ class FreeYOLO(nn.Module):
         bias_value = -torch.log(torch.tensor((1. - init_prob) / init_prob))
         # init pred bias
         for pred in self.pred_layers:
-            nn.init.constant_(pred.bias[..., :-4], bias_value)
+            nn.init.constant_(pred.bias[..., :-4*self.num_anchors], bias_value)
 
 
     def generate_anchors(self, level, fmp_size):
         """
             fmp_size: (List) [H, W]
         """
-        # generate grid cells
         fmp_h, fmp_w = fmp_size
-        anchor_y, anchor_x = torch.meshgrid([torch.arange(fmp_h), torch.arange(fmp_w)])
-        # [H, W, 2] -> [HW, 2]
-        anchor_xy = torch.stack([anchor_x, anchor_y], dim=-1).float().view(-1, 2) + 0.5
-        anchor_xy *= self.stride[level]
-        anchors = anchor_xy.to(self.device)
+        # [KA, 2]
+        anchor_size = self.anchor_size[level]
 
-        return anchors
+        # generate grid cells
+        anchor_y, anchor_x = torch.meshgrid([torch.arange(fmp_h), torch.arange(fmp_w)])
+        anchor_xy = torch.stack([anchor_x, anchor_y], dim=-1).float().view(-1, 2) + 0.5
+        # [HW, 2] -> [HW, KA, 2] -> [M, 2]
+        anchor_xy = anchor_xy.unsqueeze(1).repeat(1, self.num_anchors, 1)
+        anchor_xy = anchor_xy.view(-1, 2).to(self.device)
+
+        # [KA, 2] -> [1, KA, 2] -> [HW, KA, 2] -> [M, 2]
+        anchor_wh = anchor_size.unsqueeze(0).repeat(fmp_h*fmp_w, 1, 1)
+        anchor_wh = anchor_wh.view(-1, 2).to(self.device)
+
+        return anchor_xy, anchor_wh
         
 
-    def decode_boxes(self, anchors, pred_deltas):
+    def decode_boxes(self, level, anchor_xy, anchor_wh, pred_reg):
         """
-            anchors:  (List[Tensor]) [1, M, 2] or [M, 2]
-            pred_reg: (List[Tensor]) [B, M, 4] or [M, 4] (l, t, r, b)
+            anchor_xy:  (List[Tensor]) [M, 2]
+            anchor_wh:  (List[Tensor]) [M, 2]
+            pred_reg:   (List[Tensor]) [M, 4]
         """
-        # x1 = x_anchor - l, x2 = x_anchor + r
-        # y1 = y_anchor - t, y2 = y_anchor + b
-        pred_x1y1 = anchors - pred_deltas[..., :2]
-        pred_x2y2 = anchors + pred_deltas[..., 2:]
+        pred_ctr_delta = pred_reg[..., :2].sigmoid() * 3.0 - 1.5
+        pred_ctr = (anchor_xy + pred_ctr_delta) * self.stride[level]
+        pred_wh = pred_reg[..., 2:].exp() * anchor_wh
+        
+        pred_x1y1 = pred_ctr - pred_wh * 0.5
+        pred_x2y2 = pred_ctr + pred_wh * 0.5
         pred_box = torch.cat([pred_x1y1, pred_x2y2], dim=-1)
 
         return pred_box
@@ -116,13 +132,19 @@ class FreeYOLO(nn.Module):
             xx2 = np.minimum(x2[i], x2[order[1:]])
             yy2 = np.minimum(y2[i], y2[order[1:]])
 
+            # intersection
             w = np.maximum(1e-10, xx2 - xx1)
             h = np.maximum(1e-10, yy2 - yy1)
             inter = w * h
 
-            ovr = inter / (areas[i] + areas[order[1:]] - inter + 1e-14)
-            #reserve all the boundingbox whose ovr less than thresh
-            inds = np.where(ovr <= self.nms_thresh)[0]
+            # union
+            union = areas[i] + areas[order[1:]] - inter
+
+            # iou
+            iou = inter / np.clip(union, a_min=1e-10, a_max=np.inf)
+
+            #nms thresh
+            inds = np.where(iou <= self.nms_thresh)[0]
             order = order[inds + 1]
 
         return keep
@@ -147,34 +169,35 @@ class FreeYOLO(nn.Module):
         all_bboxes = []
         for level, feat in enumerate(pyramid_feats):
             preds = self.pred_layers[level](feat)
-            # [1, C, H, W]
-            obj_pred = preds[:, :1, :, :]
-            cls_pred = preds[:, 1:-4, :, :]
-            reg_pred = preds[:, -4:, :, :]
+            # [1, KA*C, H, W]
+            obj_pred = preds[:, :1*self.num_anchors, :, :]
+            cls_pred = preds[:, 1*self.num_anchors:-4*self.num_anchors, :, :]
+            reg_pred = preds[:, -4*self.num_anchors:, :, :]
 
             # decode box
             _, _, H, W = cls_pred.size()
             fmp_size = [H, W]
-            # [1, C, H, W] -> [H, W, C] -> [M, C]
+            # [1, KC, H, W] -> [H, W, KC] -> [M, C]
             obj_pred = obj_pred[0].permute(1, 2, 0).contiguous().view(-1, 1)
             cls_pred = cls_pred[0].permute(1, 2, 0).contiguous().view(-1, self.num_classes)
             reg_pred = reg_pred[0].permute(1, 2, 0).contiguous().view(-1, 4)
-            reg_pred = torch.exp(reg_pred) * self.stride[level]
 
             # scores
-            scores, labels = torch.max(torch.sqrt(obj_pred.sigmoid() * cls_pred.sigmoid()), dim=-1)
+            scores, labels = torch.max(obj_pred.sigmoid() * cls_pred.sigmoid(), dim=-1)
 
-            # [M, 4]
-            anchors = self.generate_anchors(level, fmp_size)
+            # anchors: [M, 2]
+            anchor_xy, anchor_wh = self.generate_anchors(level, fmp_size)
+
             # topk
             if scores.shape[0] > self.topk:
                 scores, indices = torch.topk(scores, self.topk)
                 labels = labels[indices]
                 reg_pred = reg_pred[indices]
-                anchors = anchors[indices]
+                anchor_xy = anchor_xy[indices]
+                anchor_wh = anchor_wh[indices]
 
             # decode box: [M, 4]
-            bboxes = self.decode_boxes(anchors, reg_pred)
+            bboxes = self.decode_boxes(level, anchor_xy, anchor_wh, reg_pred)
 
             all_scores.append(scores)
             all_labels.append(labels)
@@ -232,45 +255,46 @@ class FreeYOLO(nn.Module):
             pyramid_feats = [feats['layer2'], feats['layer3'], feats['layer4']]
             pyramid_feats = self.fpn(pyramid_feats)
 
-
-            # shared head
-            all_anchors = []
+            # head
             all_obj_preds = []
             all_cls_preds = []
-            all_reg_preds = []
+            all_box_preds = []
+            all_fmp_sizes = []
             for level, feat in enumerate(pyramid_feats):
                 preds = self.pred_layers[level](feat)
-                # [1, C, H, W]
-                obj_pred = preds[:, :1, :, :]
-                cls_pred = preds[:, 1:-4, :, :]
-                reg_pred = preds[:, -4:, :, :]
+                # [1, KA*C, H, W]
+                obj_pred = preds[:, :1*self.num_anchors, :, :]
+                cls_pred = preds[:, 1*self.num_anchors:-4*self.num_anchors, :, :]
+                reg_pred = preds[:, -4*self.num_anchors:, :, :]
 
                 B, _, H, W = cls_pred.size()
                 fmp_size = [H, W]
+                # generate anchor boxes: [M, 4]
+                anchor_xy, anchor_wh = self.generate_anchors(level, fmp_size)
+                
                 # [B, C, H, W] -> [B, H, W, C] -> [B, M, C]
                 obj_pred = obj_pred.permute(0, 2, 3, 1).contiguous().view(B, -1, 1)
                 cls_pred = cls_pred.permute(0, 2, 3, 1).contiguous().view(B, -1, self.num_classes)
                 reg_pred = reg_pred.permute(0, 2, 3, 1).contiguous().view(B, -1, 4)
-                reg_pred = torch.exp(reg_pred) * self.stride[level]
+                box_pred = self.decode_boxes(level, anchor_xy, anchor_wh, reg_pred)
 
                 all_obj_preds.append(obj_pred)
                 all_cls_preds.append(cls_pred)
-                all_reg_preds.append(reg_pred)
+                all_box_preds.append(box_pred)
+                all_fmp_sizes.append(fmp_size)
 
-                # generate anchor boxes: [M, 4]
-                anchors = self.generate_anchors(level, fmp_size)
-                all_anchors.append(anchors)
-            
             # output dict
             outputs = {"pred_obj": all_obj_preds,        # List [B, M, 1]
                        "pred_cls": all_cls_preds,        # List [B, M, C]
-                       "pred_reg": all_reg_preds,        # List [B, M, 4]
-                       'strides': self.stride}           # List [B, M,]
+                       "pred_box": all_box_preds,        # List [B, M, 4]
+                       'fmp_sizes': all_fmp_sizes,       # List
+                       'strides': self.stride,           # List
+                       }
 
             # loss
-            loss_dict = self.criterion(outputs = outputs, 
-                                       targets = targets, 
-                                       anchors = all_anchors)
+            loss_dict = self.criterion(
+                outputs=outputs,
+                targets=targets)
 
             return loss_dict 
     

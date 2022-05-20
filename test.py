@@ -30,7 +30,7 @@ def parse_args():
                         help='Final confidence threshold')
 
     # model
-    parser.add_argument('-v', '--version', default='free_yolo_csp_d53', type=str,
+    parser.add_argument('-v', '--version', default='yolo_free', type=str,
                         help='build yolo')
     parser.add_argument('--weight', default='weight/',
                         type=str, help='Trained state_dict file path to open')

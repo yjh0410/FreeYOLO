@@ -21,7 +21,7 @@ def parse_args():
     parser.add_argument('--cuda', action='store_true', default=False,
                         help='Use cuda')
     # model
-    parser.add_argument('-v', '--version', default='yolo_x', type=str,
+    parser.add_argument('-v', '--version', default='yolo_free', type=str,
                         help='build YOLO')
     parser.add_argument('--weight', default='weight/',
                         type=str, help='Trained state_dict file path to open')

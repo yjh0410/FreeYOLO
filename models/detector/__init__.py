@@ -1,5 +1,6 @@
 import torch
-from .yolo.yolo import FreeYOLO
+from .yolo_free.yolo_free import FreeYOLO
+from .yolo_anchor.yolo_anchor import AnchorYOLO
 
 
 # build object detector
@@ -12,7 +13,7 @@ def build_model(args,
     print('==============================')
     print('Build {} ...'.format(args.version.upper()))
     
-    if 'yolo' in args.version:
+    if 'yolo_free' in args.version:
         model = FreeYOLO(cfg=cfg,
                          device=device, 
                          num_classes=num_classes, 
@@ -21,6 +22,14 @@ def build_model(args,
                          nms_thresh=cfg['nms_thresh'],
                          topk=args.topk)
 
+    elif 'yolo_anchor' in args.version:
+        model = AnchorYOLO(cfg=cfg,
+                           device=device, 
+                           num_classes=num_classes, 
+                           trainable=trainable,
+                           conf_thresh=cfg['conf_thresh'],
+                           nms_thresh=cfg['nms_thresh'],
+                           topk=args.topk)
 
     print('==============================')
     print('Model Configuration: \n', cfg)
