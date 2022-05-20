@@ -5,6 +5,7 @@ import torch.nn as nn
 from ...backbone import build_backbone
 from ...neck import build_neck
 from ...head import build_fpn
+from ...head.decoupled_head import DecoupledHead
 from .loss import Criterion
 
 
@@ -37,12 +38,25 @@ class FreeYOLO(nn.Module):
         self.neck = build_neck(cfg=cfg, in_dim=bk_dim[-1], out_dim=bk_dim[-1])
         
         ## fpn
-        self.fpn = build_fpn(cfg=cfg, in_dims=bk_dim)
-                                     
+        self.fpn = build_fpn(cfg=cfg, in_dims=bk_dim, out_dim=cfg['head_dim'])
+
+        ## non-shared heads
+        self.non_shared_heads = nn.ModuleList([DecoupledHead(cfg) for _ in range(len(cfg['stride']))])
+
         ## pred
-        self.pred_layers = nn.ModuleList([
-            nn.Conv2d(dim, 1 + self.num_classes + 4, kernel_size=1)
-            for dim in bk_dim]) 
+        head_dim = cfg['head_dim']
+        self.obj_preds = nn.ModuleList(
+                            [nn.Conv2d(head_dim, 1, kernel_size=1) 
+                              for _ in range(len(cfg['stride']))
+                              ]) 
+        self.cls_preds = nn.ModuleList(
+                            [nn.Conv2d(head_dim, self.num_classes, kernel_size=1) 
+                              for _ in range(len(cfg['stride']))
+                              ]) 
+        self.reg_preds = nn.ModuleList(
+                            [nn.Conv2d(head_dim, 4, kernel_size=1) 
+                              for _ in range(len(cfg['stride']))
+                              ])                 
 
         # --------- Network Initialization ----------
         if trainable:
@@ -62,9 +76,15 @@ class FreeYOLO(nn.Module):
     def init_yolo(self):  
         init_prob = 0.01
         bias_value = -torch.log(torch.tensor((1. - init_prob) / init_prob))
-        # init pred bias
-        for pred in self.pred_layers:
-            nn.init.constant_(pred.bias[..., :-4], bias_value)
+        # Init head
+        init_prob = 0.01
+        bias_value = -torch.log(torch.tensor((1. - init_prob) / init_prob))
+        # init obj pred
+        for obj_pred in self.obj_preds:
+            nn.init.constant_(obj_pred.bias, bias_value)
+        # init cls pred
+        for cls_pred in self.cls_preds:
+            nn.init.constant_(cls_pred.bias, bias_value)
 
 
     def generate_anchors(self, level, fmp_size):
@@ -145,12 +165,13 @@ class FreeYOLO(nn.Module):
         all_scores = []
         all_labels = []
         all_bboxes = []
-        for level, feat in enumerate(pyramid_feats):
-            preds = self.pred_layers[level](feat)
+        for level, (feat, head) in enumerate(zip(pyramid_feats, self.non_shared_heads)):
+            cls_feat, reg_feat = head(feat)
+
             # [1, C, H, W]
-            obj_pred = preds[:, :1, :, :]
-            cls_pred = preds[:, 1:-4, :, :]
-            reg_pred = preds[:, -4:, :, :]
+            obj_pred = self.obj_preds[level](reg_feat)
+            cls_pred = self.cls_preds[level](cls_feat)
+            reg_pred = self.reg_preds[level](reg_feat)
 
             # decode box
             _, _, H, W = cls_pred.size()
@@ -232,18 +253,18 @@ class FreeYOLO(nn.Module):
             pyramid_feats = [feats['layer2'], feats['layer3'], feats['layer4']]
             pyramid_feats = self.fpn(pyramid_feats)
 
-
             # shared head
             all_anchors = []
             all_obj_preds = []
             all_cls_preds = []
             all_reg_preds = []
-            for level, feat in enumerate(pyramid_feats):
-                preds = self.pred_layers[level](feat)
+            for level, (feat, head) in enumerate(zip(pyramid_feats, self.non_shared_heads)):
+                cls_feat, reg_feat = head(feat)
+
                 # [1, C, H, W]
-                obj_pred = preds[:, :1, :, :]
-                cls_pred = preds[:, 1:-4, :, :]
-                reg_pred = preds[:, -4:, :, :]
+                obj_pred = self.obj_preds[level](reg_feat)
+                cls_pred = self.cls_preds[level](cls_feat)
+                reg_pred = self.reg_preds[level](reg_feat)
 
                 B, _, H, W = cls_pred.size()
                 fmp_size = [H, W]

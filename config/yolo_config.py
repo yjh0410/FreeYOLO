@@ -39,6 +39,14 @@ yolo_config = {
         'fpn_norm': 'BN',
         'fpn_act': 'lrelu',
         'fpn_depthwise': False,
+        # head
+        'head': 'decoupled_head',
+        'head_dim': 256,
+        'head_norm': 'BN',
+        'head_act': 'lrelu',
+        'num_cls_head': 2,
+        'num_reg_head': 2,
+        'head_depthwise': False,
         # post process
         'conf_thresh': 0.01,
         'nms_thresh': 0.5,
