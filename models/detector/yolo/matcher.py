@@ -64,9 +64,9 @@ class Matcher(object):
             
             has_gt = True
             if tgt_box.shape[0] == 0:
-                has_gt == False  # no gt
+                has_gt = False  # no gt
             elif tgt_box.max().item() == 0.:
-                has_gt == False  # no valid bbox
+                has_gt = False  # no valid bbox
 
             if has_gt:
                 if self.center_sampling_radius > 0:
