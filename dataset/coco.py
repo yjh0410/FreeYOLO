@@ -252,7 +252,7 @@ if __name__ == "__main__":
         )
 
     dataset = COCODataset(img_size=img_size,
-                          data_dir='E:\\python_work\\object_detection\\dataset\\COCO',
+                          data_dir='/mnt/share/ssd2/dataset/COCO',
                           image_set='train2017',
                           transform=transform,
                           color_augment=color_augment,
