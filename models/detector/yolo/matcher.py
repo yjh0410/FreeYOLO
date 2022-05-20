@@ -113,7 +113,7 @@ class Matcher(object):
                 try:
                     positions_min_area, gt_matched_idxs = gt_positions_area.min(dim=0)
                 except:
-                    print(gt_positions_area.shape)
+                    print(gt_positions_area.shape, tgt_box.shape, tgt_box.shape[0])
 
                 # ground truth objectness [M,]
                 tgt_obj_i = tgt_obj[gt_matched_idxs]
