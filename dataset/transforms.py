@@ -345,19 +345,14 @@ class Normalize(object):
 
 # Resize tensor image
 class Resize(object):
-    def __init__(self, img_size=640, random_size=None):
+    def __init__(self, img_size=640):
         self.img_size = img_size
-        self.random_size = random_size
 
     def __call__(self, image, target=None):
         # Resize the longest side of the image to the specified max size
-        if self.random_size:
-            img_size = random.choice(self.random_size)
-        else:
-            img_size = self.img_size
         img_h0, img_w0 = image.shape[1:]
 
-        r = img_size / max(img_h0, img_w0)
+        r = self.img_size / max(img_h0, img_w0)
         if r != 1: 
             resized_image = F.resize(image, (int(img_h0 * r), int(img_w0 * r)))
         else:
@@ -407,7 +402,6 @@ class PadImage(object):
 class BaseTransforms(object):
     def __init__(self, 
                  img_size=640, 
-                 random_size=None,
                  pixel_mean=(123.675, 116.28, 103.53), 
                  pixel_std=(58.395, 57.12, 57.375),
                  format='RGB'):
@@ -419,7 +413,7 @@ class BaseTransforms(object):
             DistortTransform(),
             RandomHorizontalFlip(),
             ToTensor(format=format),
-            Resize(img_size=img_size, random_size=random_size),
+            Resize(img_size=img_size),
             Normalize(pixel_mean, pixel_std),
             PadImage(img_size=img_size)
         ])
@@ -437,13 +431,11 @@ class TrainTransforms(object):
     def __init__(self, 
                  trans_config=None,
                  img_size=640, 
-                 random_size=None,
                  pixel_mean=(123.675, 116.28, 103.53), 
                  pixel_std=(58.395, 57.12, 57.375),
                  format='RGB'):
         self.trans_config = trans_config
         self.img_size = img_size
-        self.random_size = random_size
         self.pixel_mean = pixel_mean
         self.pixel_std = pixel_std
         self.format = format
@@ -464,7 +456,7 @@ class TrainTransforms(object):
             elif t['name'] == 'ToTensor':
                 transform.append(ToTensor(format=self.format))
             elif t['name'] == 'Resize':
-                transform.append(Resize(img_size=self.img_size, random_size=self.random_size))
+                transform.append(Resize(img_size=self.img_size))
             elif t['name'] == 'Normalize':
                 transform.append(Normalize(pixel_mean=self.pixel_mean,
                                            pixel_std=self.pixel_std))
@@ -479,6 +471,7 @@ class TrainTransforms(object):
         target = refine_targets(target, self.img_size)
 
         return image, target
+
 
 # ValTransform
 class ValTransforms(object):

@@ -27,7 +27,6 @@ def build_dataset(cfg, args, device):
                                   format=cfg['format'])
     color_augment = BaseTransforms(
         img_size=cfg['train_size'],
-        random_size=cfg['random_size'],
         pixel_mean=cfg['pixel_mean'],
         pixel_std=cfg['pixel_std'],
         format=cfg['format']
@@ -35,7 +34,6 @@ def build_dataset(cfg, args, device):
     train_transform = TrainTransforms(
         trans_config=trans_config,
         img_size=cfg['train_size'],
-        random_size=cfg['random_size'],
         format=cfg['format'],
         pixel_mean=cfg['pixel_mean'],
         pixel_std=cfg['pixel_std']

@@ -224,7 +224,6 @@ if __name__ == "__main__":
     from transforms import BaseTransforms, TrainTransforms, ValTransforms
     
     img_size = 640
-    random_size = [320, 416, 512, 544, 608, 640]
     format = 'RGB'
     pixel_mean = [123.675, 116.28, 103.53]
     pixel_std = [58.395, 57.12, 57.375]
@@ -241,7 +240,6 @@ if __name__ == "__main__":
     transform = TrainTransforms(
         trans_config=trans_config,
         img_size=img_size,
-        random_size=random_size,
         pixel_mean=pixel_mean,
         pixel_std=pixel_std,
         format=format
