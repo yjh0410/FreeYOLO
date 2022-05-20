@@ -151,7 +151,7 @@ class COCODataset(Dataset):
             image_list.append(img_i)
             target_list.append(target_i)
 
-        image, target = mosaic_augment(image_list, target_list, self.img_size, self.affine_params)
+        image, target = mosaic_augment(image_list, target_list, self.img_size)
 
         return image, target
 
