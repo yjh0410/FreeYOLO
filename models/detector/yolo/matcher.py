@@ -61,7 +61,7 @@ class Matcher(object):
             tgt_obj = torch.ones_like(tgt_cls)
             # [N, M, 4], M = M1 + M2 + ... + MF
             deltas = self.get_deltas(anchors_over_all_feature_maps, tgt_box.unsqueeze(1))
-
+            print(tgt_box.shape)
             has_gt = (tgt_box.max().item() > 0.)
             if has_gt:
                 if self.center_sampling_radius > 0:
