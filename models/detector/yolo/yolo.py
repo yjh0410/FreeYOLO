@@ -162,7 +162,7 @@ class FreeYOLO(nn.Module):
             reg_pred = torch.exp(reg_pred) * self.stride[level]
 
             # scores
-            scores, labels = torch.max(obj_pred.sigmoid() * cls_pred.sigmoid(), dim=-1)
+            scores, labels = torch.max(torch.sqrt(obj_pred.sigmoid() * cls_pred.sigmoid()), dim=-1)
 
             # [M, 4]
             anchors = self.generate_anchors(level, fmp_size)
