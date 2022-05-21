@@ -46,7 +46,10 @@ class AnchorYOLO(nn.Module):
         self.fpn = build_fpn(cfg=cfg, in_dims=bk_dim, out_dim=cfg['head_dim'])
 
         ## non-shared heads
-        self.non_shared_heads = nn.ModuleList([DecoupledHead(cfg) for _ in range(len(cfg['stride']))])
+        self.non_shared_heads = nn.ModuleList(
+            [DecoupledHead(cfg) 
+            for _ in range(len(cfg['stride']))
+            ])
 
         ## pred
         head_dim = cfg['head_dim']
