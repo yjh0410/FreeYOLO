@@ -122,7 +122,12 @@ if __name__ == '__main__':
     test_aug = TestTimeAugmentation(num_classes=num_classes) if args.test_aug else None
 
     # transform
-    transform = ValTransforms(img_size=args.img_size, format=cfg['format'])
+    transform = ValTransforms(
+        img_size=args.img_size,
+        pixel_mean=cfg['pixel_mean'],
+        pixel_std=cfg['pixel_std'],
+        format=cfg['format']
+        )
 
     # evaluation
     with torch.no_grad():

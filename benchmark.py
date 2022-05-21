@@ -131,7 +131,12 @@ if __name__ == '__main__':
         model = fuse_conv_bn(model)
 
     # transform
-    transform = ValTransforms(img_size=args.img_size, format=cfg['format'])
+    transform = ValTransforms(
+        img_size=args.img_size,
+        pixel_mean=cfg['pixel_mean'],
+        pixel_std=cfg['pixel_std'],
+        format=cfg['format']
+        )
 
     # run
     test(net=model, 

@@ -25,19 +25,28 @@ At least, please make sure your torch is version 1.x.
 - [x] Mixup Augmentation
 - [x] Multi scale training
 - [x] Cosine Annealing Schedule
-- [x] Training from Scratch
-<!-- - [] Simple OTA -->
 
-# Main results on COCO-val
+# Network
+## AnchorYOLO & FreeYOLO
+- Backbone: CSPDarkNet-53
+- Neck: SPP
+- FPN: YoloPaFPN
+- Head: DecoupledHead
 
-| Model                 |  Scale   |   mAP   | Weight |
-|-----------------------|----------|---------|--------|
-| FreeYOLO-S            |  640     |         |    -   |
-| FreeYOLO-M            |  640     |         |    -   |
-| FreeYOLO-L            |  640     |         |    -   |
-| FreeYOLO-X            |  640     |         |    -   |
-| FreeYOLO-T            |  640     |         |    -   |
-| FreeYOLO-N            |  640     |         |    -   |
+# Experiments
+## VOC
+
+| Model        |  Scale  |  FPS  |  FLOPs(B)  |  Params(M) |  mAP  | Weight |
+|--------------|---------|-------|------------|------------|-------|--------|
+| FreeYOLO     |  640    |       |            |            |       |        |
+| AnchorYOLO   |  640    |       |            |            |       |        |
+
+## COCO
+
+| Model        |  Scale  |  FPS  |  FLOPs(B)  |  Params(M) |  AP  |  AP50  | Weight |
+|--------------|---------|-------|------------|------------|------|--------|--------|
+| FreeYOLO     |  640    |       |            |            |      |        |        |
+| AnchorYOLO   |  640    |       |            |            |      |        |        |
 
 # Train
 ## Single GPU
@@ -58,7 +67,7 @@ You can change the configurations of `train_ddp.sh`, according to your own situa
 ```Shell
 python test.py -d coco \
                --cuda \
-               -v yolo_s \
+               -v yolo_free \
                --img_size 640 \
                --weight path/to/weight \
                --root path/to/dataset/ \
@@ -71,7 +80,7 @@ I have provide some images in `data/demo/images/`, so you can run following comm
 ```Shell
 python demo.py --mode image \
                --path_to_img data/demo/images/ \
-               -v yolo_s \
+               -v yolo_free \
                --img_size 640 \
                --cuda \
                --weight path/to/weight
@@ -82,7 +91,7 @@ If you want run a demo of streaming video detection, you need to set `--mode` to
 ```Shell
 python demo.py --mode video \
                --path_to_img data/demo/videos/your_video \
-               -v yolo_s \
+               -v yolo_free \
                --img_size 640 \
                --cuda \
                --weight path/to/weight
@@ -92,7 +101,7 @@ If you want run video detection with your camera, you need to set `--mode` to `c
 
 ```Shell
 python demo.py --mode camera \
-               -v yolo_s \
+               -v yolo_free \
                --img_size 640 \
                --cuda \
                --weight path/to/weight
