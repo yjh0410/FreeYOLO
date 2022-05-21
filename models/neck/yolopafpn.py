@@ -22,23 +22,35 @@ class YoloPaFPN(nn.Module):
         nblocks = int(depth)
 
         self.head_conv_0 = Conv(c5, c5//2, k=1, norm_type=norm_type, act_type=act_type)  # 10
-        self.head_csp_0 = BottleneckCSP(c4 + c5//2, c4, n=nblocks, shortcut=False, depthwise=depthwise, norm_type=norm_type, act_type=act_type)
+        self.head_csp_0 = BottleneckCSP(c4 + c5//2, c4, n=nblocks,
+                                        shortcut=False, depthwise=depthwise,
+                                        norm_type=norm_type, act_type=act_type)
 
         # P3/8-small
         self.head_conv_1 = Conv(c4, c4//2, k=1, norm_type=norm_type, act_type=act_type)  # 14
-        self.head_csp_1 = BottleneckCSP(c3 + c4//2, c3, n=nblocks, shortcut=False, depthwise=depthwise, norm_type=norm_type, act_type=act_type)
+        self.head_csp_1 = BottleneckCSP(c3 + c4//2, c3, n=nblocks,
+                                        shortcut=False, depthwise=depthwise,
+                                        norm_type=norm_type, act_type=act_type)
 
         # P4/16-medium
         self.head_conv_2 = Conv(c3, c3, k=3, p=1, s=2, depthwise=depthwise, norm_type=norm_type, act_type=act_type)
-        self.head_csp_2 = BottleneckCSP(c3 + c4//2, c4, n=nblocks, shortcut=False, depthwise=depthwise, norm_type=norm_type, act_type=act_type)
+        self.head_csp_2 = BottleneckCSP(c3 + c4//2, c4, n=nblocks,
+                                        shortcut=False, depthwise=depthwise,
+                                        norm_type=norm_type, act_type=act_type)
 
         # P8/32-large
         self.head_conv_3 = Conv(c4, c4, k=3, p=1, s=2, depthwise=depthwise, norm_type=norm_type, act_type=act_type)
-        self.head_csp_3 = BottleneckCSP(c4 + c5//2, c5, n=nblocks, shortcut=False, depthwise=depthwise)
+        self.head_csp_3 = BottleneckCSP(c4 + c5//2, c5, n=nblocks,
+                                        shortcut=False, depthwise=depthwise,
+                                        norm_type=norm_type, act_type=act_type)
 
         # output proj layers
         if self.out_dim is not None:
-            self.out_layers = nn.ModuleList([Conv(in_dim, self.out_dim, k=1, norm_type=norm_type, act_type=act_type) for in_dim in in_dims])
+            self.out_layers = nn.ModuleList([
+                Conv(in_dim, self.out_dim, k=1,
+                     norm_type=norm_type, act_type=act_type)
+                     for in_dim in in_dims
+                     ])
 
     def forward(self, features):
         c3, c4, c5 = features

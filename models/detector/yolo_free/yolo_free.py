@@ -3,8 +3,7 @@ import numpy as np
 import torch.nn as nn
 
 from ...backbone import build_backbone
-from ...neck import build_neck
-from ...head import build_fpn
+from ...neck import build_neck, build_fpn
 from ...head.decoupled_head import DecoupledHead
 from .loss import Criterion
 

@@ -114,6 +114,14 @@ yolo_config = {
         'fpn_norm': 'BN',
         'fpn_act': 'lrelu',
         'fpn_depthwise': False,
+        # head
+        'head': 'decoupled_head',
+        'head_dim': 256,
+        'head_norm': 'BN',
+        'head_act': 'lrelu',
+        'num_cls_head': 2,
+        'num_reg_head': 2,
+        'head_depthwise': False,
         # post process
         'conf_thresh': 0.01,
         'nms_thresh': 0.5,
@@ -126,7 +134,7 @@ yolo_config = {
         # training configuration
         'max_epoch': 250,
         'no_aug_epoch': 15,
-        'batch_size': 16,
+        'batch_size': 1,
         'base_lr': 0.01 / 64.,
         'min_lr_ratio': 0.01,
         # optimizer
