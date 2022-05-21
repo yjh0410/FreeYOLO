@@ -28,10 +28,10 @@ At least, please make sure your torch is version 1.x.
 
 # Network
 ## AnchorYOLO & FreeYOLO
-- Backbone: CSPDarkNet-53
-- Neck: SPP
-- FPN: YoloPaFPN
-- Head: DecoupledHead
+- Backbone: [CSPDarkNet-53](https://github.com/yjh0410/FreeYOLO/blob/master/models/backbone/cspdarknet.py)
+- Neck: [SPP](https://github.com/yjh0410/FreeYOLO/blob/master/models/neck/spp.py)
+- FPN: [YoloPaFPN](https://github.com/yjh0410/FreeYOLO/blob/master/models/neck/yolopafpn.py)
+- Head: [DecoupledHead](https://github.com/yjh0410/FreeYOLO/blob/master/models/head/decoupled_head.py)
 
 # Experiments
 ## VOC
