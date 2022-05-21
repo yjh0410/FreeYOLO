@@ -38,7 +38,7 @@ At least, please make sure your torch is version 1.x.
 
 | Model        |  Scale  |  FPS  |  FLOPs(B)  |  Params(M) |  mAP  | Weight |
 |--------------|---------|-------|------------|------------|-------|--------|
-| FreeYOLO     |  640    |       |            |            |       |        |
+| FreeYOLO     |  640    |       |            |            |  84.9 |        |
 | AnchorYOLO   |  640    |       |            |            |       |        |
 
 ## COCO
