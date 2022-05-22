@@ -38,15 +38,15 @@ At least, please make sure your torch is version 1.x.
 
 | Model        |  Scale  |  FPS  |  FLOPs(B)  |  Params(M) |  mAP  | Weight |
 |--------------|---------|-------|------------|------------|-------|--------|
-| FreeYOLO     |  640    |       |            |            |  84.9 |        |
-| AnchorYOLO   |  640    |       |            |            |       |        |
+| FreeYOLO     |  608    |       |            |            |  84.9 |        |
+| AnchorYOLO   |  608    |       |            |            |       |        |
 
 ## COCO
 
 | Model        |  Scale  |  FPS  |  FLOPs(B)  |  Params(M) |  AP  |  AP50  | Weight |
 |--------------|---------|-------|------------|------------|------|--------|--------|
-| FreeYOLO     |  640    |       |            |            |      |        |        |
-| AnchorYOLO   |  640    |       |            |            |      |        |        |
+| FreeYOLO     |  608    |       |   76.0     |    61.8    |      |        |        |
+| AnchorYOLO   |  608    |       |            |            |      |        |        |
 
 # Train
 ## Single GPU
