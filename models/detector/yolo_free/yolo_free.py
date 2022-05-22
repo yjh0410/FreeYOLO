@@ -31,7 +31,7 @@ class FreeYOLO(nn.Module):
         
         # --------- Network Parameters ----------
         ## backbone
-        self.backbone, bk_dim = build_backbone(cfg=cfg)
+        self.backbone, bk_dim = build_backbone(cfg=cfg, trainable=trainable)
 
         ## neck
         self.neck = build_neck(cfg=cfg, in_dim=bk_dim[-1], out_dim=bk_dim[-1])
