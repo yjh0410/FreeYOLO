@@ -34,19 +34,19 @@ At least, please make sure your torch is version 1.x.
 - Head: [DecoupledHead](https://github.com/yjh0410/FreeYOLO/blob/master/models/head/decoupled_head.py)
 
 # Experiments
-## VOC
-
-| Model        |  Scale  |  FPS  |  FLOPs(B)  |  Params(M) |  mAP  | Weight |
-|--------------|---------|-------|------------|------------|-------|--------|
-| FreeYOLO     |  608    |       |            |            |  84.9 |        |
-| AnchorYOLO   |  608    |       |            |            |       |        |
-
 ## COCO
 
-| Model        |  Scale  |  FPS  |  FLOPs(B)  |  Params(M) |  AP  |  AP50  | Weight |
-|--------------|---------|-------|------------|------------|------|--------|--------|
-| FreeYOLO     |  608    |       |   76.0     |    61.8    |      |        |        |
-| AnchorYOLO   |  608    |       |            |            |      |        |        |
+| Model        |  Scale  |  FPS  |  FLOPs(B)  |  Params(M) |  AP  |  AP50  |  Weight  |
+|--------------|---------|-------|------------|------------|------|--------|----------|
+| FreeYOLO     |  608    |       |   76.0     |    61.8    |      |        | [github] |
+| AnchorYOLO   |  608    |       |   76.2     |    62.2    |      |        | [github] |
+
+## VOC
+
+| Model        |  Scale  |  mAP  |  Weight  |
+|--------------|---------|-------|----------|
+| FreeYOLO     |  608    |  84.9 | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_84.9.pth) |
+| AnchorYOLO   |  608    |  84.4 | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_anchor_84.4.pth) |
 
 # Train
 ## Single GPU
