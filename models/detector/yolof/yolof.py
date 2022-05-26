@@ -22,6 +22,7 @@ class YOLOF(nn.Module):
                  trainable = False, 
                  topk = 1000):
         super(YOLOF, self).__init__()
+        # --------- Basic Parameters ----------
         self.cfg = cfg
         self.device = device
         self.fmp_size = None
@@ -33,27 +34,29 @@ class YOLOF(nn.Module):
         self.topk = topk
         self.anchor_size = torch.as_tensor(cfg['anchor_size'])
         self.num_anchors = len(cfg['anchor_size'])
-
-        # backbone
+        
+        # --------- Network Parameters ----------
+        ## backbone
         self.backbone, bk_dim = build_backbone(cfg=cfg, trainable=trainable)
 
         ## neck
         self.neck = build_neck(cfg=cfg, in_dim=bk_dim[-1], out_dim=cfg['head_dim'])
                                      
-        # head
+        ## head
         self.head = DecoupledHead(cfg) 
 
-        # pred
+        ## pred
         self.obj_pred = nn.Conv2d(cfg['head_dim'], 1 * self.num_anchors, kernel_size=3, padding=1)
         self.cls_pred = nn.Conv2d(cfg['head_dim'], self.num_classes * self.num_anchors, kernel_size=3, padding=1)
         self.reg_pred = nn.Conv2d(cfg['head_dim'], 4 * self.num_anchors, kernel_size=3, padding=1)
 
+        # --------- Network Initialization ----------
         if trainable:
             # init bias
             self._init_pred_layers()
 
-        # criterion
-        if self.trainable:
+        # --------- Criterion for Training ----------
+        if trainable:
             self.criterion = Criterion(
                 cfg=cfg,
                 device=device,
