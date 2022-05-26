@@ -156,7 +156,7 @@ yolo_config = {
         'mixup_prob': 0.5,
         'format': 'RGB',
         'pixel_mean': [123.675, 116.28, 103.53],
-        'pixel_std': [1.0, 1.0, 1.0],
+        'pixel_std': [58.395, 57.12, 57.375],
         'transforms': [{'name': 'DistortTransform',
                          'hue': 0.1,
                          'saturation': 1.5,
