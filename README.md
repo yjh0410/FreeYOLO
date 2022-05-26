@@ -40,6 +40,7 @@ At least, please make sure your torch is version 1.x.
 |--------------|---------|-------|------------|------------|------|--------|----------|
 | FreeYOLO     |  608    |       |   76.0     |    61.8    |      |        | [github] |
 | AnchorYOLO   |  608    |       |   76.2     |    62.2    |      |        | [github] |
+| YOLOF        |  608    |       |   62.5     |    31.0    |      |        | [github] |
 
 ## VOC
 
@@ -47,6 +48,7 @@ At least, please make sure your torch is version 1.x.
 |--------------|---------|-------|----------|
 | FreeYOLO     |  608    |  84.9 | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_84.9.pth) |
 | AnchorYOLO   |  608    |  84.4 | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_anchor_84.4.pth) |
+| YOLOF        |  608    |  84.4 | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_anchor_84.4.pth) |
 
 # Train
 ## Single GPU
