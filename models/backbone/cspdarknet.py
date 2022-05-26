@@ -208,13 +208,14 @@ class CSPDarkNet53(nn.Module):
         res5_dilation (int): dilation for the last stage
     """
 
-    def __init__(self):
+    def __init__(self, res5_dilation=False):
         super(CSPDarkNet53, self).__init__()
      
         self.block =  DarkBlock
         self.stage_blocks = (1, 2, 8, 8, 4)
         self.with_csp = True
         self.inplanes = 32
+        self.res5_dilation = res5_dilation
 
         self.backbone = nn.ModuleDict()
         self.layer_names = []
@@ -227,6 +228,10 @@ class CSPDarkNet53(nn.Module):
             planes = 64 * 2 ** i
             dilation = 1
             stride = 2
+            if i == 4 and res5_dilation:
+                dilation = 2
+                stride = 1
+
             layer = make_cspdark_layer(
                 block=self.block,
                 inplanes=self.inplanes,
@@ -269,9 +274,9 @@ class CSPDarkNet53(nn.Module):
 
 
 # Build CSPDarkNet
-def build_cspdarknet(pretrained=False):
+def build_cspdarknet(pretrained=False, res5_dilation=False):
     # build backbone
-    backbone = CSPDarkNet53()
+    backbone = CSPDarkNet53(res5_dilation=res5_dilation)
     feat_dims = [256, 512, 1024]
 
     # load weight
@@ -302,7 +307,7 @@ def build_cspdarknet(pretrained=False):
 
 if __name__ == '__main__':
     import time
-    model, feats = build_cspdarknet(pretrained=True)
+    model, feats = build_cspdarknet(pretrained=True, res5_dilation=False)
     x = torch.randn(1, 3, 224, 224)
     t0 = time.time()
     outputs = model(x)

@@ -147,4 +147,76 @@ yolo_config = {
         'wp_epoch': 1,
         },
 
+    'yolof': {
+        # input
+        'train_size': 640,
+        'test_size': 608,
+        'random_size': [320, 352, 384, 416, 448, 480, 512, 544, 576, 608, 640],
+        'mosaic_prob': 0.5,
+        'mixup_prob': 0.5,
+        'format': 'RGB',
+        'pixel_mean': [123.675, 116.28, 103.53],
+        'pixel_std': [1.0, 1.0, 1.0],
+        'transforms': [{'name': 'DistortTransform',
+                         'hue': 0.1,
+                         'saturation': 1.5,
+                         'exposure': 1.5},
+                         {'name': 'RandomHorizontalFlip'},
+                         {'name': 'JitterCrop', 'jitter_ratio': 0.3},
+                         {'name': 'ToTensor'},
+                         {'name': 'Resize'},
+                         {'name': 'Normalize'},
+                         {'name': 'PadImage'}],
+        # model
+        'backbone': 'cspdarknet53',
+        'pretrained': True,
+        'res5_dilation': True,
+        'stride': 16,
+        'anchor_size': [[16, 16],   [32, 32],   [64, 64],
+                        [128, 128], [256, 256], [512, 512]],
+        'ctr_clamp': 32,
+        # neck
+        'neck': 'dilated_encoder',
+        'expand_ratio': 0.5,
+        'dilation_list': [2, 4, 6, 8],
+        'neck_act': 'lrelu',
+        'neck_norm': 'BN',
+        'neck_depthwise': False,
+        # head
+        'head': 'decoupled_head',
+        'head_dim': 256,
+        'head_norm': 'BN',
+        'head_act': 'lrelu',
+        'num_cls_head': 2,
+        'num_reg_head': 2,
+        'head_depthwise': False,
+        # post process
+        'conf_thresh': 0.01,
+        'nms_thresh': 0.5,
+        # matcher
+        'matcher': {'topk_candidates': 4,
+                    'igt': 0.7,
+                    'iou_t': 0.15},
+        # loss
+        'alpha': 0.25,
+        'gamma': 2.0,
+        'loss_obj_weight': 1.0,
+        'loss_cls_weight': 1.0,
+        'loss_reg_weight': 1.0,
+        # training configuration
+        'max_epoch': 150,
+        'no_aug_epoch': 15,
+        'batch_size': 1,
+        'base_lr': 0.12 / 64.,
+        'min_lr_ratio': 0.01,
+        # optimizer
+        'optimizer': 'sgd',
+        'momentum': 0.9,
+        'weight_decay': 1e-4,
+        # warmup strategy
+        'warmup': 'linear',
+        'warmup_factor': 0.00066667,
+        'wp_epoch': 1,
+        },
+
 }

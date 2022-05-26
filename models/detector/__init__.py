@@ -1,6 +1,7 @@
 import torch
 from .yolo_free.yolo_free import FreeYOLO
 from .yolo_anchor.yolo_anchor import AnchorYOLO
+from .yolof.yolof import YOLOF
 
 
 # build object detector
@@ -30,6 +31,15 @@ def build_model(args,
                            conf_thresh=cfg['conf_thresh'],
                            nms_thresh=cfg['nms_thresh'],
                            topk=args.topk)
+
+    elif 'yolof' in args.version:
+        model = YOLOF(cfg=cfg,
+                     device=device, 
+                     num_classes=num_classes, 
+                     trainable=trainable,
+                     conf_thresh=cfg['conf_thresh'],
+                     nms_thresh=cfg['nms_thresh'],
+                     topk=args.topk)
 
     print('==============================')
     print('Model Configuration: \n', cfg)
