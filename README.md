@@ -40,7 +40,7 @@ At least, please make sure your torch is version 1.x.
 |--------------|---------|-------|------------|------------|------|--------|----------|
 | FreeYOLO     |  608    |       |   76.0     |    61.8    |      |        | [github] |
 | AnchorYOLO   |  608    |       |   76.2     |    62.2    |      |        | [github] |
-| YOLOF        |  608    |       |   62.5     |    31.0    |      |        | [github] |
+| YOLOF        |  608    |       |   64.1     |    33.0    |      |        | [github] |
 
 ## VOC
 

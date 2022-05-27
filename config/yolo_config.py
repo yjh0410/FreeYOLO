@@ -188,7 +188,7 @@ yolo_config = {
         'head_norm': 'BN',
         'head_act': 'lrelu',
         'num_cls_head': 2,
-        'num_reg_head': 2,
+        'num_reg_head': 4,
         'head_depthwise': False,
         # post process
         'conf_thresh': 0.01,
