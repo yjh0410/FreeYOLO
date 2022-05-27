@@ -63,5 +63,12 @@ def build_model(args,
                 print(k)
 
         model.load_state_dict(checkpoint_state_dict, strict=False)
+
+    if args.resume:
+        print('keep training: ', args.resume)
+        checkpoint = torch.load(args.resume, map_location='cpu')
+        # checkpoint state dict
+        checkpoint_state_dict = checkpoint.pop("model")
+        model.load_state_dict(checkpoint_state_dict)
                         
     return model

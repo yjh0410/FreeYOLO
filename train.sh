@@ -5,4 +5,6 @@ python train.py \
         -v yolo_anchor \
         --ema \
         --fp16 \
-        --eval_epoch 10
+        --eval_epoch 10 \
+        --start_epoch 141 \
+        --resume weights/coco/yolo_anchor/yolo_anchor_epoch_141_39.97.pth

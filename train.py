@@ -34,6 +34,8 @@ def parse_args():
                         help='use tensorboard')
     parser.add_argument('--save_folder', default='weights/', type=str, 
                         help='path to save weight')
+    parser.add_argument('--start_epoch', default=0, type=int, 
+                        help='start epoch to train.')
     parser.add_argument('--eval_epoch', default=10, type=int, 
                         help='after eval epoch, the model is evaluated on val dataset.')
     parser.add_argument('--fp16', dest="fp16", action="store_true", default=False,
@@ -46,6 +48,8 @@ def parse_args():
                         help='topk candidates for evaluation')
     parser.add_argument('-p', '--coco_pretrained', default=None, type=str,
                         help='coco pretrained weight')
+    parser.add_argument('-r', '--resume', default=None, type=str,
+                        help='keep training')
 
     # dataset
     parser.add_argument('--root', default='/mnt/share/ssd2/dataset',
@@ -142,7 +146,7 @@ def train():
         dist.barrier()
 
     # EMA
-    ema = ModelEMA(model) if args.ema else None
+    ema = ModelEMA(model, updates=141*7392) if args.ema else None
 
     # optimizer
     base_lr = cfg['base_lr'] * batch_size
@@ -165,7 +169,7 @@ def train():
     best_map = -1.0
     lr_schedule=True
     total_epochs = cfg['wp_epoch'] + cfg['max_epoch']
-    for epoch in range(total_epochs):
+    for epoch in range(args.start_epoch, total_epochs):
         if args.distributed:
             dataloader.batch_sampler.sampler.set_epoch(epoch)            
 
