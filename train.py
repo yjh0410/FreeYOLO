@@ -146,7 +146,10 @@ def train():
         dist.barrier()
 
     # EMA
-    ema = ModelEMA(model, updates=141*7392) if args.ema else None
+    if args.ema:
+        ema = ModelEMA(model, updates=args.start_epoch * len(dataloader))
+    else:
+        ema = None
 
     # optimizer
     base_lr = cfg['base_lr'] * batch_size
