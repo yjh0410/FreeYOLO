@@ -97,8 +97,8 @@ def mosaic_augment(image_list, target_list, img_size):
             mosaic_labels.append(labels_i)
 
     if len(mosaic_bboxes) == 0:
-        mosaic_bboxes = np.array(mosaic_bboxes).reshape(-1, 4)
-        mosaic_labels = np.array(mosaic_labels).reshape(-1)
+        mosaic_bboxes = np.array([]).reshape(-1, 4)
+        mosaic_labels = np.array([]).reshape(-1)
     
     mosaic_bboxes = np.concatenate(mosaic_bboxes)
     mosaic_labels = np.concatenate(mosaic_labels)
