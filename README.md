@@ -36,11 +36,21 @@ At least, please make sure your torch is version 1.x.
 # Experiments
 ## COCO
 
+Main results on COCO-val:
+
 | Model        |  Scale  |  FPS  |  FLOPs(B)  |  Params(M) |  AP  |  AP50  |  Weight  |
 |--------------|---------|-------|------------|------------|------|--------|----------|
 | YOLOF        |  608    |       |   64.1     |    33.0    |      |        | [github] |
 | FreeYOLO     |  608    |       |   76.0     |    61.8    |      |        | [github] |
 | AnchorYOLO   |  608    |       |   76.2     |    62.2    |      |        | [github] |
+
+AP results on COCO-val:
+
+| Model        |  Scale  |  AP  |  AP50  |  AP75  |  APs  |  APm  |  APl  |
+|--------------|---------|------|--------|--------|-------|-------|-------|
+| YOLOF        |  608    |      |        |        |       |       |       |
+| FreeYOLO     |  608    |      |        |        |       |       |       |
+| AnchorYOLO   |  608    |      |        |        |       |       |       |
 
 ## VOC
 
