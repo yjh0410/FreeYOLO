@@ -111,12 +111,15 @@ def train():
     dataloader = build_dataloader(args, dataset, batch_size, CollateFunc())
 
     # build model
-    net = build_model(args=args, 
-                      cfg=cfg,
-                      device=device, 
-                      num_classes=num_classes, 
-                      trainable=True,
-                      coco_pretrained=args.coco_pretrained)
+    net = build_model(
+        args=args, 
+        cfg=cfg,
+        device=device,
+        num_classes=num_classes,
+        trainable=True,
+        coco_pretrained=args.coco_pretrained,
+        resume=args.resume
+        )
     model = net
     model = model.to(device).train()
 
@@ -154,18 +157,22 @@ def train():
     # optimizer
     base_lr = cfg['base_lr'] * batch_size
     min_lr = base_lr * cfg['min_lr_ratio']
-    optimizer = build_optimizer(model=model_without_ddp,
-                                base_lr=base_lr,
-                                name=cfg['optimizer'],
-                                momentum=cfg['momentum'],
-                                weight_decay=cfg['weight_decay'])
+    optimizer = build_optimizer(
+        model=model_without_ddp,
+        base_lr=base_lr,
+        name=cfg['optimizer'],
+        momentum=cfg['momentum'],
+        weight_decay=cfg['weight_decay']
+        )
     
     # warmup scheduler
     wp_iter = len(dataloader) * cfg['wp_epoch']
-    warmup_scheduler = build_warmup(name=cfg['warmup'],
-                                    base_lr=base_lr,
-                                    wp_iter=wp_iter,
-                                    warmup_factor=cfg['warmup_factor'])
+    warmup_scheduler = build_warmup(
+        name=cfg['warmup'],
+        base_lr=base_lr,
+        wp_iter=wp_iter,
+        warmup_factor=cfg['warmup_factor']
+        )
 
 
     # start training loop

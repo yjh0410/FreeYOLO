@@ -38,17 +38,17 @@ At least, please make sure your torch is version 1.x.
 
 | Model        |  Scale  |  FPS  |  FLOPs(B)  |  Params(M) |  AP  |  AP50  |  Weight  |
 |--------------|---------|-------|------------|------------|------|--------|----------|
+| YOLOF        |  608    |       |   64.1     |    33.0    |      |        | [github] |
 | FreeYOLO     |  608    |       |   76.0     |    61.8    |      |        | [github] |
 | AnchorYOLO   |  608    |       |   76.2     |    62.2    |      |        | [github] |
-| YOLOF        |  608    |       |   64.1     |    33.0    |      |        | [github] |
 
 ## VOC
 
 | Model        |  Scale  |  mAP  |  Weight  |
 |--------------|---------|-------|----------|
+| YOLOF        |  608    |  84.4 | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_anchor_84.4.pth) |
 | FreeYOLO     |  608    |  84.9 | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_84.9.pth) |
 | AnchorYOLO   |  608    |  84.4 | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_anchor_84.4.pth) |
-| YOLOF        |  608    |  84.4 | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_anchor_84.4.pth) |
 
 # Train
 ## Single GPU

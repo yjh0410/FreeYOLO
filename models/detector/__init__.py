@@ -10,7 +10,8 @@ def build_model(args,
                 device, 
                 num_classes=80, 
                 trainable=False, 
-                coco_pretrained=None):
+                coco_pretrained=None,
+                resume=None):
     print('==============================')
     print('Build {} ...'.format(args.version.upper()))
     
@@ -64,7 +65,7 @@ def build_model(args,
 
         model.load_state_dict(checkpoint_state_dict, strict=False)
 
-    if args.resume:
+    if resume:
         print('keep training: ', args.resume)
         checkpoint = torch.load(args.resume, map_location='cpu')
         # checkpoint state dict

@@ -1,8 +1,8 @@
 python train.py \
         --cuda \
-        -d coco \
+        -d voc \
         --root /mnt/share/ssd2/dataset/ \
-        -v yolo_anchor \
+        -v yolof \
         --ema \
         --fp16 \
         --eval_epoch 10 \

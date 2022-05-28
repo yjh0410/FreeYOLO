@@ -195,6 +195,7 @@ def val_one_epoch(args,
             weight_name = '{}_epoch_{}.pth'.format(args.version, epoch + 1)
             checkpoint_path = os.path.join(path_to_save, weight_name)
             torch.save({'model': model.state_dict(),
+                        'mAP': -1.,
                         'optimizer': optimizer.state_dict(),
                         'epoch': epoch,
                         'args': args}, 
@@ -218,6 +219,7 @@ def val_one_epoch(args,
                 weight_name = '{}_epoch_{}_{:.2f}.pth'.format(args.version, epoch + 1, best_map*100)
                 checkpoint_path = os.path.join(path_to_save, weight_name)
                 torch.save({'model': model.state_dict(),
+                            'mAP': round(best_map*100, 1),
                             'optimizer': optimizer.state_dict(),
                             'epoch': epoch,
                             'args': args}, 

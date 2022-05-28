@@ -32,7 +32,7 @@ def parse_args():
     parser.add_argument('--root', default='/mnt/share/ssd2/dataset',
                         help='data root')
     # basic
-    parser.add_argument('--img_size', default=640, type=int,
+    parser.add_argument('--img_size', default=608, type=int,
                         help='the min size of input image')
     parser.add_argument('--weight', default=None,
                         type=str, help='Trained state_dict file path to open')

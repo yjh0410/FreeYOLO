@@ -19,7 +19,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description='FreeYOLO Demo')
 
     # basic
-    parser.add_argument('-size', '--img_size', default=640, type=int,
+    parser.add_argument('-size', '--img_size', default=608, type=int,
                         help='the max size of input image')
     parser.add_argument('--mode', default='image',
                         type=str, help='Use the data from image, video or camera')
