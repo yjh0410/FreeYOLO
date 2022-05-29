@@ -1,6 +1,5 @@
 import numpy as np
 import torch
-from torch import device, nn
 from utils.box_ops import *
 
 
