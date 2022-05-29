@@ -7,4 +7,3 @@ python train.py \
         --fp16 \
         --eval_epoch 10 \
         --start_epoch 0 \
-        --resume None

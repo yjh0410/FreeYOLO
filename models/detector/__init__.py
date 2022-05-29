@@ -66,8 +66,8 @@ def build_model(args,
         model.load_state_dict(checkpoint_state_dict, strict=False)
 
     if resume is not None:
-        print('keep training: ', args.resume)
-        checkpoint = torch.load(args.resume, map_location='cpu')
+        print('keep training: ', resume)
+        checkpoint = torch.load(resume, map_location='cpu')
         # checkpoint state dict
         checkpoint_state_dict = checkpoint.pop("model")
         model.load_state_dict(checkpoint_state_dict)
