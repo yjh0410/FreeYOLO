@@ -207,7 +207,7 @@ yolo_config = {
         'max_epoch': 150,
         'no_aug_epoch': 15,
         'batch_size': 16,
-        'base_lr': 0.12 / 64.,
+        'base_lr': 0.01 / 64.,
         'min_lr_ratio': 0.01,
         # optimizer
         'optimizer': 'sgd',
