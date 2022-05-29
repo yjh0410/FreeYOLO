@@ -82,13 +82,13 @@ class Criterion(object):
         for i in range(bs):
             src_idx, tgt_idx = indices[i]
             # iou between predbox and tgt box
-            iou, _ = box_iou(pred_box[i, ...], (targets[i]['boxes'].to(self.device)))
+            iou, _ = box_iou(pred_box[i, ...], (targets[i]['boxes'].to(device)))
             if iou.numel() == 0:
                 max_iou = iou.new_full((iou.size(0),), 0)
             else:
                 max_iou = iou.max(dim=1)[0]
             # iou between anchorbox and tgt box
-            a_iou, _ = box_iou(anchor_boxes[i], (targets[i]['boxes'].to(self.device)))
+            a_iou, _ = box_iou(anchor_boxes[i], (targets[i]['boxes'].to(device)))
             if a_iou.numel() == 0:
                 pos_iou = a_iou.new_full((0,), 0)
             else:

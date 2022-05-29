@@ -1,6 +1,6 @@
 import numpy as np
 import torch
-from torch import nn
+from torch import device, nn
 from utils.box_ops import *
 
 
@@ -27,6 +27,7 @@ class UniformMatcher(object):
         """
 
         bs, num_queries = pred_boxes.shape[:2]
+        device = pred_boxes.device
 
         # We flatten to compute the cost matrices in a batch
         # [B, num_queries, 4] -> [M, 4]
@@ -36,7 +37,7 @@ class UniformMatcher(object):
         anchor_boxes = anchor_boxes.flatten(0, 1)
 
         # Also concat the target boxes
-        tgt_bbox = torch.cat([v['boxes'] for v in targets])
+        tgt_bbox = torch.cat([v['boxes'] for v in targets]).to(device)
 
         # Compute the L1 cost between boxes
         # Note that we use anchors and predict boxes both
