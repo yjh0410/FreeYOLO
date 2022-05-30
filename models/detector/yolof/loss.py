@@ -103,7 +103,7 @@ class Criterion(object):
 
         src_idx = torch.cat(
             [src + idx * anchor_boxes[0].shape[0] for idx, (src, _) in
-             enumerate(indices)]).long()
+             enumerate(indices)])
 
         pred_cls = pred_cls.reshape(-1, self.num_classes)
         # [BM,]
@@ -112,7 +112,7 @@ class Criterion(object):
                                 dtype=torch.int64,
                                 device=self.device)
         gt_cls[ignore_idx] = -1
-        tgt_cls_o = torch.cat([t['labels'][J] for t, (_, J) in zip(targets, indices)])
+        tgt_cls_o = torch.cat([t['labels'][J] for t, (_, J) in zip(targets, indices)]).long()
         tgt_cls_o[pos_ignore_idx] = -1
 
         gt_cls[src_idx] = tgt_cls_o.to(self.device)
