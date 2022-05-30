@@ -103,7 +103,7 @@ class Criterion(object):
 
         src_idx = torch.cat(
             [src + idx * anchor_boxes[0].shape[0] for idx, (src, _) in
-             enumerate(indices)])
+             enumerate(indices)]).long()
 
         pred_cls = pred_cls.reshape(-1, self.num_classes)
         # [BM,]
