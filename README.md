@@ -42,7 +42,7 @@ Main results on COCO-val:
 |--------------|---------|-------|------------|------------|------|--------|----------|
 | YOLOF        |  608    |       |   64.1     |    33.0    |      |        | [github] |
 | FreeYOLO     |  608    |       |   76.0     |    61.8    | 43.7 |  62.6  | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_43.7_62.6.pth) |
-| AnchorYOLO   |  608    |       |   76.2     |    62.2    |      |        | [github] |
+| AnchorYOLO   |  608    |       |   76.2     |    62.2    | 42.5 |  62.1  | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_anchor_42.5_62.1.pth) |
 
 AP results on COCO-val:
 
@@ -50,7 +50,7 @@ AP results on COCO-val:
 |--------------|---------|------|--------|--------|-------|-------|-------|
 | YOLOF        |  608    |      |        |        |       |       |       |
 | FreeYOLO     |  608    | 43.7 |  62.6  |  46.7  |  28.0 |  49.2 | 57.4  |
-| AnchorYOLO   |  608    |      |        |        |       |       |       |
+| AnchorYOLO   |  608    | 42.5 |  62.1  |  45.1  |  28.5 |  47.6 | 53.1  |
 
 ## VOC
 
