@@ -34,8 +34,6 @@ def parse_args():
                         help='use tensorboard')
     parser.add_argument('--save_folder', default='weights/', type=str, 
                         help='path to save weight')
-    parser.add_argument('--start_epoch', default=0, type=int, 
-                        help='start epoch to train.')
     parser.add_argument('--eval_epoch', default=10, type=int, 
                         help='after eval epoch, the model is evaluated on val dataset.')
     parser.add_argument('--fp16', dest="fp16", action="store_true", default=False,
@@ -148,21 +146,15 @@ def train():
         # wait for all processes to synchronize
         dist.barrier()
 
-    # EMA
-    if args.ema:
-        ema = ModelEMA(model, updates=args.start_epoch * len(dataloader))
-    else:
-        ema = None
-
-    # optimizer
     base_lr = cfg['base_lr'] * batch_size
     min_lr = base_lr * cfg['min_lr_ratio']
-    optimizer = build_optimizer(
+    optimizer, start_epoch = build_optimizer(
         model=model_without_ddp,
         base_lr=base_lr,
         name=cfg['optimizer'],
         momentum=cfg['momentum'],
-        weight_decay=cfg['weight_decay']
+        weight_decay=cfg['weight_decay'],
+        resume=args.resume
         )
     
     # warmup scheduler
@@ -174,12 +166,19 @@ def train():
         warmup_factor=cfg['warmup_factor']
         )
 
+    # EMA
+    if args.ema:
+        ema = ModelEMA(model, updates=start_epoch * len(dataloader))
+    else:
+        ema = None
+
+    # optimizer
 
     # start training loop
     best_map = -1.0
     lr_schedule=True
     total_epochs = cfg['wp_epoch'] + cfg['max_epoch']
-    for epoch in range(args.start_epoch, total_epochs):
+    for epoch in range(start_epoch, total_epochs):
         if args.distributed:
             dataloader.batch_sampler.sampler.set_epoch(epoch)            
 
