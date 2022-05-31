@@ -3,7 +3,6 @@ import numpy as np
 import time
 import os
 import torch
-import torch.backends.cudnn as cudnn
 
 from dataset.transforms import ValTransforms
 from dataset.coco import COCODataset, coco_class_index, coco_class_labels
@@ -93,7 +92,6 @@ if __name__ == '__main__':
     # cuda
     if args.cuda:
         print('use cuda')
-        cudnn.benchmark = True
         device = torch.device("cuda")
     else:
         device = torch.device("cpu")
