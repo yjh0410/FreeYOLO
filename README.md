@@ -38,11 +38,11 @@ At least, please make sure your torch is version 1.x.
 
 Main results on COCO-val:
 
-| Model        |  Scale  |  FPS  |  FLOPs(B)  |  Params(M) |  AP  |  AP50  |  Weight  |
-|--------------|---------|-------|------------|------------|------|--------|----------|
-| YOLOF        |  608    |       |   64.1     |    33.0    |      |        | [github] |
-| FreeYOLO     |  608    |  51   |   76.0     |    61.8    | 43.7 |  62.6  | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_43.7_62.6.pth) |
-| AnchorYOLO   |  608    |  45   |   76.3     |    62.0    | 42.5 |  62.1  | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_anchor_42.5_62.1.pth) |
+| Model        |  Scale  | FPS<sup><br>2080ti |  FLOPs  |  Params |  AP  |  AP50  |  Weight  |
+|--------------|---------|--------------------|---------|---------|------|--------|----------|
+| YOLOF        |  608    |                    |  64.1 B |  33.0 M |      |        | [github] |
+| FreeYOLO     |  608    |  51                |  76.0 B |  61.8 M | 43.7 |  62.6  | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_43.7_62.6.pth) |
+| AnchorYOLO   |  608    |  45                |  76.3 B |  62.0 M | 42.5 |  62.1  | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_anchor_42.5_62.1.pth) |
 
 AP results on COCO-val:
 
@@ -54,7 +54,7 @@ AP results on COCO-val:
 
 ## VOC
 
-| Model        |  Scale  |  mAP  |  Weight  |
+| Model        |  Scale  |  AP50 |  Weight  |
 |--------------|---------|-------|----------|
 | YOLOF        |  608    |  83.7 | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolof_83.7.pth) |
 | FreeYOLO     |  608    |  84.9 | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_84.9.pth) |
