@@ -75,6 +75,22 @@ sh train_ddp.sh
 
 You can change the configurations of `train_ddp.sh`, according to your own situation.
 
+**In the event of a training interruption**, you can pass `--resume` the latest training
+weight path (`None` by default) to resume training. For example:
+
+```Shell
+python train.py \
+        --cuda \
+        -d coco \
+        -v yolo_free \
+        --ema \
+        --fp16 \
+        --eval_epoch 10 \
+        --resume weights/coco/yolo_free/yolo_free_epoch_151_39.24.pth
+```
+
+Then, training will continue from 151 epoch.
+
 # Test
 ```Shell
 python test.py -d coco \
