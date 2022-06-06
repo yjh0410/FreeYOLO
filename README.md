@@ -40,17 +40,17 @@ Main results on COCO-val:
 
 | Model        |  Scale  | FPS<sup><br>2080ti |  FLOPs  |  Params |  AP  |  AP50  |  Weight  |
 |--------------|---------|--------------------|---------|---------|------|--------|----------|
-| YOLOF        |  608    |  74                |  64.1 B |  33.0 M |      |        | [github] |
+| YOLOF        |  608    |  74                |  64.1 B |  33.0 M | 39.9 |  60.3  | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolof_39.9_60.3.pth) |
 | FreeYOLO     |  608    |  51                |  76.0 B |  61.8 M | 43.7 |  62.6  | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_43.7_62.6.pth) |
 | AnchorYOLO   |  608    |  45                |  76.3 B |  62.0 M | 42.5 |  62.1  | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_anchor_42.5_62.1.pth) |
 
 AP results on COCO-val:
 
-| Model        |  Scale  |  AP  |  AP50  |  AP75  |  APs  |  APm  |  APl  |
-|--------------|---------|------|--------|--------|-------|-------|-------|
-| YOLOF        |  608    |      |        |        |       |       |       |
-| FreeYOLO     |  608    | 43.7 |  62.6  |  46.7  |  28.0 |  49.2 | 57.4  |
-| AnchorYOLO   |  608    | 42.5 |  62.1  |  45.1  |  28.5 |  47.6 | 53.1  |
+| Model        |  Scale  |  AP      |  AP50      |  AP75      |  APs      |  APm      |  APl      |
+|--------------|---------|----------|------------|------------|-----------|-----------|-----------|
+| YOLOF        |  608    | 39.9     |  60.3      |  42.5      |  22.9     |  44.6     | 52.8      |
+| FreeYOLO     |  608    | **43.7** |  **62.6**  |  **46.7**  |  28.0     |  **49.2** | **57.4**  |
+| AnchorYOLO   |  608    | 42.5     |  62.1      |  45.1      |  **28.5** |  47.6     | 53.1      |
 
 ## VOC
 
