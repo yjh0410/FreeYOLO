@@ -252,7 +252,7 @@ def run():
             path_to_img=args.path_to_img,
             path_to_vid=args.path_to_vid,
             path_to_save=args.path_to_save,
-            vis_thresh=args.vidual_threshold)
+            vis_thresh=args.visual_threshold)
 
 
 if __name__ == '__main__':
