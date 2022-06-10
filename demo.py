@@ -35,6 +35,8 @@ def parse_args():
                         type=str, help='The path to save the detection results video')
     parser.add_argument('-vs', '--visual_threshold', default=0.35, type=float,
                         help='Final confidence threshold for visualization')
+    parser.add_argument('--show', action='store_true', default=False,
+                        help='show visualization')
 
     # model
     parser.add_argument('-v', '--version', default='yolo_free', type=str,
@@ -73,7 +75,8 @@ def visualize(img, bboxes, scores, cls_inds, class_colors, vis_thresh=0.3):
     return img
 
 
-def detect(net, 
+def detect(args,
+           net, 
            device, 
            transform, 
            vis_thresh, 
@@ -154,10 +157,10 @@ def detect(net,
                                       cls_inds=cls_inds,
                                       class_colors=class_colors,
                                       vis_thresh=vis_thresh)
-
-            cv2.imshow('detection', img_processed)
             cv2.imwrite(os.path.join(save_path, str(i).zfill(6)+'.jpg'), img_processed)
-            cv2.waitKey(0)
+            if args.show:
+                cv2.imshow('detection', img_processed)
+                cv2.waitKey(0)
 
     # ------------------------- Video ---------------------------
     elif mode == 'video':
@@ -199,8 +202,9 @@ def detect(net,
 
                 frame_processed_resize = cv2.resize(frame_processed, save_size)
                 out.write(frame_processed_resize)
-                cv2.imshow('detection', frame_processed)
-                cv2.waitKey(1)
+                if args.show:
+                    cv2.imshow('detection', frame_processed)
+                    cv2.waitKey(1)
             else:
                 break
         video.release()
