@@ -1,4 +1,5 @@
 import argparse
+from ast import arg
 import cv2
 import os
 import time
@@ -251,7 +252,7 @@ def run():
         )
 
     # run
-    detect(net=model, 
+    detect(args=args, net=model, 
             device=device,
             transform=transform,
             mode=args.mode,
