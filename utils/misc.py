@@ -350,8 +350,8 @@ class TestTimeAugmentation(object):
             else:
                 # keep aspect ratio
                 r = s / max(h0, w0)
-                w1 = int(w0 * r)
-                h1 = int(h0 * r)
+                w1 = int(w0 * r / 32.) * 32
+                h1 = int(h0 * r / 32.) * 32
                 x_scale = F.interpolate(
                     input=x,
                     size=(h1, w1),
