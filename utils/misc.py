@@ -294,10 +294,14 @@ class SinkhornDistance(torch.nn.Module):
 
 # test time augmentation(TTA)
 class TestTimeAugmentation(object):
-    def __init__(self, num_classes=80, nms_thresh=0.4, scale_range=[320, 640, 32]):
+    def __init__(self,
+                 num_classes=80, nms_thresh=0.4,
+                 min_size = 608, max_size = 608,
+                 test_flip=False):
         self.num_classes = num_classes
         self.nms_thresh = nms_thresh
-        self.scales = np.arange(scale_range[0], scale_range[1]+1, scale_range[2])
+        self.scales = np.arange(min_size, max_size+32, 32)
+        self.test_flip = test_flip
         
 
     def nms(self, dets, scores, nms_thresh=0.4):
@@ -340,28 +344,34 @@ class TestTimeAugmentation(object):
 
         # multi scale
         for s in self.scales:
-            if x.size(-1) == s and x.size(-2) == s:
+            h0, w0 = x.shape[-2:]
+            if max(h0, w0) == s:
                 x_scale = x
             else:
-                x_scale =torch.nn.functional.interpolate(
-                                        input=x, 
-                                        size=(s, s), 
-                                        mode='bilinear', 
-                                        align_corners=False)
-            model.set_grid(s)
+                # keep aspect ratio
+                r = s / max(h0, w0)
+                w1 = int(w0 * r * s)
+                h1 = int(h0 * r * s)
+                x_scale = F.interpolate(
+                    input=x,
+                    size=(h1, w1),
+                    mode='bilinear',
+                    align_corners=False)
+
             bboxes, scores, labels = model(x_scale)
             bboxes_list.append(bboxes)
             scores_list.append(scores)
             labels_list.append(labels)
 
             # Flip
-            x_flip = torch.flip(x_scale, [-1])
-            bboxes, scores, labels = model(x_flip)
-            bboxes = bboxes.copy()
-            bboxes[:, 0::2] = 1.0 - bboxes[:, 2::-2]
-            bboxes_list.append(bboxes)
-            scores_list.append(scores)
-            labels_list.append(labels)
+            if self.test_flip:
+                x_flip = torch.flip(x_scale, [-1])
+                bboxes, scores, labels = model(x_flip)
+                bboxes = bboxes.copy()
+                bboxes[:, 0::2] = 1.0 - bboxes[:, 2::-2]
+                bboxes_list.append(bboxes)
+                scores_list.append(scores)
+                labels_list.append(labels)
 
         bboxes = np.concatenate(bboxes_list)
         scores = np.concatenate(scores_list)

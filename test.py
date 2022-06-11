@@ -45,6 +45,12 @@ def parse_args():
     # TTA
     parser.add_argument('-tta', '--test_aug', action='store_true', default=False,
                         help='use test augmentation.')
+    parser.add_argument('-fp', '--flip', action='store_true', default=False,
+                        help='use flip in test augmentation.')
+    parser.add_argument('--min_size', default=608, type=int,
+                        help='use flip in test augmentation.')
+    parser.add_argument('--max_size', default=608, type=int,
+                        help='use flip in test augmentation.')
 
     return parser.parse_args()
 
@@ -69,7 +75,7 @@ def plot_bbox_labels(img, bbox, label=None, cls_color=None, text_scale=0.4):
 def visualize(img, 
               bboxes, 
               scores, 
-              cls_inds, 
+              labels, 
               vis_thresh, 
               class_colors, 
               class_names, 
@@ -78,7 +84,7 @@ def visualize(img,
     ts = 0.4
     for i, bbox in enumerate(bboxes):
         if scores[i] > vis_thresh:
-            cls_id = int(cls_inds[i])
+            cls_id = int(labels[i])
             if dataset_name == 'coco':
                 cls_color = class_colors[cls_id]
                 cls_id = class_indexs[cls_id]
@@ -125,9 +131,9 @@ def test(args,
         # inference
         if test_aug is not None:
             # test augmentation:
-            bboxes, scores, cls_inds = test_aug(x, net)
+            bboxes, scores, labels = test_aug(x, net)
         else:
-            bboxes, scores, cls_inds = net(x)
+            bboxes, scores, labels = net(x)
         print("detection time used ", time.time() - t0, "s")
         
         # rescale
@@ -140,7 +146,7 @@ def test(args,
                             img=image,
                             bboxes=bboxes,
                             scores=scores,
-                            cls_inds=cls_inds,
+                            labels=labels,
                             vis_thresh=vis_thresh,
                             class_colors=class_colors,
                             class_names=class_names,
