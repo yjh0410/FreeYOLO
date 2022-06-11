@@ -63,13 +63,13 @@ class VOCAPIEvaluator():
 
             t0 = time.time()
             # forward
-            bboxes, scores, cls_inds = net(x)
+            bboxes, scores, labels = net(x)
             detect_time = time.time() - t0
             # rescale
             bboxes *= max(orig_h, orig_w)
 
             for j in range(len(self.labelmap)):
-                inds = np.where(cls_inds == j)[0]
+                inds = np.where(labels == j)[0]
                 if len(inds) == 0:
                     self.all_boxes[j][i] = np.empty([0, 5], dtype=np.float32)
                     continue

@@ -34,7 +34,7 @@ As for ```AnchorYOLO```, we just regard it as a baseline, and won't improve it.
 # Training Configuration
 |   Configuration         |                      |
 |-------------------------|----------------------|
-| Batch Size              | 16                   |
+| Batch Size (bs)         | 16                   |
 | Init Lr                 | 0.01/64 × bs         |
 | Lr Scheduler            | Cos                  |
 | Optimizer               | SGD                  |
@@ -76,6 +76,15 @@ AP results on COCO-val:
 | YOLOF        |  608    |  83.7 | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolof_83.7.pth) |
 | FreeYOLO     |  608    |  84.9 | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_84.9.pth) |
 | AnchorYOLO   |  608    |  84.4 | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_anchor_84.4.pth) |
+
+## WiderFace
+
+|  Model     | Size | FPS<sup><br>2080ti | Easy | Medium | Hard |  Weight  |
+|------------|------|--------------------|------|--------|------|----------|
+| FreeYOLO   | 640  |                    |      |        |      | [github] |
+| FreeYOLO   | 800  |                    |      |        |      | [github] |
+
+
 
 # Train
 ## Single GPU
