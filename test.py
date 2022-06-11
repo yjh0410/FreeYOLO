@@ -100,7 +100,7 @@ def visualize(img,
 
     return img
         
-
+@torch.no_grad()
 def test(args,
          net, 
          device, 
