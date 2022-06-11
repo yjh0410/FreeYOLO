@@ -26,14 +26,12 @@ def parse_args():
                         type=str, help='Use the data from image, video or camera')
     parser.add_argument('--cuda', action='store_true', default=False,
                         help='Use cuda')
-    parser.add_argument('--path_to_img', default='data/demo/images/',
+    parser.add_argument('--path_to_img', default='dataset/demo/images/',
                         type=str, help='The path to image files')
-    parser.add_argument('--path_to_vid', default='data/demo/videos/',
+    parser.add_argument('--path_to_vid', default='dataset/demo/videos/',
                         type=str, help='The path to video files')
     parser.add_argument('--path_to_save', default='det_results/demos/',
                         type=str, help='The path to save the detection results')
-    parser.add_argument('--path_to_saveVid', default='data/videos/result.avi',
-                        type=str, help='The path to save the detection results video')
     parser.add_argument('-vs', '--visual_threshold', default=0.35, type=float,
                         help='Final confidence threshold for visualization')
     parser.add_argument('--show', action='store_true', default=False,

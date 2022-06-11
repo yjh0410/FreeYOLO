@@ -67,12 +67,14 @@ class FreeYOLO(nn.Module):
 
         # --------- Criterion for Training ----------
         if trainable:
-            self.criterion = Criterion(cfg=cfg,
-                                       device=device,
-                                       loss_obj_weight=cfg['loss_obj_weight'],
-                                       loss_cls_weight=cfg['loss_cls_weight'],
-                                       loss_reg_weight=cfg['loss_reg_weight'],
-                                       num_classes=num_classes)
+            self.criterion = Criterion(
+                cfg=cfg,
+                device=device,
+                loss_obj_weight=cfg['loss_obj_weight'],
+                loss_cls_weight=cfg['loss_cls_weight'],
+                loss_reg_weight=cfg['loss_reg_weight'],
+                num_classes=num_classes
+                )
 
 
     def init_yolo(self):  
