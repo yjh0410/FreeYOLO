@@ -47,9 +47,9 @@ def parse_args():
                         help='use test augmentation.')
     parser.add_argument('-fp', '--flip', action='store_true', default=False,
                         help='use flip in test augmentation.')
-    parser.add_argument('--min_size', default=608, type=int,
+    parser.add_argument('--tta_min_size', default=608, type=int,
                         help='use flip in test augmentation.')
-    parser.add_argument('--max_size', default=608, type=int,
+    parser.add_argument('--tta_max_size', default=608, type=int,
                         help='use flip in test augmentation.')
 
     return parser.parse_args()
@@ -212,7 +212,11 @@ if __name__ == '__main__':
                         path_to_ckpt=args.weight)
 
     # TTA
-    test_aug = TestTimeAugmentation(num_classes=num_classes) if args.test_aug else None
+    test_aug = TestTimeAugmentation(
+        num_classes=num_classes,
+        min_size=args.tta_min_size,
+        max_size=args.tta_max_size,
+        test_flip=args.flip) if args.test_aug else None
 
     # transform
     transform = ValTransforms(
