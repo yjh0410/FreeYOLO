@@ -20,11 +20,28 @@ pip install -r requirements.txt
 We suggest that PyTorch should be higher than 1.9.0 and Torchvision should be higher than 0.10.3. 
 At least, please make sure your torch is version 1.x.
 
+# Future Work
+We will occasionally update the performance of ```FreeYOLO``` on COCO.
+
+As for ```AnchorYOLO```, we just regard it as a baseline, and won't improve it.
+
 # Tricks
-- [x] Mosaic Augmentation
-- [x] Mixup Augmentation
+- [x] [Mosaic Augmentation](https://github.com/yjh0410/FreeYOLO/blob/master/dataset/transforms.py)
+- [x] [Mixup Augmentation](https://github.com/yjh0410/FreeYOLO/blob/master/dataset/transforms.py)
 - [x] Multi scale training
 - [x] Cosine Annealing Schedule
+
+# Training Configuration
+|   Configuration         |                      |
+|-------------------------|----------------------|
+| Batch Size              | 16                   |
+| Init Lr                 | 0.01/64 × bs         |
+| Lr Scheduler            | Cos                  |
+| Optimizer               | SGD                  |
+| ImageNet Predtrained    | True                 |
+| Multi Scale Train       | 320, 352, ..., 640   |
+| Mosaic                  | True                 |
+| Mixup                   | True                 |
 
 # Network
 ## AnchorYOLO & FreeYOLO
