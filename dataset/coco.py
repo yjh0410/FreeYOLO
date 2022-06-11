@@ -242,22 +242,26 @@ if __name__ == "__main__":
         img_size=img_size,
         pixel_mean=pixel_mean,
         pixel_std=pixel_std,
-        format=format
+        format=format,
+        min_box_size=8
         )
     color_augment = BaseTransforms(
         img_size=img_size,
         pixel_mean=pixel_mean,
         pixel_std=pixel_std,
-        format=format
+        format=format,
+        min_box_size=8
         )
 
-    dataset = COCODataset(img_size=img_size,
-                          data_dir='/mnt/share/ssd2/dataset/COCO',
-                          image_set='train2017',
-                          transform=transform,
-                          color_augment=color_augment,
-                          mosaic_prob=0.5,
-                          mixup_prob=0.5)
+    dataset = COCODataset(
+        img_size=img_size,
+        data_dir='/mnt/share/ssd2/dataset/COCO',
+        image_set='train2017',
+        transform=transform,
+        color_augment=color_augment,
+        mosaic_prob=0.5,
+        mixup_prob=0.5
+        )
     
     np.random.seed(0)
     class_colors = [(np.random.randint(255),

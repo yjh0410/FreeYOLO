@@ -58,6 +58,8 @@ def parse_args():
     # train trick
     parser.add_argument('--ema', action='store_true', default=False,
                         help='Model EMA')
+    parser.add_argument('--min_box_size', default=8.0, type=float,
+                        help='min size of target bounding box.')
 
     # DDP train
     parser.add_argument('-dist', '--distributed', action='store_true', default=False,

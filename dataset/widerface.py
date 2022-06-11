@@ -39,7 +39,7 @@ class WIDERFaceDetection(data.Dataset):
     def __init__(self, 
                  data_dir=None,
                  img_size=640,
-                 image_sets='val',
+                 image_sets='train',
                  transform=None,
                  color_augment=None, 
                  mosaic_prob=0.0,
@@ -265,22 +265,25 @@ if __name__ == "__main__":
         img_size=img_size,
         pixel_mean=pixel_mean,
         pixel_std=pixel_std,
-        format=format
+        format=format,
+        min_box_size=4
         )
     color_augment = BaseTransforms(
         img_size=img_size,
         pixel_mean=pixel_mean,
         pixel_std=pixel_std,
-        format=format
+        format=format,
+        min_box_size=4,
         )
 
     dataset = WIDERFaceDetection(
-                           data_dir='E:\\python_work\\object_detection\\dataset\\WiderFace',
-                           img_size=img_size,
-                           transform=transform,
-                           color_augment=color_augment,
-                           mosaic_prob=0.5,
-                           mixup_prob=0.5)
+        data_dir='E:\\python_work\\object_detection\\dataset\\WiderFace',
+        img_size=img_size,
+        transform=transform,
+        color_augment=color_augment,
+        mosaic_prob=0.5,
+        mixup_prob=0.5
+        )
     
     np.random.seed(0)
     print('Data length: ', len(dataset))

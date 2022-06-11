@@ -51,14 +51,16 @@ def build_dataset(cfg, args, device):
         img_size=cfg['train_size'],
         pixel_mean=cfg['pixel_mean'],
         pixel_std=cfg['pixel_std'],
-        format=cfg['format']
+        format=cfg['format'],
+        min_box_size=args.min_box_size
     )
     train_transform = TrainTransforms(
         trans_config=trans_config,
         img_size=cfg['train_size'],
         format=cfg['format'],
         pixel_mean=cfg['pixel_mean'],
-        pixel_std=cfg['pixel_std']
+        pixel_std=cfg['pixel_std'],
+        min_box_size=args.min_box_size
         )
     val_transform = ValTransforms(
         img_size=cfg['test_size'],
@@ -66,11 +68,12 @@ def build_dataset(cfg, args, device):
         pixel_mean=cfg['pixel_mean'],
         pixel_std=cfg['pixel_std']
         )
+        
     # dataset
-    
     if args.dataset == 'voc':
         data_dir = os.path.join(args.root, 'VOCdevkit')
         num_classes = 20
+
         # dataset
         dataset = VOCDetection(
             img_size=cfg['train_size'],
@@ -106,6 +109,11 @@ def build_dataset(cfg, args, device):
     elif args.dataset == 'widerface':
         data_dir = os.path.join(args.root, 'WiderFace')
         num_classes = 1
+        # reset min size of target bbox
+        if args.min_box_size > 4.0:
+            print("For WiderFace, we suggest that the min size of bbox is 4.0.")
+            train_transform.min_box_size = 4.0
+            color_augment.min_box_size = 4.0
         # dataset
         dataset = WIDERFaceDetection(
             img_size=cfg['train_size'],
