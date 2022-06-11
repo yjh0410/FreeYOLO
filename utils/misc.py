@@ -378,9 +378,8 @@ class TestTimeAugmentation(object):
         labels = np.concatenate(labels_list)
 
         # rescale
-        bboxes *= max(h0, w0)
-        bboxes[..., [0, 2]] = np.clip(bboxes[..., [0, 2]], a_min=0., a_max=w0)
-        bboxes[..., [1, 3]] = np.clip(bboxes[..., [1, 3]], a_min=0., a_max=h0)
+        bboxes[..., [0, 2]] = np.clip(bboxes[..., [0, 2]] * w0, a_min=0., a_max=w0)
+        bboxes[..., [1, 3]] = np.clip(bboxes[..., [1, 3]] * h0, a_min=0., a_max=h0)
 
         # nms
         keep = np.zeros(len(bboxes), dtype=np.int)
