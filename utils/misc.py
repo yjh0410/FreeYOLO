@@ -377,6 +377,11 @@ class TestTimeAugmentation(object):
         scores = np.concatenate(scores_list)
         labels = np.concatenate(labels_list)
 
+        # rescale
+        bboxes *= max(h0, w0)
+        bboxes[..., [0, 2]] = np.clip(bboxes[..., [0, 2]], a_min=0., a_max=w0)
+        bboxes[..., [1, 3]] = np.clip(bboxes[..., [1, 3]], a_min=0., a_max=h0)
+
         # nms
         keep = np.zeros(len(bboxes), dtype=np.int)
         for i in range(self.num_classes):
@@ -392,5 +397,8 @@ class TestTimeAugmentation(object):
         bboxes = bboxes[keep]
         scores = scores[keep]
         labels = labels[keep]
+
+        # scale
+        bboxes /= max(h0, w0)
 
         return bboxes, scores, labels
