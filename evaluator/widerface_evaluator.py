@@ -319,7 +319,6 @@ class WiderFaceEvaluator():
         # create dataset
         self.dataset = WIDERFaceDetection(
             data_dir=data_dir, 
-            image_sets='val',
             image_sets=image_set
             )
         os.makedirs(self.pred_path, exist_ok=True)
