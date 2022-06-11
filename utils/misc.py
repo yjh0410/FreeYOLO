@@ -398,6 +398,7 @@ class TestTimeAugmentation(object):
         labels = labels[keep]
 
         # scale
-        bboxes /= max(h0, w0)
+        bboxes[..., [0, 2]] /= w0
+        bboxes[..., [1, 3]] /= h0
 
         return bboxes, scores, labels
