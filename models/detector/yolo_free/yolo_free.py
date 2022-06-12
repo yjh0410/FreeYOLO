@@ -73,8 +73,7 @@ class FreeYOLO(nn.Module):
                 loss_obj_weight=cfg['loss_obj_weight'],
                 loss_cls_weight=cfg['loss_cls_weight'],
                 loss_reg_weight=cfg['loss_reg_weight'],
-                num_classes=num_classes,
-                matcher=cfg['label_assignment']
+                num_classes=num_classes
                 )
 
 
@@ -281,9 +280,6 @@ class FreeYOLO(nn.Module):
                 cls_pred = cls_pred.permute(0, 2, 3, 1).contiguous().view(B, -1, self.num_classes)
                 reg_pred = reg_pred.permute(0, 2, 3, 1).contiguous().view(B, -1, 4)
                 reg_pred = torch.exp(reg_pred) * self.stride[level]
-
-                if self.cfg['label_assignment'] == 'simota':
-                    reg_pred = self.decode_boxes(anchors.unsqueeze(0), reg_pred)
 
                 all_obj_preds.append(obj_pred)
                 all_cls_preds.append(cls_pred)
