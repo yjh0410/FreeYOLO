@@ -14,8 +14,7 @@ class Criterion(object):
                  loss_obj_weight=1.0, 
                  loss_cls_weight=1.0,
                  loss_reg_weight=1.0,
-                 num_classes=80,
-                 matcher='fcos'):
+                 num_classes=80):
         self.cfg = cfg
         self.device = device
         self.num_classes = num_classes
