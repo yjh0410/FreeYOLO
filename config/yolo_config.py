@@ -60,7 +60,7 @@ yolo_config = {
                     'simota': {'center_sampling_radius': 2.5,
                                'topk_candidate': 10}
                                },
-        'label_assignment': 'fcos',
+        'label_assignment': 'simota',
         # loss
         'loss_obj_weight': 1.0,
         'loss_cls_weight': 1.0,
