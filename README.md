@@ -21,7 +21,7 @@ We suggest that PyTorch should be higher than 1.9.0 and Torchvision should be hi
 At least, please make sure your torch is version 1.x.
 
 # Future Work
-We will occasionally update the performance of ```FreeYOLO``` on COCO.
+I will occasionally update the performance of ```FreeYOLO``` on COCO.
 
 As for ```AnchorYOLO```, we just regard it as a baseline, and won't improve it.
 
@@ -39,7 +39,6 @@ As for ```AnchorYOLO```, we just regard it as a baseline, and won't improve it.
 | Lr Scheduler            | Cos                  |
 | Optimizer               | SGD                  |
 | ImageNet Predtrained    | True                 |
-| Label Assignment        | FCOS                 |
 | Multi Scale Train       | 320, 352, ..., 640   |
 | Mosaic                  | True                 |
 | Mixup                   | True                 |
@@ -56,37 +55,27 @@ As for ```AnchorYOLO```, we just regard it as a baseline, and won't improve it.
 
 Main results on COCO-val:
 
-| Model        | Macther  |  Scale  | FPS<sup><br>2080ti |  FLOPs  |  Params |    AP    |    AP50    |  Weight  |
-|--------------|----------|---------|--------------------|---------|---------|----------|------------|----------|
-| YOLOF        | Uniform  |  608    |  74                |  64.1 B |  33.0 M |   39.9   |    60.3    | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolof_39.9_60.3.pth) |
-| AnchorYOLO   |    -     |  608    |  45                |  76.3 B |  62.0 M |   42.5   |    62.1    | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_anchor_42.5_62.1.pth) |
-| FreeYOLO     |  FCOS    |  608    |  51                |  76.0 B |  61.8 M | **43.7** |  **62.6**  | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_43.7_62.6.pth) |
-| FreeYOLO     |  SimOTA  |  608    |  51                |  76.0 B |  61.8 M |          |            | [github]() |
+| Model        |  Scale  | FPS<sup><br>2080ti |  FLOPs  |  Params |    AP    |    AP50    |  Weight  |
+|--------------|---------|--------------------|---------|---------|----------|------------|----------|
+| YOLOF        |  608    |  74                |  64.1 B |  33.0 M |   39.9   |    60.3    | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolof_39.9_60.3.pth) |
+| AnchorYOLO   |  608    |  45                |  76.3 B |  62.0 M |   42.5   |    62.1    | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_anchor_42.5_62.1.pth) |
+| FreeYOLO     |  608    |  51                |  76.0 B |  61.8 M | **43.7** |  **62.6**  | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_43.7_62.6.pth) |
 
 AP results on COCO-val:
 
-| Model        | Macther  |  Scale  |  AP      |  AP50      |  AP75      |  APs      |  APm      |  APl      |
+| Model        |  Scale  |  AP      |  AP50      |  AP75      |  APs      |  APm      |  APl      |
 |--------------|----------|---------|----------|------------|------------|-----------|-----------|-----------|
-| YOLOF        | Uniform  |  608    |   39.9   |    60.3    |    42.5    |    22.9   |    44.6   |   52.8    |
-| AnchorYOLO   |    -     |  608    |   42.5   |    62.1    |    45.1    |  **28.5** |    47.6   |   53.1    |
-| FreeYOLO     |  FCOS    |  608    | **43.7** |  **62.6**  |  **46.7**  |    28.0   |  **49.2** | **57.4**  |
-| FreeYOLO     |  SimOTA  |  608    |          |            |            |           |           |           |
+| YOLOF        |  608    |   39.9   |    60.3    |    42.5    |    22.9   |    44.6   |   52.8    |
+| AnchorYOLO   |  608    |   42.5   |    62.1    |    45.1    |  **28.5** |    47.6   |   53.1    |
+| FreeYOLO     |  608    | **43.7** |  **62.6**  |  **46.7**  |    28.0   |  **49.2** | **57.4**  |
 
 ## VOC
 
-| Model        | Macther  |  Scale  |  AP50 |  Weight  |
+| Model        |  Scale  |  AP50 |  Weight  |
 |--------------|----------|---------|-------|----------|
-| YOLOF        | Uniform  |  608    |  83.7 | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolof_83.7.pth) |
-| AnchorYOLO   |    -     |  608    |  84.4 | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_anchor_84.4.pth) |
-| FreeYOLO     |  FCOS    |  608    |  84.9 | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_84.9.pth) |
-| FreeYOLO     |  SimOTA  |  608    |       | [github]() |
-
-## WiderFace
-
-|  Model     | Size | FPS<sup><br>2080ti | Easy | Medium | Hard |  Weight  |
-|------------|------|--------------------|------|--------|------|----------|
-| FreeYOLO   | 640  |                    |      |        |      | [github] |
-| FreeYOLO   | 800  |                    |      |        |      | [github] |
+| YOLOF        |  608    |  83.7 | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolof_83.7.pth) |
+| AnchorYOLO   |  608    |  84.4 | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_anchor_84.4.pth) |
+| FreeYOLO     |  608    |  84.9 | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_84.9.pth) |
 
 
 # Train
