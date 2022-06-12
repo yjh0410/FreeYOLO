@@ -73,7 +73,8 @@ class FreeYOLO(nn.Module):
                 loss_obj_weight=cfg['loss_obj_weight'],
                 loss_cls_weight=cfg['loss_cls_weight'],
                 loss_reg_weight=cfg['loss_reg_weight'],
-                num_classes=num_classes
+                num_classes=num_classes,
+                matcher=cfg['label_assignment']
                 )
 
 
@@ -272,30 +273,32 @@ class FreeYOLO(nn.Module):
 
                 B, _, H, W = cls_pred.size()
                 fmp_size = [H, W]
+                # generate anchor boxes: [M, 4]
+                anchors = self.generate_anchors(level, fmp_size)
+                
                 # [B, C, H, W] -> [B, H, W, C] -> [B, M, C]
                 obj_pred = obj_pred.permute(0, 2, 3, 1).contiguous().view(B, -1, 1)
                 cls_pred = cls_pred.permute(0, 2, 3, 1).contiguous().view(B, -1, self.num_classes)
                 reg_pred = reg_pred.permute(0, 2, 3, 1).contiguous().view(B, -1, 4)
                 reg_pred = torch.exp(reg_pred) * self.stride[level]
 
+                if self.cfg['label_assignment'] == 'simota':
+                    reg_pred = self.decode_boxes(anchors.unsqueeze(0), reg_pred)
+
                 all_obj_preds.append(obj_pred)
                 all_cls_preds.append(cls_pred)
                 all_reg_preds.append(reg_pred)
-
-                # generate anchor boxes: [M, 4]
-                anchors = self.generate_anchors(level, fmp_size)
                 all_anchors.append(anchors)
             
             # output dict
-            outputs = {"pred_obj": all_obj_preds,        # List [B, M, 1]
-                       "pred_cls": all_cls_preds,        # List [B, M, C]
-                       "pred_reg": all_reg_preds,        # List [B, M, 4]
-                       'strides': self.stride}           # List [B, M,]
+            outputs = {"pred_obj": all_obj_preds,        # List(Tensor) [B, M, 1]
+                       "pred_cls": all_cls_preds,        # List(Tensor) [B, M, C]
+                       "pred_reg": all_reg_preds,        # List(Tensor) [B, M, 4]
+                       "anchors": all_anchors,           # List(Tensor) [B, M, 2]
+                       'strides': self.stride}           # List(Int) [8, 16, 32]
 
             # loss
-            loss_dict = self.criterion(outputs = outputs, 
-                                       targets = targets, 
-                                       anchors = all_anchors)
+            loss_dict = self.criterion(outputs = outputs, targets = targets)
 
             return loss_dict 
     

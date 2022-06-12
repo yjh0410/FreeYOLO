@@ -54,8 +54,13 @@ yolo_config = {
         'conf_thresh': 0.01,
         'nms_thresh': 0.5,
         # matcher
-        'matcher': {'object_sizes_of_interest': [[-1, 64], [64, 128], [128, float('inf')]],
-                    'center_sampling_radius': 1.5},
+        'matcher': {'fcos': {'object_sizes_of_interest': 
+                                [[-1, 64], [64, 128], [128, float('inf')]],
+                             'center_sampling_radius': 1.5},
+                    'simota': {'center_sampling_radius': 2.5,
+                               'topk_candidate': 10}
+                               },
+        'label_assignment': 'fcos',
         # loss
         'loss_obj_weight': 1.0,
         'loss_cls_weight': 1.0,
