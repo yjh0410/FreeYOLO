@@ -281,7 +281,6 @@ class FreeYOLOv2(nn.Module):
                 obj_pred = obj_pred.permute(0, 2, 3, 1).contiguous().view(B, -1, 1)
                 cls_pred = cls_pred.permute(0, 2, 3, 1).contiguous().view(B, -1, self.num_classes)
                 reg_pred = reg_pred.permute(0, 2, 3, 1).contiguous().view(B, -1, 4)
-                reg_pred = torch.exp(reg_pred) * self.stride[level]
 
                 # decode box: [M, 4]
                 box_pred = self.decode_boxes(anchors, reg_pred, self.stride[level])
