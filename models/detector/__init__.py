@@ -1,5 +1,6 @@
 import torch
 from .yolo_free.yolo_free import FreeYOLO
+from .yolo_free_v2.yolo_free_v2 import FreeYOLOv2
 from .yolo_anchor.yolo_anchor import AnchorYOLO
 from .yolof.yolof import YOLOF
 
@@ -15,7 +16,7 @@ def build_model(args,
     print('==============================')
     print('Build {} ...'.format(args.version.upper()))
     
-    if 'yolo_free' in args.version:
+    if args.version == 'yolo_free':
         model = FreeYOLO(cfg=cfg,
                          device=device, 
                          num_classes=num_classes, 
@@ -24,7 +25,16 @@ def build_model(args,
                          nms_thresh=cfg['nms_thresh'],
                          topk=args.topk)
 
-    elif 'yolo_anchor' in args.version:
+    elif args.version == 'yolo_free_v2':
+        model = FreeYOLOv2(cfg=cfg,
+                         device=device, 
+                         num_classes=num_classes, 
+                         trainable=trainable,
+                         conf_thresh=cfg['conf_thresh'],
+                         nms_thresh=cfg['nms_thresh'],
+                         topk=args.topk)
+
+    elif args.version == 'yolo_anchor':
         model = AnchorYOLO(cfg=cfg,
                            device=device, 
                            num_classes=num_classes, 
@@ -33,7 +43,7 @@ def build_model(args,
                            nms_thresh=cfg['nms_thresh'],
                            topk=args.topk)
 
-    elif 'yolof' in args.version:
+    elif args.version == 'yolof':
         model = YOLOF(cfg=cfg,
                      device=device, 
                      num_classes=num_classes, 
@@ -60,6 +70,7 @@ def build_model(args,
                 shape_checkpoint = tuple(checkpoint_state_dict[k].shape)
                 if shape_model != shape_checkpoint:
                     checkpoint_state_dict.pop(k)
+                    print(k)
             else:
                 print(k)
 
