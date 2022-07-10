@@ -252,14 +252,14 @@ yolo_config = {
         'ctr_clamp': 32,
         # neck
         'neck': 'dilated_encoder',
-        'expand_ratio': 0.5,
+        'expand_ratio': 0.25,
         'dilation_list': [2, 4, 6, 8],
         'neck_act': 'lrelu',
         'neck_norm': 'BN',
         'neck_depthwise': False,
         # head
         'head': 'decoupled_head',
-        'head_dim': 256,
+        'head_dim': 512,
         'head_norm': 'BN',
         'head_act': 'lrelu',
         'num_cls_head': 2,
