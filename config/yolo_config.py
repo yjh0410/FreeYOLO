@@ -253,7 +253,7 @@ yolo_config = {
         # neck
         'neck': 'dilated_encoder',
         'expand_ratio': 0.25,
-        'dilation_list': [2, 4, 6, 8],
+        'dilation_list': [1, 2, 3, 4, 5, 6, 7, 8],
         'neck_act': 'lrelu',
         'neck_norm': 'BN',
         'neck_depthwise': False,
