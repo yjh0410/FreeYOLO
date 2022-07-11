@@ -12,7 +12,7 @@
 # Train YOLOF
 python train.py \
         --cuda \
-        -d voc \
+        -d coco \
         --root /mnt/share/ssd2/dataset/ \
         -v yolof \
         --ema \
