@@ -72,14 +72,14 @@ class DownSample(nn.Module):
 
 
 # YOLOv7's PaFPN
-class YoloPaFPN(nn.Module):
+class ELANPaFPN(nn.Module):
     def __init__(self, 
                  in_dims=[256, 512, 512],
                  out_dim=256,
                  depthwise=False,
                  norm_type='BN',
                  act_type='silu'):
-        super(YoloPaFPN, self).__init__()
+        super(ELANPaFPN, self).__init__()
         self.in_dims = in_dims
         self.out_dim = out_dim
         c3, c4, c5 = in_dims
@@ -96,7 +96,7 @@ class YoloPaFPN(nn.Module):
 
         # P4 -> P3
         self.cv3 = Conv(256, 128, k=1, norm_type=norm_type, act_type=act_type)
-        self.cv4 = Conv(256, 128, k=1, norm_type=norm_type, act_type=act_type)
+        self.cv4 = Conv(c3, 128, k=1, norm_type=norm_type, act_type=act_type)
         self.head_elan_2 = ELANBlock(in_dim=128 + 128,
                                      out_dim=128,  # 128
                                      depthwise=depthwise,

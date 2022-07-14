@@ -172,7 +172,7 @@ yolo_config = {
                          {'name': 'PadImage'}],
         # model
         'backbone': 'elannet',
-        'pretrained': True,
+        'pretrained': False,
         'stride': [8, 16, 32],  # P3, P4, P5
         # neck
         'neck': 'spp_block',
@@ -183,8 +183,8 @@ yolo_config = {
         'neck_norm': 'BN',
         'neck_depthwise': False,
         # fpn
-        'fpn': 'yolo_pafpn',
-        'fpn_depth': 3,
+        'fpn': 'elanpafpn',
+        'fpn_dim': [512, 1024, 1024],
         'fpn_norm': 'BN',
         'fpn_act': 'silu',
         'fpn_depthwise': False,

@@ -1,6 +1,7 @@
 from .spp import SPPBlockCSP
 from .dilated_encoder import DilatedEncoder
 from ..neck.yolopafpn import YoloPaFPN
+from ..neck.elanpafpn import ELANPaFPN
 
 
 def build_fpn(cfg, in_dims, out_dim):
@@ -16,6 +17,13 @@ def build_fpn(cfg, in_dims, out_dim):
                             norm_type=cfg['fpn_norm'],
                             act_type=cfg['fpn_act'])
 
+    elif model == 'elanpafpn':
+        fpn_net = ELANPaFPN(in_dims=in_dims,
+                            out_dim=out_dim,
+                            depthwise=cfg['fpn_depthwise'],
+                            norm_type=cfg['fpn_norm'],
+                            act_type=cfg['fpn_act'])
+                            
 
     return fpn_net
 
