@@ -163,6 +163,8 @@ class FreeYOLOv3(nn.Module):
 
         # neck
         feats['layer4'] = self.neck(feats['layer4'])
+        for f in feats:
+            print(f.shape)
 
         # fpn
         pyramid_feats = [feats['layer2'], feats['layer3'], feats['layer4']]
