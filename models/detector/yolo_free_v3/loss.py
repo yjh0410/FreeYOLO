@@ -88,7 +88,7 @@ class Criterion(object):
                     )
 
                 # [M, C]
-                obj_target = fg_mask.unsqueeze(-1)
+                obj_target = fg_mask.unsqueeze(-1).float()
                 tgt_ious = torch.zeros_like(obj_target)
                 tgt_ious[fg_mask] = pred_ious_this_matching.unsqueeze(-1)
                 obj_target = obj_target * tgt_ious
