@@ -1,4 +1,5 @@
 from .cspdarknet import build_cspdarknet
+from .elannet import build_elannet
 
 
 def build_backbone(cfg, trainable=False):
@@ -18,6 +19,11 @@ def build_backbone(cfg, trainable=False):
             res5_dilation=res5_dilation
             )
 
+    elif cfg['backbone'] == 'elannet':
+        model, feat_dim = build_elannet(
+            pretrained=pretrained
+        )
+        
     else:
         print('Unknown Backbone ...')
         exit()
