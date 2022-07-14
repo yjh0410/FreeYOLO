@@ -75,7 +75,7 @@ class DownSample(nn.Module):
 class ELANPaFPN(nn.Module):
     def __init__(self, 
                  in_dims=[256, 512, 512],
-                 out_dim=256,
+                 out_dim=[256, 512, 1024],
                  depthwise=False,
                  norm_type='BN',
                  act_type='silu'):
@@ -121,9 +121,9 @@ class ELANPaFPN(nn.Module):
                                      act_type=act_type)
 
         # RepConv
-        self.repconv_1 = RepConv(128, 256, k=3, s=1, p=1)
-        self.repconv_2 = RepConv(256, 512, k=3, s=1, p=1)
-        self.repconv_3 = RepConv(512, 1024, k=3, s=1, p=1)
+        self.repconv_1 = RepConv(128, out_dim[0], k=3, s=1, p=1)
+        self.repconv_2 = RepConv(256, out_dim[1], k=3, s=1, p=1)
+        self.repconv_3 = RepConv(512, out_dim[2], k=3, s=1, p=1)
 
 
     def forward(self, features):
