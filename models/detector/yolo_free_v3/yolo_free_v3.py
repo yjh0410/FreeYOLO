@@ -42,7 +42,7 @@ class FreeYOLOv3(nn.Module):
         ## pred
         self.pred_layers = nn.ModuleList(
                             [nn.Conv2d(dim, 1+self.num_classes+4, kernel_size=1) 
-                              for dim in range(len(cfg['head_dim']))
+                              for dim in cfg['head_dim']
                               ]) 
 
         # --------- Network Initialization ----------
