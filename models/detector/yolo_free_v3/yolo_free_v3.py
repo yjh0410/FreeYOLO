@@ -2,6 +2,7 @@ import torch
 import numpy as np
 import torch.nn as nn
 
+from ...basic.repconv import RepConv
 from ...backbone import build_backbone
 from ...neck import build_neck, build_fpn
 from .loss import Criterion
@@ -132,6 +133,16 @@ class FreeYOLOv3(nn.Module):
             order = order[inds + 1]
 
         return keep
+
+
+    def fuse_repconv(self):
+        print('Fusing RepCpnv layers... ')
+        for m in self.modules():
+            if isinstance(m, RepConv):
+                #print(f" fuse_repvgg_block")
+                m.fuse_repvgg_block()
+        self.info()
+        return self
 
 
     @torch.no_grad()

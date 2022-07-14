@@ -9,6 +9,7 @@ from dataset.voc import VOC_CLASSES, VOCDetection
 from dataset.coco import coco_class_index, coco_class_labels, COCODataset
 from dataset.transforms import ValTransforms
 from utils.misc import load_weight, TestTimeAugmentation
+from utils import fuse_conv_bn
 
 from config import build_config
 from models.detector import build_model
@@ -36,6 +37,8 @@ def parse_args():
                         type=str, help='Trained state_dict file path to open')
     parser.add_argument('--topk', default=100, type=int,
                         help='topk candidates for testing')
+    parser.add_argument('--fuse_conv_bn', action='store_true', default=False,
+                        help='fuse conv and bn')
 
     # dataset
     parser.add_argument('--root', default='/mnt/share/ssd2/dataset',
@@ -210,6 +213,11 @@ if __name__ == '__main__':
     model = load_weight(device=device, 
                         model=model, 
                         path_to_ckpt=args.weight)
+
+    # fuse conv bn
+    if args.fuse_conv_bn:
+        print('fuse conv and bn ...')
+        model = fuse_conv_bn(model)
 
     # TTA
     test_aug = TestTimeAugmentation(
