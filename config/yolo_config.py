@@ -184,7 +184,7 @@ yolo_config = {
         'neck_depthwise': False,
         # fpn
         'fpn': 'elanpafpn',
-        'fpn_dim': [512, 1024, 1024],
+        'fpn_dim': [512, 1024, 512],
         'fpn_norm': 'BN',
         'fpn_act': 'silu',
         'fpn_depthwise': False,
