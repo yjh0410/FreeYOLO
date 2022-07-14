@@ -90,8 +90,7 @@ class Criterion(object):
                 # [M, C]
                 obj_target = fg_mask.unsqueeze(-1)
                 tgt_ious = torch.zeros_like(obj_target)
-                print(tgt_ious[fg_mask].shape, pred_ious_this_matching.shape)
-                tgt_ious[fg_mask] = pred_ious_this_matching
+                tgt_ious[fg_mask] = pred_ious_this_matching.unsqueeze(-1)
                 obj_target = obj_target * tgt_ious
                 cls_target = F.one_hot(gt_matched_classes.long(), self.num_classes)
                 # cls_target = cls_target * pred_ious_this_matching.unsqueeze(-1)
