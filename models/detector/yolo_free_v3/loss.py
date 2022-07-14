@@ -87,10 +87,13 @@ class Criterion(object):
                     tgt_bboxes = tgt_bboxes
                     )
 
-                print(fg_mask.shape)
+                # [M, C]
                 obj_target = fg_mask.unsqueeze(-1)
+                tgt_ious = torch.zeros_like(obj_target)
+                tgt_ious[fg_mask] = pred_ious_this_matching
+                obj_target = obj_target * tgt_ious
                 cls_target = F.one_hot(gt_matched_classes.long(), self.num_classes)
-                cls_target = cls_target * pred_ious_this_matching.unsqueeze(-1)
+                # cls_target = cls_target * pred_ious_this_matching.unsqueeze(-1)
                 box_target = tgt_bboxes[matched_gt_inds]
 
             cls_targets.append(cls_target)
