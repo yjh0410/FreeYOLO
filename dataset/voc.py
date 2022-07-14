@@ -267,7 +267,7 @@ if __name__ == "__main__":
 
     dataset = VOCDetection(
         img_size=img_size,
-        data_dir='E:\\python_work\\object_detection\\dataset\\VOCdevkit',
+        data_dir='D:\\python_work\\object-detection\\dataset\\VOCdevkit',
         transform=transform,
         color_augment=color_augment,
         mosaic_prob=0.5,
