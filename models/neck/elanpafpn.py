@@ -126,14 +126,6 @@ class ELANPaFPN(nn.Module):
         self.repconv_3 = RepConv(512, 1024, k=3, s=1, p=1)
 
 
-        # output proj layers
-        if self.out_dim is not None:
-            self.out_layers = nn.ModuleList([
-                Conv(256*(2**(i)), 256, k=1,
-                     norm_type=norm_type, act_type=act_type)
-                     for i in range(len(in_dims))
-                     ])
-
     def forward(self, features):
         c3, c4, c5 = features
 
@@ -165,11 +157,5 @@ class ELANPaFPN(nn.Module):
         c22 = self.repconv_3(c19)
 
         out_feats = [c20, c21, c22] # [P3, P4, P5]
-        # output proj layers
-        if self.out_dim is not None:
-            out_feats_proj = []
-            for feat, layer in zip(out_feats, self.out_layers):
-                out_feats_proj.append(layer(feat))
-            return out_feats_proj
 
         return out_feats

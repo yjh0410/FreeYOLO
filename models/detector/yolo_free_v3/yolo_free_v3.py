@@ -39,26 +39,11 @@ class FreeYOLOv3(nn.Module):
         ## fpn
         self.fpn = build_fpn(cfg=cfg, in_dims=cfg['fpn_dim'], out_dim=cfg['head_dim'])
 
-        ## non-shared heads
-        self.non_shared_heads = nn.ModuleList(
-            [DecoupledHead(cfg) 
-            for _ in range(len(cfg['stride']))
-            ])
-
         ## pred
-        head_dim = cfg['head_dim']
-        self.obj_preds = nn.ModuleList(
-                            [nn.Conv2d(head_dim, 1, kernel_size=1) 
-                              for _ in range(len(cfg['stride']))
+        self.pred_layers = nn.ModuleList(
+                            [nn.Conv2d(dim, 1 + self.num_classes + 4, 1, kernel_size=1) 
+                              for dim in range(len(cfg['head_dim']))
                               ]) 
-        self.cls_preds = nn.ModuleList(
-                            [nn.Conv2d(head_dim, self.num_classes, kernel_size=1) 
-                              for _ in range(len(cfg['stride']))
-                              ]) 
-        self.reg_preds = nn.ModuleList(
-                            [nn.Conv2d(head_dim, 4, kernel_size=1) 
-                              for _ in range(len(cfg['stride']))
-                              ])                 
 
         # --------- Network Initialization ----------
         if trainable:
@@ -80,15 +65,10 @@ class FreeYOLOv3(nn.Module):
     def init_yolo(self):  
         init_prob = 0.01
         bias_value = -torch.log(torch.tensor((1. - init_prob) / init_prob))
-        # Init head
-        init_prob = 0.01
-        bias_value = -torch.log(torch.tensor((1. - init_prob) / init_prob))
-        # init obj pred
-        for obj_pred in self.obj_preds:
-            nn.init.constant_(obj_pred.bias, bias_value)
-        # init cls pred
-        for cls_pred in self.cls_preds:
-            nn.init.constant_(cls_pred.bias, bias_value)
+        # init obj&cls pred
+        for pred in self.pred_layers:
+            nn.init.constant_(pred.bias[..., :1], bias_value)
+            nn.init.constant_(pred.bias[..., 1:self.num_classes+1], bias_value)
 
 
     def generate_anchors(self, level, fmp_size):
@@ -172,13 +152,13 @@ class FreeYOLOv3(nn.Module):
         all_scores = []
         all_labels = []
         all_bboxes = []
-        for level, (feat, head) in enumerate(zip(pyramid_feats, self.non_shared_heads)):
-            cls_feat, reg_feat = head(feat)
+        for level, (feat, pred_layer) in enumerate(zip(pyramid_feats, self.pred_layers)):
+            preds = pred_layer(feat)
 
             # [1, C, H, W]
-            obj_pred = self.obj_preds[level](reg_feat)
-            cls_pred = self.cls_preds[level](cls_feat)
-            reg_pred = self.reg_preds[level](reg_feat)
+            obj_pred = preds[:, :1, :, :]
+            cls_pred = preds[:, 1:self.num_classes+1, :, :]
+            reg_pred = preds[:, self.num_classes+1:, :, :]
 
             # decode box
             _, _, H, W = cls_pred.size()
@@ -264,13 +244,13 @@ class FreeYOLOv3(nn.Module):
             all_obj_preds = []
             all_cls_preds = []
             all_box_preds = []
-            for level, (feat, head) in enumerate(zip(pyramid_feats, self.non_shared_heads)):
-                cls_feat, reg_feat = head(feat)
+            for level, (feat, pred_layer) in enumerate(zip(pyramid_feats, self.pred_layers)):
+                preds = pred_layer(feat)
 
                 # [1, C, H, W]
-                obj_pred = self.obj_preds[level](reg_feat)
-                cls_pred = self.cls_preds[level](cls_feat)
-                reg_pred = self.reg_preds[level](reg_feat)
+                obj_pred = preds[:, :1, :, :]
+                cls_pred = preds[:, 1:self.num_classes+1, :, :]
+                reg_pred = preds[:, self.num_classes+1:, :, :]
 
                 B, _, H, W = cls_pred.size()
                 fmp_size = [H, W]
