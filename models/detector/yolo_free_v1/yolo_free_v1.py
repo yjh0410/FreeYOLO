@@ -9,7 +9,7 @@ from .loss import Criterion
 
 
 # Anchor-free YOLO
-class FreeYOLO(nn.Module):
+class FreeYOLOv1(nn.Module):
     def __init__(self, 
                  cfg,
                  device, 
@@ -18,7 +18,7 @@ class FreeYOLO(nn.Module):
                  nms_thresh = 0.6,
                  trainable = False, 
                  topk = 1000):
-        super(FreeYOLO, self).__init__()
+        super(FreeYOLOv1, self).__init__()
         # --------- Basic Parameters ----------
         self.cfg = cfg
         self.device = device

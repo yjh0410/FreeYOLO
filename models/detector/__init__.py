@@ -1,5 +1,5 @@
 import torch
-from .yolo_free.yolo_free import FreeYOLO
+from .yolo_free_v1.yolo_free_v1 import FreeYOLOv1
 from .yolo_free_v2.yolo_free_v2 import FreeYOLOv2
 from .yolo_anchor.yolo_anchor import AnchorYOLO
 from .yolof.yolof import YOLOF
@@ -16,8 +16,8 @@ def build_model(args,
     print('==============================')
     print('Build {} ...'.format(args.version.upper()))
     
-    if args.version == 'yolo_free':
-        model = FreeYOLO(cfg=cfg,
+    if args.version == 'yolo_free_v1':
+        model = FreeYOLOv1(cfg=cfg,
                          device=device, 
                          num_classes=num_classes, 
                          trainable=trainable,
