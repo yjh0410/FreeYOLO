@@ -36,7 +36,7 @@ yolo_config = {
         'neck_norm': 'BN',
         'neck_depthwise': False,
         # fpn
-        'fpn': 'yolo_pafpn',
+        'fpn': 'pafpn_csp',
         'fpn_depth': 3,
         'fpn_norm': 'BN',
         'fpn_act': 'lrelu',
@@ -109,7 +109,7 @@ yolo_config = {
         'neck_norm': 'BN',
         'neck_depthwise': False,
         # fpn
-        'fpn': 'yolo_pafpn',
+        'fpn': 'pafpn_csp',
         'fpn_depth': 3,
         'fpn_norm': 'BN',
         'fpn_act': 'lrelu',
@@ -184,18 +184,15 @@ yolo_config = {
         'neck_norm': 'BN',
         'neck_depthwise': False,
         # fpn
-        'fpn': 'elanpafpn',
+        'fpn': 'pafpn_elan',
         'fpn_dim': [512, 1024, 512],
         'fpn_norm': 'BN',
         'fpn_act': 'silu',
         'fpn_depthwise': False,
         # head
-        'head': 'decoupled_head',
         'head_dim': [256, 512, 1024],
         'head_norm': 'BN',
         'head_act': 'silu',
-        'num_cls_head': 2,
-        'num_reg_head': 2,
         'head_depthwise': False,
         # post process
         'conf_thresh': 0.01,
@@ -259,7 +256,7 @@ yolo_config = {
         'neck_norm': 'BN',
         'neck_depthwise': False,
         # fpn
-        'fpn': 'yolo_pafpn',
+        'fpn': 'pafpn_csp',
         'fpn_depth': 3,
         'fpn_norm': 'BN',
         'fpn_act': 'lrelu',
