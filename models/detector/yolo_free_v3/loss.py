@@ -87,7 +87,7 @@ class Criterion(object):
                     tgt_bboxes = tgt_bboxes
                     )
 
-                print(fg_mask)
+                print(fg_mask.shape)
                 obj_target = fg_mask.unsqueeze(-1)
                 cls_target = F.one_hot(gt_matched_classes.long(), self.num_classes)
                 cls_target = cls_target * pred_ious_this_matching.unsqueeze(-1)
