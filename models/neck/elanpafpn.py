@@ -129,7 +129,7 @@ class ELANPaFPN(nn.Module):
         # output proj layers
         if self.out_dim is not None:
             self.out_layers = nn.ModuleList([
-                Conv(256*(2**(i+1)), 256, k=1,
+                Conv(256*(2**(i)), 256, k=1,
                      norm_type=norm_type, act_type=act_type)
                      for i in range(len(in_dims))
                      ])
