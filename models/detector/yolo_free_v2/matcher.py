@@ -60,7 +60,7 @@ class SimOTA(object):
         )
 
         with torch.cuda.amp.autocast(enabled=False):
-            score_preds_ = (
+            score_preds_ = torch.sqrt(
                 cls_preds_.float().unsqueeze(0).repeat(num_gt, 1, 1).sigmoid_()
                 * obj_preds_.float().unsqueeze(0).repeat(num_gt, 1, 1).sigmoid_()
             ) # [N, Mp, C]
