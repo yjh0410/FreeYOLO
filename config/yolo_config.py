@@ -61,7 +61,7 @@ yolo_config = {
         'loss_reg_weight': 5.0,
         # training configuration
         'max_epoch': 250,
-        'no_aug_epoch': 15,
+        'no_aug_epoch': -1,
         'batch_size': 16,
         'base_lr': 0.01 / 64.,
         'min_lr_ratio': 0.01,
@@ -135,7 +135,7 @@ yolo_config = {
         'loss_reg_weight': 5.0,
         # training configuration
         'max_epoch': 250,
-        'no_aug_epoch': 15,
+        'no_aug_epoch': -1,
         'batch_size': 16,
         'base_lr': 0.01 / 64.,
         'min_lr_ratio': 0.01,
@@ -207,7 +207,7 @@ yolo_config = {
         'loss_reg_weight': 5.0,
         # training configuration
         'max_epoch': 250,
-        'no_aug_epoch': 15,
+        'no_aug_epoch': -1,
         'batch_size': 16,
         'base_lr': 0.01 / 64.,
         'min_lr_ratio': 0.01,
@@ -281,7 +281,7 @@ yolo_config = {
         'loss_reg_weight': 5.0,
         # training configuration
         'max_epoch': 250,
-        'no_aug_epoch': 15,
+        'no_aug_epoch': -1,
         'batch_size': 16,
         'base_lr': 0.01 / 64.,
         'min_lr_ratio': 0.01,
@@ -353,7 +353,7 @@ yolo_config = {
         'loss_reg_weight': 1.0,
         # training configuration
         'max_epoch': 150,
-        'no_aug_epoch': 15,
+        'no_aug_epoch': -1,
         'batch_size': 16,
         'base_lr': 0.01 / 64.,
         'min_lr_ratio': 0.01,
