@@ -77,14 +77,13 @@ yolo_config = {
 
     'yolo_free_v2': {
         # input
-        'train_size': 800,
-        'test_size': 640,
+        'train_size': 640,
+        'test_size': 608,
         'random_size': [320, 352, 384, 416,
                         448, 480, 512, 544,
-                        576, 608, 640, 672,
-                        704, 736, 768, 800],
-        'mosaic_prob': 0.5,
-        'mixup_prob': 0.5,
+                        576, 608, 640],
+        'mosaic_prob': 1.0,
+        'mixup_prob': 0.15,
         'format': 'RGB',
         'pixel_mean': [123.675, 116.28, 103.53],
         'pixel_std': [58.395, 57.12, 57.375],
@@ -93,11 +92,17 @@ yolo_config = {
                          'saturation': 1.5,
                          'exposure': 1.5},
                          {'name': 'RandomHorizontalFlip'},
-                         {'name': 'JitterCrop', 'jitter_ratio': 0.3},
                          {'name': 'ToTensor'},
                          {'name': 'Resize'},
                          {'name': 'Normalize'},
                          {'name': 'PadImage'}],
+        'affine_params': {
+            'degrees': 0.0,
+            'translate': 0.2,
+            'scale': 0.9,
+            'shear': 0.0,
+            'perspective': 0.0
+        },                 
         # model
         'backbone': 'cspdarknet53',
         'pretrained': True,
