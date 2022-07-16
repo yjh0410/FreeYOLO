@@ -172,14 +172,20 @@ yolo_config = {
                          'saturation': 1.5,
                          'exposure': 1.5},
                          {'name': 'RandomHorizontalFlip'},
-                         {'name': 'JitterCrop', 'jitter_ratio': 0.3},
                          {'name': 'ToTensor'},
                          {'name': 'Resize'},
                          {'name': 'Normalize'},
                          {'name': 'PadImage'}],
+        'affine_params': {
+            'degrees': 0.0,
+            'translate': 0.2,
+            'scale': 0.9,
+            'shear': 0.0,
+            'perspective': 0.0
+        },                 
         # model
         'backbone': 'elannet',
-        'pretrained': False,
+        'pretrained': True,
         'stride': [8, 16, 32],  # P3, P4, P5
         # neck
         'neck': 'spp_block',
