@@ -185,7 +185,7 @@ yolo_config = {
         },                 
         # model
         'backbone': 'elannet',
-        'pretrained': True,
+        'pretrained': False,
         'stride': [8, 16, 32],  # P3, P4, P5
         # neck
         'neck': 'spp_block',
