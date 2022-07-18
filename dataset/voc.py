@@ -1,11 +1,10 @@
 """VOC Dataset Classes
-
 Original author: Francisco Massa
 https://github.com/fmassa/vision/blob/voc_dataset/torchvision/datasets/voc.py
-
 Updated by: Ellis Brown, Max deGroot
 """
 import os.path as osp
+import torch
 import torch.utils.data as data
 import cv2
 import numpy as np
@@ -29,7 +28,6 @@ VOC_CLASSES = (  # always index 0
 class VOCAnnotationTransform(object):
     """Transforms a VOC annotation into a Tensor of bbox coords and label index
     Initilized with a dictionary lookup of classnames to indexes
-
     Arguments:
         class_to_ind (dict, optional): dictionary lookup of classnames -> indexes
             (default: alphabetic indexing of VOC's 20 classes)
@@ -76,9 +74,7 @@ class VOCAnnotationTransform(object):
 
 class VOCDetection(data.Dataset):
     """VOC Detection Dataset Object
-
     input is image, target is annotation
-
     Arguments:
         root (string): filepath to VOCdevkit folder.
         image_set (string): imageset to use (eg. 'train', 'val', 'test')
@@ -96,9 +92,9 @@ class VOCDetection(data.Dataset):
                  data_dir=None,
                  image_sets=[('2007', 'trainval'), ('2012', 'trainval')],
                  transform=None, 
+                 color_augment=None,
                  mosaic_prob=0.0,
-                 mixup_prob=0.0,
-                 affine_params=None):
+                 mixup_prob=0.0):
         self.root = data_dir
         self.img_size = img_size
         self.image_set = image_sets
@@ -112,9 +108,9 @@ class VOCDetection(data.Dataset):
                 self.ids.append((rootpath, line.strip()))
         # augmentation
         self.transform = transform
+        self.color_augment = color_augment
         self.mosaic_prob = mosaic_prob
         self.mixup_prob = mixup_prob
-        self.affine_params = affine_params
         if self.mosaic_prob > 0.:
             print('use Mosaic Augmentation ...')
         if self.mixup_prob > 0.:
@@ -167,7 +163,7 @@ class VOCDetection(data.Dataset):
             image_list.append(img_i)
             target_list.append(target_i)
 
-        image, target = mosaic_augment(image_list, target_list, self.img_size, self.affine_params)
+        image, target = mosaic_augment(image_list, target_list, self.img_size)
         
         return image, target
 
@@ -183,24 +179,25 @@ class VOCDetection(data.Dataset):
                 new_image, new_target = self.load_mosaic(new_index)
 
                 image, target = mixup_augment(image, target, new_image, new_target)
+
+            # augment
+            image, target = self.color_augment(image, target)
             
         # load an image and target
         else:
             img_id = self.ids[index]
             image, target = self.load_image_target(img_id)
 
-        # augment
-        image, target = self.transform(image, target)
+            # augment
+            image, target = self.transform(image, target)
 
         return image, target
 
 
     def pull_image(self, index):
         '''Returns the original image object at index in PIL form
-
         Note: not using self.__getitem__(), as any transformations passed in
         could mess up this functionality.
-
         Argument:
             index (int): index of img to show
         Return:
@@ -212,10 +209,8 @@ class VOCDetection(data.Dataset):
 
     def pull_anno(self, index):
         '''Returns the original annotation of image at index
-
         Note: not using self.__getitem__(), as any transformations passed in
         could mess up this functionality.
-
         Argument:
             index (int): index of img to get annotation of
         Return:
@@ -229,30 +224,31 @@ class VOCDetection(data.Dataset):
 
 
 if __name__ == "__main__":
-    from transforms import TrainTransforms, ValTransforms
+    from transforms import BaseTransforms, TrainTransforms, ValTransforms
     
     img_size = 640
     format = 'RGB'
-    pixel_mean = [0., 0., 0.]
-    pixel_std = [255., 255., 255.]
+    pixel_mean = [123.675, 116.28, 103.53]
+    pixel_std = [58.395, 57.12, 57.375]
     trans_config = [{'name': 'DistortTransform',
                      'hue': 0.1,
                      'saturation': 1.5,
                      'exposure': 1.5},
                     {'name': 'RandomHorizontalFlip'},
+                    {'name': 'JitterCrop', 'jitter_ratio': 0.3},
                     {'name': 'ToTensor'},
                     {'name': 'Resize'},
                     {'name': 'Normalize'},
                     {'name': 'PadImage'}]
-    affine_params = {
-        'degrees': 0.0,
-        'translate': 0.2,
-        'scale': 0.9,
-        'shear': 0.0,
-        'perspective': 0.0
-    }
     transform = TrainTransforms(
         trans_config=trans_config,
+        img_size=img_size,
+        pixel_mean=pixel_mean,
+        pixel_std=pixel_std,
+        format=format,
+        min_box_size=8
+        )
+    color_augment = BaseTransforms(
         img_size=img_size,
         pixel_mean=pixel_mean,
         pixel_std=pixel_std,
@@ -264,9 +260,9 @@ if __name__ == "__main__":
         img_size=img_size,
         data_dir='D:\\python_work\\object-detection\\dataset\\VOCdevkit',
         transform=transform,
-        mosaic_prob=1.0,
-        mixup_prob=0.15,
-        affine_params=affine_params
+        color_augment=color_augment,
+        mosaic_prob=0.5,
+        mixup_prob=0.5
         )
     
     np.random.seed(0)

@@ -82,8 +82,8 @@ yolo_config = {
         'random_size': [320, 352, 384, 416,
                         448, 480, 512, 544,
                         576, 608, 640],
-        'mosaic_prob': 1.0,
-        'mixup_prob': 0.15,
+        'mosaic_prob': 0.5,
+        'mixup_prob': 0.5,
         'format': 'RGB',
         'pixel_mean': [123.675, 116.28, 103.53],
         'pixel_std': [58.395, 57.12, 57.375],
@@ -96,13 +96,6 @@ yolo_config = {
                          {'name': 'Resize'},
                          {'name': 'Normalize'},
                          {'name': 'PadImage'}],
-        'affine_params': {
-            'degrees': 0.0,
-            'translate': 0.2,
-            'scale': 0.9,
-            'shear': 0.0,
-            'perspective': 0.0
-        },                 
         # model
         'backbone': 'cspdarknet53',
         'pretrained': True,
@@ -176,13 +169,6 @@ yolo_config = {
                          {'name': 'Resize'},
                          {'name': 'Normalize'},
                          {'name': 'PadImage'}],
-        'affine_params': {
-            'degrees': 0.0,
-            'translate': 0.2,
-            'scale': 0.9,
-            'shear': 0.0,
-            'perspective': 0.0
-        },                 
         # model
         'backbone': 'elannet',
         'pretrained': False,

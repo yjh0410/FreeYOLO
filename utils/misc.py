@@ -77,9 +77,9 @@ def build_dataset(cfg, args, device):
             img_size=cfg['train_size'],
             data_dir=data_dir,
             transform=train_transform,
+            color_augment=color_augment,
             mosaic_prob=cfg['mosaic_prob'],
-            mixup_prob=cfg['mixup_prob'],
-            affine_params=cfg['affine_params']
+            mixup_prob=cfg['mixup_prob']
             )
         # evaluator
         evaluator = VOCAPIEvaluator(data_dir=data_dir,
@@ -95,9 +95,9 @@ def build_dataset(cfg, args, device):
             data_dir=data_dir,
             image_set='train2017',
             transform=train_transform,
+            color_augment=color_augment,
             mosaic_prob=cfg['mosaic_prob'],
-            mixup_prob=cfg['mixup_prob'],
-            affine_params=cfg['affine_params']
+            mixup_prob=cfg['mixup_prob']
             )
         # evaluator
         evaluator = COCOAPIEvaluator(data_dir=data_dir,

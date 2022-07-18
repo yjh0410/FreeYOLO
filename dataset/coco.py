@@ -2,6 +2,7 @@ import os
 import random
 import numpy as np
 
+import torch
 from torch.utils.data import Dataset
 import cv2
 
@@ -46,10 +47,9 @@ class COCODataset(Dataset):
                  data_dir=None, 
                  image_set='train2017',
                  transform=None,
-                 mosaic_prob=0.0,
-                 mixup_prob=0.0,
-                 affine_params=None
-                 ):
+                 color_augment=None,
+                 mosaic_prob=1.0,
+                 mixup_prob=1.0):
         """
         COCO dataset initialization. Annotation data are read into memory by COCO API.
         Args:
@@ -72,10 +72,9 @@ class COCODataset(Dataset):
         self.class_ids = sorted(self.coco.getCatIds())
         # augmentation
         self.transform = transform
+        self.color_augment = color_augment
         self.mosaic_prob = mosaic_prob
         self.mixup_prob = mixup_prob
-        self.affine_params = affine_params
-
         if self.mosaic_prob > 0.:
             print('use Mosaic Augmentation ...')
         if self.mixup_prob > 0.:
@@ -152,12 +151,7 @@ class COCODataset(Dataset):
             image_list.append(img_i)
             target_list.append(target_i)
 
-        image, target = mosaic_augment(
-            image_list,
-            target_list,
-            self.img_size,
-            self.affine_params
-            )
+        image, target = mosaic_augment(image_list, target_list, self.img_size)
 
         return image, target
 
@@ -173,14 +167,17 @@ class COCODataset(Dataset):
                 new_image, new_target = self.load_mosaic(new_index)
 
                 image, target = mixup_augment(image, target, new_image, new_target)
+
+            # augment
+            image, target = self.color_augment(image, target)
             
         # load an image and target
         else:
             img_id = self.ids[index]
             image, target = self.load_image_target(img_id)
 
-        # augment
-        image, target = self.transform(image, target)
+            # augment
+            image, target = self.transform(image, target)
 
         return image, target
 
@@ -224,32 +221,31 @@ class COCODataset(Dataset):
 
 
 if __name__ == "__main__":
-    from transforms import TrainTransforms, ValTransforms
+    from transforms import BaseTransforms, TrainTransforms, ValTransforms
     
     img_size = 640
     format = 'RGB'
-    pixel_mean = [0., 0., 0.]
-    pixel_std = [255., 255., 255.]
+    pixel_mean = [123.675, 116.28, 103.53]
+    pixel_std = [58.395, 57.12, 57.375]
     trans_config = [{'name': 'DistortTransform',
                      'hue': 0.1,
                      'saturation': 1.5,
                      'exposure': 1.5},
                     {'name': 'RandomHorizontalFlip'},
+                    {'name': 'JitterCrop', 'jitter_ratio': 0.3},
                     {'name': 'ToTensor'},
                     {'name': 'Resize'},
                     {'name': 'Normalize'},
                     {'name': 'PadImage'}]
-
-    affine_params = {
-        'degrees': 0.0,
-        'translate': 0.1,
-        'scale': 0.1,
-        'shear': 0.0,
-        'perspective': 0.0
-    }
-
     transform = TrainTransforms(
         trans_config=trans_config,
+        img_size=img_size,
+        pixel_mean=pixel_mean,
+        pixel_std=pixel_std,
+        format=format,
+        min_box_size=8
+        )
+    color_augment = BaseTransforms(
         img_size=img_size,
         pixel_mean=pixel_mean,
         pixel_std=pixel_std,
@@ -259,12 +255,12 @@ if __name__ == "__main__":
 
     dataset = COCODataset(
         img_size=img_size,
-        data_dir='E:\\python_work\\object_detection\\dataset\\COCO',
+        data_dir='/mnt/share/ssd2/dataset/COCO',
         image_set='train2017',
         transform=transform,
-        mosaic_prob=1.0,
-        mixup_prob=0.1,
-        affine_params=affine_params
+        color_augment=color_augment,
+        mosaic_prob=0.5,
+        mixup_prob=0.5
         )
     
     np.random.seed(0)
