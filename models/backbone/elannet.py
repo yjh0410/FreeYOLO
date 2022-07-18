@@ -16,7 +16,7 @@ class Conv(nn.Module):
                  p=0,                  # padding
                  s=1,                  # padding
                  d=1,                  # dilation
-                 act=True,             # activation
+                 act_type='silu',             # activation
                  depthwise=False):
         super(Conv, self).__init__()
         convs = []
@@ -24,20 +24,29 @@ class Conv(nn.Module):
             # depthwise conv
             convs.append(nn.Conv2d(c1, c1, kernel_size=k, stride=s, padding=p, dilation=d, groups=c1, bias=False))
             convs.append(nn.BatchNorm2d(c1))
-            if act:
-                convs.append(nn.SiLU(inplace=True))
+            if act_type is not None:
+                if act_type == 'silu':
+                    convs.append(nn.SiLU(inplace=True))
+                elif act_type == 'lrelu':
+                    convs.append(nn.LeakyReLU(0.1, inplace=True))
 
             # pointwise conv
             convs.append(nn.Conv2d(c1, c2, kernel_size=1, stride=s, padding=0, dilation=d, groups=1, bias=False))
             convs.append(nn.BatchNorm2d(c2))
-            if act:
-                convs.append(nn.SiLU(inplace=True))
+            if act_type is not None:
+                if act_type == 'silu':
+                    convs.append(nn.SiLU(inplace=True))
+                elif act_type == 'lrelu':
+                    convs.append(nn.LeakyReLU(0.1, inplace=True))
 
         else:
             convs.append(nn.Conv2d(c1, c2, kernel_size=k, stride=s, padding=p, dilation=d, groups=1, bias=False))
             convs.append(nn.BatchNorm2d(c2))
-            if act:
-                convs.append(nn.SiLU(inplace=True))
+            if act_type is not None:
+                if act_type == 'silu':
+                    convs.append(nn.SiLU(inplace=True))
+                elif act_type == 'lrelu':
+                    convs.append(nn.LeakyReLU(0.1, inplace=True))
             
         self.convs = nn.Sequential(*convs)
 
@@ -50,21 +59,23 @@ class ELANBlock(nn.Module):
     """
     ELAN BLock of YOLOv7's backbone
     """
-    def __init__(self, in_dim, out_dim, expand_ratio=0.5, depthwise=False):
+    def __init__(self, in_dim, out_dim, expand_ratio=0.5, model_size='large', act_type='silu', depthwise=False):
         super(ELANBlock, self).__init__()
         inter_dim = int(in_dim * expand_ratio)
-        self.cv1 = Conv(in_dim, inter_dim, k=1)
-        self.cv2 = Conv(in_dim, inter_dim, k=1)
-        self.cv3 = nn.Sequential(
-            Conv(inter_dim, inter_dim, k=3, p=1, depthwise=depthwise),
-            Conv(inter_dim, inter_dim, k=3, p=1, depthwise=depthwise)
-        )
-        self.cv4 = nn.Sequential(
-            Conv(inter_dim, inter_dim, k=3, p=1, depthwise=depthwise),
-            Conv(inter_dim, inter_dim, k=3, p=1, depthwise=depthwise)
-        )
-
-        assert inter_dim*4 == out_dim
+        if model_size == 'large':
+            depth = 2
+        elif model_size == 'tiny':
+            depth = 1
+        self.cv1 = Conv(in_dim, inter_dim, k=1, act_type=act_type)
+        self.cv2 = Conv(in_dim, inter_dim, k=1, act_type=act_type)
+        self.cv3 = nn.Sequential(*[
+            Conv(inter_dim, inter_dim, k=3, p=1, act_type=act_type, depthwise=depthwise)
+            for _ in range(depth)
+        ])
+        self.cv4 = nn.Sequential(*[
+            Conv(inter_dim, inter_dim, k=3, p=1, act_type=act_type, depthwise=depthwise)
+            for _ in range(depth)
+        ])
 
         self.out = Conv(inter_dim*4, out_dim, k=1)
 
@@ -89,14 +100,14 @@ class ELANBlock(nn.Module):
 
 
 class DownSample(nn.Module):
-    def __init__(self, in_dim):
+    def __init__(self, in_dim, act_type='silu'):
         super().__init__()
         inter_dim = in_dim // 2
         self.mp = nn.MaxPool2d((2, 2), 2)
-        self.cv1 = Conv(in_dim, inter_dim, k=1)
+        self.cv1 = Conv(in_dim, inter_dim, k=1, act_type=act_type)
         self.cv2 = nn.Sequential(
-            Conv(in_dim, inter_dim, k=1),
-            Conv(inter_dim, inter_dim, k=3, p=1, s=2)
+            Conv(in_dim, inter_dim, k=1, act_type=act_type),
+            Conv(inter_dim, inter_dim, k=3, p=1, s=2, act_type=act_type)
         )
 
     def forward(self, x):
@@ -119,32 +130,59 @@ class DownSample(nn.Module):
 # ELANNet of YOLOv7
 class ELANNet(nn.Module):
     """
-    CSPDarknet_53.
+    ELAN-Net of YOLOv7.
     """
-    def __init__(self, depthwise=False):
+    def __init__(self, depthwise=False, model_size='large'):
         super(ELANNet, self).__init__()
+        
+        if model_size == 'large':
+            # large backbone
+            self.layer_1 = nn.Sequential(
+                Conv(3, 32, k=3, p=1, act_type='silu', depthwise=depthwise),      
+                Conv(32, 64, k=3, p=1, s=2, act_type='silu', depthwise=depthwise),
+                Conv(64, 64, k=3, p=1, act_type='silu', depthwise=depthwise)                                                   # P1/2
+            )
+            self.layer_2 = nn.Sequential(   
+                Conv(64, 128, k=3, p=1, s=2, act_type='silu', depthwise=depthwise),             
+                ELANBlock(in_dim=128, out_dim=256, expand_ratio=0.5, act_type='silu', depthwise=depthwise)                     # P2/4
+            )
+            self.layer_3 = nn.Sequential(
+                DownSample(in_dim=256, act_type='silu'),             
+                ELANBlock(in_dim=256, out_dim=512, expand_ratio=0.5, act_type='silu', depthwise=depthwise)                     # P3/8
+            )
+            self.layer_4 = nn.Sequential(
+                DownSample(in_dim=512, act_type='silu'),             
+                ELANBlock(in_dim=512, out_dim=1024, expand_ratio=0.5, act_type='silu', depthwise=depthwise)                    # P4/16
+            )
+            self.layer_5 = nn.Sequential(
+                DownSample(in_dim=1024, act_type='silu'),             
+                ELANBlock(in_dim=1024, out_dim=1024, expand_ratio=0.25, act_type='silu', depthwise=depthwise)                  # P5/32
+            )
 
-        self.layer_1 = nn.Sequential(
-            Conv(3, 32, k=3, p=1, depthwise=depthwise),      
-            Conv(32, 64, k=3, p=1, s=2, depthwise=depthwise),
-            Conv(64, 64, k=3, p=1, depthwise=depthwise)                                                   # P1/2
-        )
-        self.layer_2 = nn.Sequential(   
-            Conv(64, 128, k=3, p=1, s=2, depthwise=depthwise),             
-            ELANBlock(in_dim=128, out_dim=256, expand_ratio=0.5, depthwise=depthwise)                     # P2/4
-        )
-        self.layer_3 = nn.Sequential(
-            DownSample(in_dim=256),             
-            ELANBlock(in_dim=256, out_dim=512, expand_ratio=0.5, depthwise=depthwise)                     # P3/8
-        )
-        self.layer_4 = nn.Sequential(
-            DownSample(in_dim=512),             
-            ELANBlock(in_dim=512, out_dim=1024, expand_ratio=0.5, depthwise=depthwise)                    # P4/16
-        )
-        self.layer_5 = nn.Sequential(
-            DownSample(in_dim=1024),             
-            ELANBlock(in_dim=1024, out_dim=1024, expand_ratio=0.25, depthwise=depthwise)                  # P5/32
-        )
+        elif model_size == 'tiny':
+            # tiny backbone
+            self.layer_1 = Conv(3, 32, k=3, p=1, s=2, act_type='lrelu', depthwise=depthwise)                                   # P1/2
+
+            self.layer_2 = nn.Sequential(   
+                Conv(32, 64, k=3, p=1, s=2, act_type='lrelu', depthwise=depthwise),             
+                ELANBlock(in_dim=64, out_dim=64, expand_ratio=0.5,
+                        model_size='tiny', act_type='lrelu', depthwise=depthwise)                                              # P2/4
+            )
+            self.layer_3 = nn.Sequential(
+                nn.MaxPool2d((2, 2), 2),             
+                ELANBlock(in_dim=64, out_dim=128, expand_ratio=0.5,
+                        model_size='tiny', act_type='lrelu', depthwise=depthwise)                                              # P3/8
+            )
+            self.layer_4 = nn.Sequential(
+                nn.MaxPool2d((2, 2), 2),             
+                ELANBlock(in_dim=128, out_dim=256, expand_ratio=0.5,
+                        model_size='tiny', act_type='lrelu', depthwise=depthwise)                                              # P4/16
+            )
+            self.layer_5 = nn.Sequential(
+                nn.MaxPool2d((2, 2), 2),             
+                ELANBlock(in_dim=256, out_dim=512, expand_ratio=0.5,
+                        model_size='tiny', act_type='lrelu', depthwise=depthwise)                                               # P5/32
+            )
 
 
     def forward(self, x):
@@ -162,15 +200,20 @@ class ELANNet(nn.Module):
         return outputs
 
 
-def build_elannet(pretrained=False):
+def build_elannet(pretrained=False, model_size='large'):
     # model
-    backbone = ELANNet()
-    feat_dims = [512, 1024, 1024]
+    backbone = ELANNet(model_size=model_size)
+    if model_size == 'large':
+        arch = 'elannet'
+        feat_dims = [512, 1024, 1024]
+    elif model_size == 'tiny':
+        arch = 'elannet_tiny'
+        feat_dims = [128, 256, 512]
 
     # load weight
     if pretrained:
         print('Loading pretrained weight ...')
-        url = model_urls['elannet']
+        url = model_urls[arch]
         checkpoint = torch.hub.load_state_dict_from_url(
             url=url, map_location="cpu", check_hash=True)
         # checkpoint state dict
@@ -195,7 +238,7 @@ def build_elannet(pretrained=False):
 
 if __name__ == '__main__':
     import time
-    model, feats = build_elannet(pretrained=False)
+    model, feats = build_elannet(pretrained=False, model_size='tiny')
     x = torch.randn(1, 3, 224, 224)
     t0 = time.time()
     outputs = model(x)
