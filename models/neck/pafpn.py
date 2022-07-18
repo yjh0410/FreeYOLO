@@ -10,18 +10,23 @@ class ELANBlock(nn.Module):
     """
     ELAN BLock of YOLOv7's head
     """
-    def __init__(self, in_dim, out_dim, expand_ratio=0.5, depthwise=False, act_type='silu', norm_type='BN'):
+    def __init__(self, in_dim, out_dim, fpn_size='large', depthwise=False, act_type='silu', norm_type='BN'):
         super(ELANBlock, self).__init__()
-        inter_dim = int(in_dim * expand_ratio)
-        inter_dim2 = int(inter_dim * expand_ratio)
+        if fpn_size == 'large':
+            e1, e2 = 0.5, 0.5
+            d = 4
+        elif fpn_size == 'tiny':
+            e1, e2 = 0.25, 1.0
+            d = 2
+        inter_dim = int(in_dim * e1)
+        inter_dim2 = int(inter_dim * e2) 
         self.cv1 = Conv(in_dim, inter_dim, k=1, act_type=act_type, norm_type=norm_type)
         self.cv2 = Conv(in_dim, inter_dim, k=1, act_type=act_type, norm_type=norm_type)
-        self.cv3 = Conv(inter_dim, inter_dim2, k=3, p=1, act_type=act_type, norm_type=norm_type, depthwise=depthwise)
-        self.cv4 = Conv(inter_dim2, inter_dim2, k=3, p=1, act_type=act_type, norm_type=norm_type, depthwise=depthwise)
-        self.cv5 = Conv(inter_dim2, inter_dim2, k=3, p=1, act_type=act_type, norm_type=norm_type, depthwise=depthwise)
-        self.cv6 = Conv(inter_dim2, inter_dim2, k=3, p=1, act_type=act_type, norm_type=norm_type, depthwise=depthwise)
+        self.cv3 = nn.ModuleList(Conv(inter_dim, inter_dim2, k=3, p=1, act_type=act_type, norm_type=norm_type, depthwise=depthwise))
+        for _ in range(1, d):
+            self.cv3.append(Conv(inter_dim2, inter_dim2, k=3, p=1, act_type=act_type, norm_type=norm_type, depthwise=depthwise))
 
-        self.out = Conv(inter_dim*2+inter_dim2*4, out_dim, k=1)
+        self.out = Conv(inter_dim*2+inter_dim2*len(self.cv3), out_dim, k=1)
 
 
     def forward(self, x):
@@ -33,13 +38,14 @@ class ELANBlock(nn.Module):
         """
         x1 = self.cv1(x)
         x2 = self.cv2(x)
-        x3 = self.cv3(x2)
-        x4 = self.cv4(x3)
-        x5 = self.cv5(x4)
-        x6 = self.cv6(x5)
+        inter_outs = [x1, x2]
+        for m in self.cv3:
+            y1 = inter_outs[-1]
+            y2 = m(y1)
+            inter_outs.append(y2)
 
         # [B, C_in, H, W] -> [B, C_out, H, W]
-        out = self.out(torch.cat([x1, x2, x3, x4, x5, x6], dim=1))
+        out = self.out(torch.cat(inter_outs, dim=1))
 
         return out
 
@@ -153,8 +159,9 @@ class PaFPNCSP(nn.Module):
 # PaFPN-ELAN (YOLOv7's)
 class PaFPNELAN(nn.Module):
     def __init__(self, 
-                 in_dims=[256, 512, 512],
+                 in_dims=[512, 1024, 1024],
                  out_dim=[256, 512, 1024],
+                 fpn_size='large',
                  depthwise=False,
                  norm_type='BN',
                  act_type='silu'):
@@ -162,47 +169,65 @@ class PaFPNELAN(nn.Module):
         self.in_dims = in_dims
         self.out_dim = out_dim
         c3, c4, c5 = in_dims
+        if fpn_size == 'large':
+            width = 1.0
+        elif fpn_size == 'tiny':
+            width = 0.5
 
         # top dwon
         ## P5 -> P4
-        self.cv1 = Conv(c5, 256, k=1, norm_type=norm_type, act_type=act_type)
-        self.cv2 = Conv(c4, 256, k=1, norm_type=norm_type, act_type=act_type)
-        self.head_elan_1 = ELANBlock(in_dim=256 + 256,
-                                     out_dim=256,
+        self.cv1 = Conv(c5, int(256 * width), k=1, norm_type=norm_type, act_type=act_type)
+        self.cv2 = Conv(c4, int(256 * width), k=1, norm_type=norm_type, act_type=act_type)
+        self.head_elan_1 = ELANBlock(in_dim=int(256 * width) + int(256 * width),
+                                     out_dim=int(256 * width),
+                                     fpn_size=fpn_size,
                                      depthwise=depthwise,
                                      norm_type=norm_type,
                                      act_type=act_type)
 
         # P4 -> P3
-        self.cv3 = Conv(256, 128, k=1, norm_type=norm_type, act_type=act_type)
-        self.cv4 = Conv(c3, 128, k=1, norm_type=norm_type, act_type=act_type)
-        self.head_elan_2 = ELANBlock(in_dim=128 + 128,
-                                     out_dim=128,  # 128
+        self.cv3 = Conv(int(256 * width), int(128 * width), k=1, norm_type=norm_type, act_type=act_type)
+        self.cv4 = Conv(c3, int(128 * width), k=1, norm_type=norm_type, act_type=act_type)
+        self.head_elan_2 = ELANBlock(in_dim=int(128 * width) + int(128 * width),
+                                     out_dim=int(128 * width),  # 128
+                                     fpn_size=fpn_size,
                                      depthwise=depthwise,
                                      norm_type=norm_type,
                                      act_type=act_type)
 
         # bottom up
         # P3 -> P4
-        self.mp1 = DownSample(128, act_type=act_type, norm_type=norm_type, depthwise=depthwise)
-        self.head_elan_3 = ELANBlock(in_dim=256 + 256,
-                                     out_dim=256,  # 256
+        if fpn_size == 'large':
+            self.mp1 = DownSample(int(128 * width), act_type=act_type,
+                                  norm_type=norm_type, depthwise=depthwise)
+        elif fpn_size == 'tiny':
+            self.mp1 = Conv(int(128 * width), int(256 * width), k=3, p=1, s=2,
+                                act_type=act_type, norm_type=norm_type, depthwise=depthwise)
+        self.head_elan_3 = ELANBlock(in_dim=int(256 * width) + int(256 * width),
+                                     out_dim=int(256 * width),  # 256
+                                     fpn_size=fpn_size,
                                      depthwise=depthwise,
                                      norm_type=norm_type,
                                      act_type=act_type)
 
         # P4 -> P5
-        self.mp2 = DownSample(256, act_type=act_type, norm_type=norm_type, depthwise=depthwise)
-        self.head_elan_4 = ELANBlock(in_dim=512 + 512,
-                                     out_dim=512,  # 512
+        if fpn_size == 'large':
+            self.mp2 = DownSample(int(256 * width), act_type=act_type,
+                                  norm_type=norm_type, depthwise=depthwise)
+        elif fpn_size == 'tiny':
+            self.mp1 = Conv(int(256 * width), int(512 * width), k=3, p=1, s=2,
+                                act_type=act_type, norm_type=norm_type, depthwise=depthwise)
+        self.head_elan_4 = ELANBlock(in_dim=int(512 * width) + int(512 * width),
+                                     out_dim=int(512 * width),  # 512
+                                     fpn_size=fpn_size,
                                      depthwise=depthwise,
                                      norm_type=norm_type,
                                      act_type=act_type)
 
         # RepConv
-        self.repconv_1 = RepConv(128, out_dim[0], k=3, s=1, p=1)
-        self.repconv_2 = RepConv(256, out_dim[1], k=3, s=1, p=1)
-        self.repconv_3 = RepConv(512, out_dim[2], k=3, s=1, p=1)
+        self.repconv_1 = RepConv(int(128 * width), out_dim[0], k=3, s=1, p=1)
+        self.repconv_2 = RepConv(int(256 * width), out_dim[1], k=3, s=1, p=1)
+        self.repconv_3 = RepConv(int(512 * width), out_dim[2], k=3, s=1, p=1)
 
 
     def forward(self, features):
