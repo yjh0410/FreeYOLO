@@ -274,7 +274,7 @@ class CSPDarkNet53(nn.Module):
 
 
 # Build CSPDarkNet
-def build_cspdarknet(pretrained=False, res5_dilation=False):
+def build_cspdarknet53(pretrained=False, res5_dilation=False):
     # build backbone
     backbone = CSPDarkNet53(res5_dilation=res5_dilation)
     feat_dims = [256, 512, 1024]
@@ -307,7 +307,7 @@ def build_cspdarknet(pretrained=False, res5_dilation=False):
 
 if __name__ == '__main__':
     import time
-    model, feats = build_cspdarknet(pretrained=True, res5_dilation=False)
+    model, feats = build_cspdarknet53(pretrained=True, res5_dilation=False)
     x = torch.randn(1, 3, 224, 224)
     t0 = time.time()
     outputs = model(x)
