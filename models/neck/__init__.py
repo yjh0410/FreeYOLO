@@ -1,4 +1,4 @@
-from .spp import SPPBlockCSP
+from .spp import SPPBlock, SPPBlockCSP
 from .dilated_encoder import DilatedEncoder
 from .pafpn import PaFPNCSP, PaFPNELAN
 
@@ -33,6 +33,15 @@ def build_neck(cfg, in_dim, out_dim):
     print('Neck: {}'.format(model))
     # build neck
     if model == 'spp_block':
+        neck = SPPBlock(
+            in_dim, out_dim, 
+            expand_ratio=cfg['expand_ratio'], 
+            pooling_size=cfg['pooling_size'],
+            act_type=cfg['neck_act'],
+            norm_type=cfg['neck_norm'],
+            depthwise=cfg['neck_depthwise']
+            )
+    elif model == 'spp_block_csp':
         neck = SPPBlockCSP(
             in_dim, out_dim, 
             expand_ratio=cfg['expand_ratio'], 

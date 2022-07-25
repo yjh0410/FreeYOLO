@@ -29,7 +29,7 @@ yolo_config = {
         'pretrained': True,
         'stride': [8, 16, 32],  # P3, P4, P5
         # neck
-        'neck': 'spp_block',
+        'neck': 'spp_block_csp',
         'expand_ratio': 0.5,
         'pooling_size': [5, 9, 13],
         'neck_act': 'lrelu',
@@ -102,7 +102,7 @@ yolo_config = {
         'pretrained': True,
         'stride': [8, 16, 32],  # P3, P4, P5
         # neck
-        'neck': 'spp_block',
+        'neck': 'spp_block_csp',
         'expand_ratio': 0.5,
         'pooling_size': [5, 9, 13],
         'neck_act': 'silu',
@@ -175,7 +175,7 @@ yolo_config = {
         'pretrained': False,
         'stride': [8, 16, 32],  # P3, P4, P5
         # neck
-        'neck': 'spp_block',
+        'neck': 'spp_block_csp',
         'neck_dim': 512,
         'expand_ratio': 0.5,
         'pooling_size': [5, 9, 13],
@@ -246,7 +246,7 @@ yolo_config = {
         'pretrained': False,
         'stride': [8, 16, 32],  # P3, P4, P5
         # neck
-        'neck': 'spp_block_tiny',
+        'neck': 'spp_block',
         'neck_dim': 256,
         'expand_ratio': 0.5,
         'pooling_size': [5, 9, 13],
@@ -320,7 +320,7 @@ yolo_config = {
                         [116, 90],  [156, 198], [373, 326]],
         'num_anchors': 3,  # number of anchor boxes on each level
         # neck
-        'neck': 'spp_block',
+        'neck': 'spp_block_csp',
         'expand_ratio': 0.5,
         'pooling_size': [5, 9, 13],
         'neck_act': 'lrelu',
