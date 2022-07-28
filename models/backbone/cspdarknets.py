@@ -5,7 +5,7 @@ import os
 
 
 model_urls = {
-    "cspd-l": "",
+    "cspd-l": "https://github.com/yjh0410/image_classification_pytorch/releases/download/weight/cspdarknet_l.pth",
 }
 
 

@@ -98,7 +98,7 @@ yolo_config = {
                          {'name': 'Normalize'},
                          {'name': 'PadImage'}],
         # model
-        'backbone': 'cspdarknet53',
+        'backbone': 'cspd-l',
         'pretrained': True,
         'stride': [8, 16, 32],  # P3, P4, P5
         # neck
