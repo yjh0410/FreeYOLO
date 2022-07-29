@@ -88,7 +88,7 @@ class CSPDarkNet(nn.Module):
     """
     CSPDarknet_53.
     """
-    def __init__(self, width=1.0, depth=1.0, depthwise=False, num_classes=1000):
+    def __init__(self, width=1.0, depth=1.0, depthwise=False):
         super(CSPDarkNet, self).__init__()
         # init w&d cfg
         basic_w_cfg = [32, 64, 128, 256, 512, 1024]
@@ -123,9 +123,6 @@ class CSPDarkNet(nn.Module):
             Conv(w_cfg[4], w_cfg[5], k=3, p=1, s=2, depthwise=depthwise),             
             CSPStage(c1=w_cfg[5], n=d_cfg[4], depthwise=depthwise)                     # P5/32
         )
-
-        self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
-        self.fc = nn.Linear(w_cfg[5], num_classes)
 
 
     def forward(self, x):
