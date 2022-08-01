@@ -5,7 +5,7 @@ yolo_config = {
     'yolo_free_v1': {
         # input
         'train_size': 640,
-        'test_size': 608,
+        'test_size': 640,
         'random_size': [320, 352, 384, 416,
                         448, 480, 512, 544,
                         576, 608, 640],
