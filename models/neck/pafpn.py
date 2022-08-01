@@ -22,9 +22,12 @@ class ELANBlock(nn.Module):
         inter_dim2 = int(inter_dim * e2) 
         self.cv1 = Conv(in_dim, inter_dim, k=1, act_type=act_type, norm_type=norm_type)
         self.cv2 = Conv(in_dim, inter_dim, k=1, act_type=act_type, norm_type=norm_type)
-        self.cv3 = nn.ModuleList(Conv(inter_dim, inter_dim2, k=3, p=1, act_type=act_type, norm_type=norm_type, depthwise=depthwise))
-        for _ in range(1, d):
-            self.cv3.append(Conv(inter_dim2, inter_dim2, k=3, p=1, act_type=act_type, norm_type=norm_type, depthwise=depthwise))
+        self.cv3 = nn.ModuleList()
+        for idx in range(d):
+            if idx == 0:
+                self.cv3.append(Conv(inter_dim, inter_dim2, k=3, p=1, act_type=act_type, norm_type=norm_type, depthwise=depthwise))
+            else:
+                self.cv3.append(Conv(inter_dim2, inter_dim2, k=3, p=1, act_type=act_type, norm_type=norm_type, depthwise=depthwise))
 
         self.out = Conv(inter_dim*2+inter_dim2*len(self.cv3), out_dim, k=1)
 
