@@ -261,12 +261,7 @@ class PaFPNELAN(nn.Module):
         c18 = torch.cat([c17, c5], dim=1)
         c19 = self.head_elan_4(c18)
 
-        # RepCpnv
-        c20 = self.repconv_1(c13)
-        c21 = self.repconv_2(c16)
-        c22 = self.repconv_3(c19)
-
-        out_feats = [c20, c21, c22] # [P3, P4, P5]
+        out_feats = [c13, c16, c19] # [P3, P4, P5]
         # output proj layers
         if self.out_dim is not None:
             out_feats_proj = []
