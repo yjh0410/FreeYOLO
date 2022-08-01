@@ -190,9 +190,12 @@ yolo_config = {
         'fpn_act': 'silu',
         'fpn_depthwise': False,
         # head
+        'head': 'decoupled_head',
         'head_dim': 256,
         'head_norm': 'BN',
         'head_act': 'silu',
+        'num_cls_head': 2,
+        'num_reg_head': 2,
         'head_depthwise': False,
         # post process
         'conf_thresh': 0.01,
