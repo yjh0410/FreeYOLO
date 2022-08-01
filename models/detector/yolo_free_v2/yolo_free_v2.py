@@ -78,8 +78,6 @@ class FreeYOLOv2(nn.Module):
 
 
     def init_yolo(self):  
-        init_prob = 0.01
-        bias_value = -torch.log(torch.tensor((1. - init_prob) / init_prob))
         # Init head
         init_prob = 0.01
         bias_value = -torch.log(torch.tensor((1. - init_prob) / init_prob))

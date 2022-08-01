@@ -79,12 +79,15 @@ class FreeYOLOv3(nn.Module):
 
 
     def init_yolo(self):  
+        # Init head
         init_prob = 0.01
         bias_value = -torch.log(torch.tensor((1. - init_prob) / init_prob))
-        # init obj&cls pred
-        for pred in self.pred_layers:
-            nn.init.constant_(pred.bias[..., :1], bias_value)
-            nn.init.constant_(pred.bias[..., 1:self.num_classes+1], bias_value)
+        # init obj pred
+        for obj_pred in self.obj_preds:
+            nn.init.constant_(obj_pred.bias, bias_value)
+        # init cls pred
+        for cls_pred in self.cls_preds:
+            nn.init.constant_(cls_pred.bias, bias_value)
 
 
     def generate_anchors(self, level, fmp_size):
