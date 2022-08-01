@@ -190,7 +190,7 @@ yolo_config = {
         'fpn_act': 'silu',
         'fpn_depthwise': False,
         # head
-        'head_dim': [256, 512, 1024],
+        'head_dim': 256,
         'head_norm': 'BN',
         'head_act': 'silu',
         'head_depthwise': False,

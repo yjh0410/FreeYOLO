@@ -160,7 +160,7 @@ class PaFPNCSP(nn.Module):
 class PaFPNELAN(nn.Module):
     def __init__(self, 
                  in_dims=[512, 1024, 1024],
-                 out_dim=[256, 512, 1024],
+                 out_dim=256,
                  fpn_size='large',
                  depthwise=False,
                  norm_type='BN',
@@ -224,10 +224,13 @@ class PaFPNELAN(nn.Module):
                                      norm_type=norm_type,
                                      act_type=act_type)
 
-        # RepConv
-        self.repconv_1 = RepConv(int(128 * width), out_dim[0], k=3, s=1, p=1)
-        self.repconv_2 = RepConv(int(256 * width), out_dim[1], k=3, s=1, p=1)
-        self.repconv_3 = RepConv(int(512 * width), out_dim[2], k=3, s=1, p=1)
+        # output proj layers
+        if self.out_dim is not None:
+            self.out_layers = nn.ModuleList([
+                Conv(in_dim, self.out_dim, k=1,
+                     norm_type=norm_type, act_type=act_type)
+                     for in_dim in [int(128 * width), int(256 * width), int(512 * width)]
+                     ])
 
 
     def forward(self, features):
@@ -261,5 +264,11 @@ class PaFPNELAN(nn.Module):
         c22 = self.repconv_3(c19)
 
         out_feats = [c20, c21, c22] # [P3, P4, P5]
+        # output proj layers
+        if self.out_dim is not None:
+            out_feats_proj = []
+            for feat, layer in zip(out_feats, self.out_layers):
+                out_feats_proj.append(layer(feat))
+            return out_feats_proj
 
         return out_feats

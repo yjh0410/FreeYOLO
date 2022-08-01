@@ -87,13 +87,9 @@ class Criterion(object):
                     tgt_bboxes = tgt_bboxes
                     )
 
-                # [M, C]
-                obj_target = fg_mask.unsqueeze(-1).float()
-                tgt_ious = torch.zeros_like(obj_target)
-                tgt_ious[fg_mask] = pred_ious_this_matching.unsqueeze(-1)
-                obj_target = obj_target * tgt_ious
-                cls_target = F.one_hot(gt_matched_classes.long(), self.num_classes).float()
-                # cls_target = cls_target * pred_ious_this_matching.unsqueeze(-1)
+                obj_target = fg_mask.unsqueeze(-1)
+                cls_target = F.one_hot(gt_matched_classes.long(), self.num_classes)
+                cls_target = cls_target * pred_ious_this_matching.unsqueeze(-1)
                 box_target = tgt_bboxes[matched_gt_inds]
 
             cls_targets.append(cls_target)
@@ -112,7 +108,7 @@ class Criterion(object):
         num_foregrounds = (num_foregrounds / get_world_size()).clamp(1.0)
 
         # objectness loss
-        loss_objectness = self.obj_lossf(obj_preds.view(-1, 1), obj_targets)
+        loss_objectness = self.obj_lossf(obj_preds.view(-1, 1), obj_targets.float())
         loss_objectness = loss_objectness.sum() / num_foregrounds
         
         # classification loss

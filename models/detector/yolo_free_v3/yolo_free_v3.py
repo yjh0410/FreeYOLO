@@ -5,6 +5,7 @@ import torch.nn as nn
 from ...basic.repconv import RepConv
 from ...backbone import build_backbone
 from ...neck import build_neck, build_fpn
+from ...head.decoupled_head import DecoupledHead
 from .loss import Criterion
 
 
@@ -39,11 +40,26 @@ class FreeYOLOv3(nn.Module):
         ## fpn
         self.fpn = build_fpn(cfg=cfg, in_dims=cfg['fpn_dim'], out_dim=cfg['head_dim'])
 
+        ## non-shared heads
+        self.non_shared_heads = nn.ModuleList(
+            [DecoupledHead(cfg) 
+            for _ in range(len(cfg['stride']))
+            ])
+
         ## pred
-        self.pred_layers = nn.ModuleList(
-                            [nn.Conv2d(dim, 1+self.num_classes+4, kernel_size=1) 
-                              for dim in cfg['head_dim']
+        head_dim = cfg['head_dim']
+        self.obj_preds = nn.ModuleList(
+                            [nn.Conv2d(head_dim, 1, kernel_size=1) 
+                              for _ in range(len(cfg['stride']))
                               ]) 
+        self.cls_preds = nn.ModuleList(
+                            [nn.Conv2d(head_dim, self.num_classes, kernel_size=1) 
+                              for _ in range(len(cfg['stride']))
+                              ]) 
+        self.reg_preds = nn.ModuleList(
+                            [nn.Conv2d(head_dim, 4, kernel_size=1) 
+                              for _ in range(len(cfg['stride']))
+                              ])                 
 
         # --------- Network Initialization ----------
         if trainable:
@@ -162,13 +178,13 @@ class FreeYOLOv3(nn.Module):
         all_scores = []
         all_labels = []
         all_bboxes = []
-        for level, (feat, pred_layer) in enumerate(zip(pyramid_feats, self.pred_layers)):
-            preds = pred_layer(feat)
+        for level, (feat, head) in enumerate(zip(pyramid_feats, self.non_shared_heads)):
+            cls_feat, reg_feat = head(feat)
 
             # [1, C, H, W]
-            obj_pred = preds[:, :1, :, :]
-            cls_pred = preds[:, 1:self.num_classes+1, :, :]
-            reg_pred = preds[:, self.num_classes+1:, :, :]
+            obj_pred = self.obj_preds[level](reg_feat)
+            cls_pred = self.cls_preds[level](cls_feat)
+            reg_pred = self.reg_preds[level](reg_feat)
 
             # decode box
             _, _, H, W = cls_pred.size()
@@ -254,13 +270,13 @@ class FreeYOLOv3(nn.Module):
             all_obj_preds = []
             all_cls_preds = []
             all_box_preds = []
-            for level, (feat, pred_layer) in enumerate(zip(pyramid_feats, self.pred_layers)):
-                preds = pred_layer(feat)
+            for level, (feat, head) in enumerate(zip(pyramid_feats, self.non_shared_heads)):
+                cls_feat, reg_feat = head(feat)
 
                 # [1, C, H, W]
-                obj_pred = preds[:, :1, :, :]
-                cls_pred = preds[:, 1:self.num_classes+1, :, :]
-                reg_pred = preds[:, self.num_classes+1:, :, :]
+                obj_pred = self.obj_preds[level](reg_feat)
+                cls_pred = self.cls_preds[level](cls_feat)
+                reg_pred = self.reg_preds[level](reg_feat)
 
                 B, _, H, W = cls_pred.size()
                 fmp_size = [H, W]
