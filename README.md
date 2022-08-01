@@ -55,7 +55,7 @@ Main results on COCO-val:
 | YOLOF        |  608    |  74                |  87.7 B |  48.3 M |   41.0   |    61.3    | [github]() |
 | AnchorYOLO   |  608    |  45                |  76.3 B |  62.0 M |   42.5   |    62.1    | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_anchor_42.5_62.1.pth) |
 | FreeYOLO-v1  |  608    |  51                |  76.0 B |  61.8 M | **43.7** |  **62.6**  | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_43.7_62.6.pth) |
-| FreeYOLO-v1  |  640    |                  |  76.0 B |  61.8 M |      |        | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_43.7_62.6.pth) |
+| FreeYOLO-v1  |  640    |                  |  84.2 B |  61.8 M |      |        | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_43.7_62.6.pth) |
 | FreeYOLO-v2  |  640    |                  |  86.6 B |  67.6 M |      |        | [github]() |
 | FreeYOLO-v3  |  640    |                  |  66.4 B |  37.7 M |      |        | [github]() |
 
