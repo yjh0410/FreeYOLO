@@ -3,7 +3,7 @@ import torch.nn as nn
 
 
 model_urls = {
-    "elannet": "",
+    "elannet": "https://github.com/yjh0410/image_classification_pytorch/releases/download/weight/elannet.pth",
 }
 
 
@@ -200,6 +200,7 @@ class ELANNet(nn.Module):
         return outputs
 
 
+# build ELAN-Net
 def build_elannet(pretrained=False, model_size='large'):
     # model
     backbone = ELANNet(model_size=model_size)
