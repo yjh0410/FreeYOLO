@@ -239,7 +239,7 @@ def build_elannet(pretrained=False, model_size='large'):
 
 if __name__ == '__main__':
     import time
-    model, feats = build_elannet(pretrained=False, model_size='tiny')
+    model, feats = build_elannet(pretrained=True, model_size='tiny')
     x = torch.randn(1, 3, 224, 224)
     t0 = time.time()
     outputs = model(x)
