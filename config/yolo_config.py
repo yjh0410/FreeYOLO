@@ -172,7 +172,7 @@ yolo_config = {
                          {'name': 'PadImage'}],
         # model
         'backbone': 'elannet',
-        'pretrained': False,
+        'pretrained': True,
         'stride': [8, 16, 32],  # P3, P4, P5
         # neck
         'neck': 'spp_block_csp',

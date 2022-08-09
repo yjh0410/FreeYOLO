@@ -34,16 +34,10 @@ At least, please make sure your torch is version 1.x.
 | Lr Scheduler            | Cos                  |
 | Optimizer               | SGD                  |
 | ImageNet Predtrained    | True                 |
-| Multi Scale Train       | 320, 352, ..., 640   |
+| Multi Scale Train       | True                 |
 | Mosaic                  | True                 |
 | Mixup                   | True                 |
 
-# Network
-## AnchorYOLO & FreeYOLO
-- Backbone: [CSPDarkNet-53](https://github.com/yjh0410/FreeYOLO/blob/master/models/backbone/cspdarknet.py)
-- Neck: [SPP](https://github.com/yjh0410/FreeYOLO/blob/master/models/neck/spp.py)
-- FPN: [YoloPaFPN](https://github.com/yjh0410/FreeYOLO/blob/master/models/neck/yolopafpn.py)
-- Head: [DecoupledHead](https://github.com/yjh0410/FreeYOLO/blob/master/models/head/decoupled_head.py)
 
 # Experiments
 ## COCO
@@ -56,7 +50,7 @@ Main results on COCO-val:
 | AnchorYOLO   |  608    |  45                |  76.3 B |  62.0 M |   42.5   |    62.1    | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_anchor_42.5_62.1.pth) |
 | FreeYOLO-v1  |  608    |  51                |  76.0 B |  61.8 M |   43.7   |    62.6    | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_43.7_62.6.pth) |
 | FreeYOLO-v1  |  640    |  45                |  84.2 B |  61.8 M |   43.4   |    62.0    | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_43.7_62.6.pth) |
-| FreeYOLO-v2  |  640    |                  |  86.6 B |  67.6 M |      |        | [github]() |
+| FreeYOLO-v2  |  640    |  45                |  86.6 B |  67.6 M |   44.5   |    65.0    | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_v2_44.5_65.0.pth) |
 | FreeYOLO-v3  |  640    |                  |  72.4 B |  44.1 M |      |        | [github]() |
 
 
