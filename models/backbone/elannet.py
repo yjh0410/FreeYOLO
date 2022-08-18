@@ -175,15 +175,11 @@ class ELANNet(nn.Module):
 
 
 # build ELAN-Net
-def build_elannet(pretrained=False, model_size='large'):
+def build_elannet(pretrained=False):
     # model
-    backbone = ELANNet(model_size=model_size)
-    if model_size == 'large':
-        arch = 'elannet'
-        feat_dims = [512, 1024, 1024]
-    elif model_size == 'tiny':
-        arch = 'elannet_tiny'
-        feat_dims = [128, 256, 512]
+    backbone = ELANNet()
+    arch = 'elannet'
+    feat_dims = [512, 1024, 1024]
 
     # load weight
     if pretrained:
