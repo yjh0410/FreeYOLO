@@ -51,7 +51,7 @@ Main results on COCO-val:
 | FreeYOLO-v1  |  608    |  51                |  76.0 B |  61.8 M |   43.7   |    62.6    | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_43.7_62.6.pth) |
 | FreeYOLO-v1  |  640    |  45                |  84.2 B |  61.8 M |   43.4   |    62.0    | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_43.7_62.6.pth) |
 | FreeYOLO-v2  |  640    |  45                |  86.6 B |  67.6 M |   44.5   |    65.0    | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_v2_44.5_65.0.pth) |
-| FreeYOLO-v3  |  640    |                  |  72.4 B |  44.1 M |      |        | [github]() |
+| FreeYOLO-v3  |  640    |  58                |  72.4 B |  44.1 M |   44.5   |    65.0    | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_v3_44.5_65.0.pth) |
 
 
 ## VOC
