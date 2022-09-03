@@ -148,6 +148,7 @@ def train():
         # wait for all processes to synchronize
         dist.barrier()
 
+    # optimizer
     base_lr = cfg['base_lr'] * batch_size
     min_lr = base_lr * cfg['min_lr_ratio']
     optimizer, start_epoch = build_optimizer(
@@ -173,8 +174,6 @@ def train():
         ema = ModelEMA(model, updates=start_epoch * len(dataloader))
     else:
         ema = None
-
-    # optimizer
 
     # start training loop
     best_map = -1.0
