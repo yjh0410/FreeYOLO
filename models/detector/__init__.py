@@ -82,6 +82,7 @@ def build_model(args,
                     checkpoint_state_dict.pop(k)
                     print(k)
             else:
+                checkpoint_state_dict.pop(k)
                 print(k)
 
         model.load_state_dict(checkpoint_state_dict, strict=False)
