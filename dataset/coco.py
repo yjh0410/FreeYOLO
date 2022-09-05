@@ -48,8 +48,8 @@ class COCODataset(Dataset):
                  image_set='train2017',
                  transform=None,
                  color_augment=None,
-                 mosaic_prob=1.0,
-                 mixup_prob=1.0):
+                 mosaic_prob=0.,
+                 mixup_prob=0.):
         """
         COCO dataset initialization. Annotation data are read into memory by COCO API.
         Args:
