@@ -63,6 +63,7 @@ yolo_config = {
         'max_epoch': 250,
         'no_aug_epoch': -1,
         'batch_size': 16,
+        'accumulate': 1,
         'base_lr': 0.01 / 64.,
         'min_lr_ratio': 0.01,
         # optimizer
@@ -136,6 +137,7 @@ yolo_config = {
         'max_epoch': 250,
         'no_aug_epoch': 15,
         'batch_size': 16,
+        'accumulate': 1,
         'base_lr': 0.01 / 64.,
         'min_lr_ratio': 0.01,
         # optimizer
@@ -211,6 +213,7 @@ yolo_config = {
         'max_epoch': 250,
         'no_aug_epoch': 15,
         'batch_size': 16,
+        'accumulate': 1,
         'base_lr': 0.01 / 64.,
         'min_lr_ratio': 0.01,
         # optimizer
@@ -285,6 +288,7 @@ yolo_config = {
         'max_epoch': 250,
         'no_aug_epoch': -1,
         'batch_size': 16,
+        'accumulate': 1,
         'base_lr': 0.01 / 64.,
         'min_lr_ratio': 0.01,
         # optimizer
@@ -357,6 +361,7 @@ yolo_config = {
         'max_epoch': 150,
         'no_aug_epoch': -1,
         'batch_size': 16,
+        'accumulate': 1,
         'base_lr': 0.01 / 64.,
         'min_lr_ratio': 0.01,
         # optimizer

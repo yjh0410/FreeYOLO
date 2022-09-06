@@ -149,7 +149,7 @@ def train():
         dist.barrier()
 
     # optimizer
-    base_lr = cfg['base_lr'] * batch_size
+    base_lr = cfg['base_lr'] * batch_size * cfg['accumulate']
     min_lr = base_lr * cfg['min_lr_ratio']
     optimizer, start_epoch = build_optimizer(
         model=model_without_ddp,

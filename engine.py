@@ -75,15 +75,20 @@ def train_with_warmup(epoch,
             print('loss is NAN !!')
             continue
 
-        # Backward and Optimize
-        optimizer.zero_grad()
-        scaler.scale(losses).backward()
-        scaler.step(optimizer)
-        scaler.update()
+        losses = losses / cfg['accumulate']
 
-        # ema
-        if args.ema:
-            ema.update(model)
+        # backward
+        scaler.scale(losses).backward()
+
+        # Optimize
+        if ni % cfg['accumulate'] == 0:
+            scaler.step(optimizer)
+            scaler.update()
+            optimizer.zero_grad()
+
+            # ema
+            if args.ema:
+                ema.update(model)
 
         # display
         if distributed_utils.is_main_process() and iter_i % 10 == 0:
@@ -148,15 +153,20 @@ def train_one_epoch(epoch,
             print('loss is NAN !!')
             continue
 
-        # Backward and Optimize
-        optimizer.zero_grad()
-        scaler.scale(losses).backward()
-        scaler.step(optimizer)
-        scaler.update()
+        losses = losses / cfg['accumulate']
 
-        # ema
-        if args.ema:
-            ema.update(model)
+        # backward
+        scaler.scale(losses).backward()
+
+        # Optimize
+        if ni % cfg['accumulate'] == 0:
+            scaler.step(optimizer)
+            scaler.update()
+            optimizer.zero_grad()
+
+            # ema
+            if args.ema:
+                ema.update(model)
 
         # display
         if distributed_utils.is_main_process() and iter_i % 10 == 0:
