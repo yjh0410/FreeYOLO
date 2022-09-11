@@ -1,6 +1,5 @@
 import random
 import cv2
-import math
 import numpy as np
 import torch
 import torchvision.transforms.functional as F
@@ -18,21 +17,21 @@ def refine_targets(target, img_size, min_box_size):
         target_bboxes = torch.clamp(target_bboxes, 0, img_size)
 
         # check boxes
-        for box, label in zip(target_bboxes, target_labels):
-            x1, y1, x2, y2 = box.tolist()
-            bw, bh = x2 - x1, y2 - y1
-            # We remove those extremely small objects
-            if bw > min_box_size and bh > min_box_size:
-                valid_bboxes.append([x1, y1, x2, y2])
-                valid_labels.append(label.item())
+        target_bboxes_wh = target_bboxes[..., 2:] - target_bboxes[..., :2]
+        min_tgt_boxes_size = torch.min(target_bboxes_wh, dim=-1)[0]
+
+        keep = (min_tgt_boxes_size > min_box_size)
+
+        valid_bboxes = target_bboxes[keep]
+        valid_labels = target_labels[keep]
         
-        if len(valid_labels) == 0:
-            valid_bboxes.append([0., 0., 0., 0.])
-            valid_labels.append(0)
+    else:
+        valid_bboxes = target_bboxes
+        valid_labels = target_labels
 
     # guard against no boxes via resizing
-    valid_bboxes = torch.as_tensor(valid_bboxes).reshape(-1, 4)
-    valid_labels = torch.as_tensor(valid_labels).reshape(-1)
+    valid_bboxes = valid_bboxes.reshape(-1, 4)
+    valid_labels = valid_labels.reshape(-1)
 
     target['boxes'] = valid_bboxes
     target['labels'] = valid_labels
