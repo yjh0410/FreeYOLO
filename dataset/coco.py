@@ -167,7 +167,7 @@ class COCODataset(Dataset):
                 new_image, new_target = self.load_mosaic(new_index)
 
                 image, target = mixup_augment(image, target, new_image, new_target,
-                                                self.img_size, self.affine_params)
+                                                self.img_size, self.affine_params['mixup_scale'])
 
             # augment
             image, target = self.transform(image, target)
