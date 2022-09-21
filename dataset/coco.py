@@ -47,9 +47,9 @@ class COCODataset(Dataset):
                  data_dir=None, 
                  image_set='train2017',
                  transform=None,
+                 color_augment=None,
                  mosaic_prob=0.,
-                 mixup_prob=0.,
-                 affine_params=None):
+                 mixup_prob=0.):
         """
         COCO dataset initialization. Annotation data are read into memory by COCO API.
         Args:
@@ -72,9 +72,9 @@ class COCODataset(Dataset):
         self.class_ids = sorted(self.coco.getCatIds())
         # augmentation
         self.transform = transform
+        self.color_augment = color_augment
         self.mosaic_prob = mosaic_prob
         self.mixup_prob = mixup_prob
-        self.affine_params = affine_params
         if self.mosaic_prob > 0.:
             print('use Mosaic Augmentation ...')
         if self.mixup_prob > 0.:
@@ -151,7 +151,7 @@ class COCODataset(Dataset):
             image_list.append(img_i)
             target_list.append(target_i)
 
-        image, target = mosaic_augment(image_list, target_list, self.img_size, self.affine_params)
+        image, target = mosaic_augment(image_list, target_list, self.img_size)
 
         return image, target
 
@@ -166,11 +166,10 @@ class COCODataset(Dataset):
                 new_index = np.random.randint(0, len(self.ids))
                 new_image, new_target = self.load_mosaic(new_index)
 
-                image, target = mixup_augment(image, target, new_image, new_target,
-                                                self.img_size, self.affine_params['mixup_scale'])
+                image, target = mixup_augment(image, target, new_image, new_target)
 
             # augment
-            image, target = self.transform(image, target)
+            image, target = self.color_augment(image, target)
             
         # load an image and target
         else:
@@ -222,7 +221,7 @@ class COCODataset(Dataset):
 
 
 if __name__ == "__main__":
-    from transforms import TrainTransforms, ValTransforms
+    from transforms import BaseTransforms, TrainTransforms, ValTransforms
     
     img_size = 640
     format = 'RGB'
@@ -238,13 +237,15 @@ if __name__ == "__main__":
                     {'name': 'Resize'},
                     {'name': 'Normalize'},
                     {'name': 'PadImage'}]
-    affine_params = {'degrees': 10.,
-                     'translate': 0.1,
-                     'shear': 2.0,
-                     'mosaic_scale': (0.1, 2.0),
-                     'mixup_scale': (0.5, 1.5)}
     transform = TrainTransforms(
         trans_config=trans_config,
+        img_size=img_size,
+        pixel_mean=pixel_mean,
+        pixel_std=pixel_std,
+        format=format,
+        min_box_size=8
+        )
+    color_augment = BaseTransforms(
         img_size=img_size,
         pixel_mean=pixel_mean,
         pixel_std=pixel_std,
@@ -257,9 +258,9 @@ if __name__ == "__main__":
         data_dir='/mnt/share/ssd2/dataset/COCO',
         image_set='train2017',
         transform=transform,
-        affine_params=affine_params,
-        mosaic_prob=1.0,
-        mixup_prob=1.0
+        color_augment=color_augment,
+        mosaic_prob=0.5,
+        mixup_prob=0.5
         )
     
     np.random.seed(0)

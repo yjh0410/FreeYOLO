@@ -158,8 +158,8 @@ yolo_config = {
                         448, 480, 512, 544,
                         576, 608, 640, 672,
                         704, 736, 768, 800],
-        'mosaic_prob': 1.0,
-        'mixup_prob': 1.0,
+        'mosaic_prob': 0.5,
+        'mixup_prob': 0.5,
         'format': 'RGB',
         'pixel_mean': [123.675, 116.28, 103.53],
         'pixel_std': [58.395, 57.12, 57.375],
@@ -172,13 +172,6 @@ yolo_config = {
                          {'name': 'Resize'},
                          {'name': 'Normalize'},
                          {'name': 'PadImage'}],
-        # parameters affine
-        'affine_params': {
-            'degrees': 10.,
-            'translate': 0.1,
-            'shear': 2.0,
-            'mosaic_scale': (0.1, 2.0),
-            'mixup_scale': (0.5, 1.5)},
         # model
         'backbone': 'elannet',
         'pretrained': True,
@@ -217,7 +210,7 @@ yolo_config = {
         'loss_cls_weight': 1.0,
         'loss_reg_weight': 5.0,
         # training configuration
-        'max_epoch': 300,
+        'max_epoch': 250,
         'no_aug_epoch': 15,
         'batch_size': 16,
         'accumulate': 1, # 4

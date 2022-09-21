@@ -42,8 +42,7 @@ class VOCAPIEvaluator():
             mage_sets=[('2007', set_type)],
             transform=transform,
             mosaic_prob=0.,
-            mixup_prob=0.,
-            affine_params=None)
+            mixup_prob=0.)
 
     def evaluate(self, net):
         net.eval()

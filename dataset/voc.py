@@ -92,9 +92,9 @@ class VOCDetection(data.Dataset):
                  data_dir=None,
                  image_sets=[('2007', 'trainval'), ('2012', 'trainval')],
                  transform=None, 
+                 color_augment=None,
                  mosaic_prob=0.0,
-                 mixup_prob=0.0,
-                 affine_params=None):
+                 mixup_prob=0.0):
         self.root = data_dir
         self.img_size = img_size
         self.image_set = image_sets
@@ -108,9 +108,9 @@ class VOCDetection(data.Dataset):
                 self.ids.append((rootpath, line.strip()))
         # augmentation
         self.transform = transform
+        self.color_augment = color_augment
         self.mosaic_prob = mosaic_prob
         self.mixup_prob = mixup_prob
-        self.affine_params = affine_params
         if self.mosaic_prob > 0.:
             print('use Mosaic Augmentation ...')
         if self.mixup_prob > 0.:
@@ -163,7 +163,7 @@ class VOCDetection(data.Dataset):
             image_list.append(img_i)
             target_list.append(target_i)
 
-        image, target = mosaic_augment(image_list, target_list, self.img_size, self.affine_params)
+        image, target = mosaic_augment(image_list, target_list, self.img_size)
         
         return image, target
 
@@ -178,11 +178,10 @@ class VOCDetection(data.Dataset):
                 new_index = np.random.randint(0, len(self.ids))
                 new_image, new_target = self.load_mosaic(new_index)
 
-                image, target = mixup_augment(image, target, new_image, new_target,
-                                                self.img_size, self.affine_params['mixup_scale'])
+                image, target = mixup_augment(image, target, new_image, new_target)
 
             # augment
-            image, target = self.transform(image, target)
+            image, target = self.color_augment(image, target)
             
         # load an image and target
         else:
@@ -225,7 +224,7 @@ class VOCDetection(data.Dataset):
 
 
 if __name__ == "__main__":
-    from transforms import TrainTransforms, ValTransforms
+    from transforms import BaseTransforms, TrainTransforms, ValTransforms
     
     img_size = 640
     format = 'RGB'
@@ -241,17 +240,6 @@ if __name__ == "__main__":
                     {'name': 'Resize'},
                     {'name': 'Normalize'},
                     {'name': 'PadImage'}]
-    affine_params = {'degrees': 10.,
-                     'translate': 0.1,
-                     'shear': 2.0,
-                     'mosaic_scale': (0.1, 2.0),
-                     'mixup_scale': (0.5, 1.5)}
-    transform = ValTransforms(
-        img_size=img_size,
-        pixel_mean=pixel_mean,
-        pixel_std=pixel_std,
-        format=format
-    )
     transform = TrainTransforms(
         trans_config=trans_config,
         img_size=img_size,
@@ -260,13 +248,21 @@ if __name__ == "__main__":
         format=format,
         min_box_size=8
         )
+    color_augment = BaseTransforms(
+        img_size=img_size,
+        pixel_mean=pixel_mean,
+        pixel_std=pixel_std,
+        format=format,
+        min_box_size=8
+        )
+
     dataset = VOCDetection(
         img_size=img_size,
         data_dir='D:\\python_work\\object-detection\\dataset\\VOCdevkit',
         transform=transform,
-        mosaic_prob=0.,
-        mixup_prob=0.,
-        affine_params=affine_params
+        color_augment=color_augment,
+        mosaic_prob=0.5,
+        mixup_prob=0.5
         )
     
     np.random.seed(0)

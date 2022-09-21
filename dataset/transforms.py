@@ -1,6 +1,5 @@
 import random
 import cv2
-import math
 import numpy as np
 import torch
 import torchvision.transforms.functional as F
@@ -40,113 +39,11 @@ def refine_targets(target, img_size, min_box_size):
     return target
 
 
-def get_aug_params(value, center=0):
-    if isinstance(value, float):
-        return random.uniform(center - value, center + value)
-    elif len(value) == 2:
-        return random.uniform(value[0], value[1])
-    else:
-        raise ValueError(
-            "Affine params should be either a sequence containing two values\
-             or single float values. Got {}".format(value)
-        )
-
-
-def get_affine_matrix(
-    target_size,
-    degrees=10,
-    translate=0.1,
-    scales=0.1,
-    shear=10,
-):
-    twidth, theight = target_size
-
-    # Rotation and Scale
-    angle = get_aug_params(degrees)
-    scale = get_aug_params(scales, center=1.0)
-
-    if scale <= 0.0:
-        raise ValueError("Argument scale should be positive")
-
-    R = cv2.getRotationMatrix2D(angle=angle, center=(0, 0), scale=scale)
-
-    M = np.ones([2, 3])
-    # Shear
-    shear_x = math.tan(get_aug_params(shear) * math.pi / 180)
-    shear_y = math.tan(get_aug_params(shear) * math.pi / 180)
-
-    M[0] = R[0] + shear_y * R[1]
-    M[1] = R[1] + shear_x * R[0]
-
-    # Translation
-    translation_x = get_aug_params(translate) * twidth  # x translation (pixels)
-    translation_y = get_aug_params(translate) * theight  # y translation (pixels)
-
-    M[0, 2] = translation_x
-    M[1, 2] = translation_y
-
-    return M, scale
-
-
-def apply_affine_to_bboxes(targets, target_size, M, scale):
-    num_gts = len(targets)
-
-    # warp corner points
-    twidth, theight = target_size
-    corner_points = np.ones((4 * num_gts, 3))
-    corner_points[:, :2] = targets[:, [0, 1, 2, 3, 0, 3, 2, 1]].reshape(
-        4 * num_gts, 2
-    )  # x1y1, x2y2, x1y2, x2y1
-    corner_points = corner_points @ M.T  # apply affine transform
-    corner_points = corner_points.reshape(num_gts, 8)
-
-    # create new boxes
-    corner_xs = corner_points[:, 0::2]
-    corner_ys = corner_points[:, 1::2]
-    new_bboxes = (
-        np.concatenate(
-            (corner_xs.min(1), corner_ys.min(1), corner_xs.max(1), corner_ys.max(1))
-        )
-        .reshape(4, num_gts)
-        .T
-    )
-
-    # clip boxes
-    new_bboxes[:, 0::2] = new_bboxes[:, 0::2].clip(0, twidth)
-    new_bboxes[:, 1::2] = new_bboxes[:, 1::2].clip(0, theight)
-
-    targets[:, :4] = new_bboxes
-
-    return targets
-
-
-def random_affine(
-    img,
-    targets=(),
-    target_size=(640, 640),
-    degrees=10,
-    translate=0.1,
-    scales=0.1,
-    shear=10,
-):
-    M, scale = get_affine_matrix(target_size, degrees, translate, scales, shear)
-
-    img = cv2.warpAffine(img, M, dsize=target_size, borderValue=(114, 114, 114))
-
-    # Transform label coordinates
-    if len(targets) > 0:
-        targets = apply_affine_to_bboxes(targets, target_size, M, scale)
-
-    return img, targets
-
-
-def mosaic_augment(image_list, target_list, img_size, affine_params):
-    # prepare empty mosaic image
+def mosaic_augment(image_list, target_list, img_size):
     mosaic_img = np.zeros([img_size*2, img_size*2, image_list[0].shape[2]], dtype=np.uint8)
     # mosaic center
-    yc, xc = [int(random.uniform(-x, 2*img_size + x)) 
-                for x in [-img_size // 2, -img_size // 2]]
-    # yc = xc = img_size
+    yc, xc = [int(random.uniform(-x, 2*img_size + x)) for x in [-img_size // 2, -img_size // 2]]
+    # yc = xc = self.img_size
 
     mosaic_bboxes = []
     mosaic_labels = []
@@ -156,15 +53,16 @@ def mosaic_augment(image_list, target_list, img_size, affine_params):
         labels_i = target_i["labels"]
 
         h0, w0, _ = img_i.shape
+        s = np.random.randint(5, 21) / 10.
 
         # resize
         if np.random.randint(2):
             # keep aspect ratio
             r = img_size / max(h0, w0)
             if r != 1: 
-                img_i = cv2.resize(img_i, (int(w0 * r), int(h0 * r)))
+                img_i = cv2.resize(img_i, (int(w0 * r * s), int(h0 * r * s)))
         else:
-            img_i = cv2.resize(img_i, (int(img_size), int(img_size)))
+            img_i = cv2.resize(img_i, (int(img_size * s), int(img_size * s)))
         h, w, _ = img_i.shape
 
         # place img in img4
@@ -197,121 +95,46 @@ def mosaic_augment(image_list, target_list, img_size, affine_params):
             mosaic_bboxes.append(bboxes_i_)
             mosaic_labels.append(labels_i)
 
+    if len(mosaic_bboxes) == 0:
+        mosaic_bboxes = np.array([]).reshape(-1, 4)
+        mosaic_labels = np.array([]).reshape(-1)
+    
     mosaic_bboxes = np.concatenate(mosaic_bboxes)
     mosaic_labels = np.concatenate(mosaic_labels)
-    # clip
-    mosaic_bboxes = mosaic_bboxes.clip(0, img_size * 2)
-    mosaic_tgts = np.concatenate([mosaic_bboxes, 
-                                  mosaic_labels[..., None]], 
-                                  axis=-1)
-    # affine
-    mosaic_img, mosaic_tgts = random_affine(
-        mosaic_img,
-        mosaic_tgts,
-        target_size=(img_size, img_size),
-        degrees=affine_params['degrees'],
-        translate=affine_params['translate'],
-        scales=affine_params['mosaic_scale'],
-        shear=affine_params['shear'],
-    )
-    mosaic_bboxes = mosaic_tgts[..., :4]
-    mosaic_labels = mosaic_tgts[..., 4]
 
-    if len(mosaic_bboxes > 0):
-        # Cutout/Clip targets
-        np.clip(mosaic_bboxes, 0, img_size, out=mosaic_bboxes)
-
+    # resize mosaic
+    mosaic_img = cv2.resize(mosaic_img, (img_size, img_size))
+    mosaic_bboxes = mosaic_bboxes / 2.0
+    mosaic_bboxes = np.clip(mosaic_bboxes, a_min=0., a_max=img_size)
+    
     # target
     mosaic_target = {
-        "boxes": mosaic_bboxes.reshape(-1, 4),
-        "labels": mosaic_labels.reshape(-1),
+        "boxes": mosaic_bboxes,
+        "labels": mosaic_labels,
         "orig_size": [img_size, img_size]
     }
-    
+
     return mosaic_img, mosaic_target
 
 
-def mixup_augment(origin_image, origin_target, new_image, new_target, img_size, mixup_scale):
-    jit_factor = random.uniform(*mixup_scale)
-    FLIP = random.uniform(0, 1) > 0.5
-
-    cp_img = np.ones((img_size, img_size, 3), dtype=np.uint8) * 114
-
-    cp_scale_ratio = min(img_size / new_image.shape[0], img_size / new_image.shape[1])
-    resized_img = cv2.resize(
-        new_image,
-        (int(new_image.shape[1] * cp_scale_ratio), int(new_image.shape[0] * cp_scale_ratio)),
-        interpolation=cv2.INTER_LINEAR,
-    )
-
-    cp_img[
-        : int(new_image.shape[0] * cp_scale_ratio), : int(new_image.shape[1] * cp_scale_ratio)
-    ] = resized_img
-
-    cp_img = cv2.resize(
-        cp_img,
-        (int(cp_img.shape[1] * jit_factor), int(cp_img.shape[0] * jit_factor)),
-    )
-    cp_scale_ratio *= jit_factor
-
-    if FLIP:
-        cp_img = cp_img[:, ::-1, :]
-
-    origin_h, origin_w = cp_img.shape[:2]
-    target_h, target_w = origin_image.shape[:2]
-    padded_img = np.zeros(
-        (max(origin_h, target_h), max(origin_w, target_w), 3), dtype=cp_img.dtype
-    )
-    padded_img[:origin_h, :origin_w] = cp_img
-
-    x_offset, y_offset = 0, 0
-    if padded_img.shape[0] > target_h:
-        y_offset = random.randint(0, padded_img.shape[0] - target_h - 1)
-    if padded_img.shape[1] > target_w:
-        x_offset = random.randint(0, padded_img.shape[1] - target_w - 1)
-    padded_cropped_img = padded_img[
-        y_offset: y_offset + target_h, x_offset: x_offset + target_w
-    ]
-
-    cp_bboxes = new_target["boxes"].copy()
-    cp_bboxes_origin_np = np.zeros_like(cp_bboxes)
-    cp_bboxes_origin_np[:, 0::2] = np.clip(cp_bboxes[:, 0::2] * cp_scale_ratio, 0, origin_w)
-    cp_bboxes_origin_np[:, 1::2] = np.clip(cp_bboxes[:, 1::2] * cp_scale_ratio, 0, origin_h)
-
-    if FLIP:
-        cp_bboxes_origin_np[:, 0::2] = (
-            origin_w - cp_bboxes_origin_np[:, 0::2][:, ::-1]
-        )
-
-    cp_bboxes_transformed_np = cp_bboxes_origin_np.copy()
-    cp_bboxes_transformed_np[:, 0::2] = np.clip(
-        cp_bboxes_transformed_np[:, 0::2] - x_offset, 0, target_w
-    )
-    cp_bboxes_transformed_np[:, 1::2] = np.clip(
-        cp_bboxes_transformed_np[:, 1::2] - y_offset, 0, target_h
-    )
-
+def mixup_augment(origin_image, origin_target, new_image, new_target):
     r = np.random.beta(32.0, 32.0)  # mixup ratio, alpha=beta=32.0
     mixup_image = r * origin_image.astype(np.float32) + \
-                  (1.0 - r)* padded_cropped_img.astype(np.float32)
+                  (1.0 - r)* new_image.astype(np.float32)
     mixup_image = mixup_image.astype(np.uint8)
     
     cls_labels = new_target["labels"].copy()
-    box_labels = cp_bboxes_transformed_np
+    box_labels = new_target["boxes"].copy()
 
     mixup_bboxes = np.concatenate([origin_target["boxes"], box_labels], axis=0)
     mixup_labels = np.concatenate([origin_target["labels"], cls_labels], axis=0)
 
-    if len(mixup_bboxes) > 0:
-        # Cutout/Clip targets
-        np.clip(mixup_bboxes, 0, img_size, out=mixup_bboxes)
-
     mixup_target = {
-        "boxes": mixup_bboxes.reshape(-1, 4),
-        "labels": mixup_labels.reshape(-1),
+        "boxes": mixup_bboxes,
+        "labels": mixup_labels,
         'orig_size': mixup_image.shape[:2]
     }
-
+    
     return mixup_image, mixup_target
     
 
@@ -497,38 +320,13 @@ class RandomHorizontalFlip(object):
 
     def __call__(self, image, target=None):
         if random.random() < self.p:
-            image = image[:, ::-1]
+            image = image[:, ::-1].copy()
             if target is not None:
                 h, w = target["orig_size"]
                 if "boxes" in target:
                     boxes = target["boxes"].copy()
                     boxes[..., [0, 2]] = w - boxes[..., [2, 0]]
                     target["boxes"] = boxes
-
-        return image, target
-
-
-# Resize tensor image
-class Resize(object):
-    def __init__(self, img_size=640):
-        self.img_size = img_size
-
-    def __call__(self, image, target=None):
-        # Resize the longest side of the image to the specified max size
-        img_h0, img_w0 = image.shape[1:]
-
-        r = self.img_size / max(img_h0, img_w0)
-        if r != 1: 
-            image = F.resize(image, (int(img_h0 * r), int(img_w0 * r)))
-
-        # rescale bboxes
-        if target is not None:
-            img_h, img_w = image.shape[1:]
-            # rescale bbox
-            boxes_ = target["boxes"].clone()
-            boxes_[:, [0, 2]] = boxes_[:, [0, 2]] / img_w0 * img_w
-            boxes_[:, [1, 3]] = boxes_[:, [1, 3]] / img_h0 * img_h
-            target["boxes"] = boxes_
 
         return image, target
 
@@ -544,6 +342,33 @@ class Normalize(object):
         image = F.normalize(image, mean=self.pixel_mean, std=self.pixel_std)
 
         return image, target
+
+
+# Resize tensor image
+class Resize(object):
+    def __init__(self, img_size=640):
+        self.img_size = img_size
+
+    def __call__(self, image, target=None):
+        # Resize the longest side of the image to the specified max size
+        img_h0, img_w0 = image.shape[1:]
+
+        r = self.img_size / max(img_h0, img_w0)
+        if r != 1: 
+            resized_image = F.resize(image, (int(img_h0 * r), int(img_w0 * r)))
+        else:
+            resized_image = image
+
+        # rescale bboxes
+        if target is not None:
+            img_h, img_w = resized_image.shape[1:]
+            # rescale bbox
+            boxes_ = target["boxes"].clone()
+            boxes_[:, [0, 2]] = boxes_[:, [0, 2]] / img_w0 * img_w
+            boxes_[:, [1, 3]] = boxes_[:, [1, 3]] / img_h0 * img_h
+            target["boxes"] = boxes_
+
+        return resized_image, target
 
 
 # Pad tensor image
@@ -572,6 +397,36 @@ class PadImage(object):
         pad_image[:, :img_h0, :img_w0] = image
 
         return pad_image, target
+
+
+# BaseTransforms
+class BaseTransforms(object):
+    def __init__(self, 
+                 img_size=640, 
+                 pixel_mean=(123.675, 116.28, 103.53), 
+                 pixel_std=(58.395, 57.12, 57.375),
+                 format='RGB',
+                 min_box_size=8):
+        self.img_size = img_size
+        self.pixel_mean = pixel_mean
+        self.pixel_std = pixel_std
+        self.format = format
+        self.min_box_size = min_box_size
+        self.transforms = Compose([
+            DistortTransform(),
+            RandomHorizontalFlip(),
+            ToTensor(format=format),
+            Resize(img_size=img_size),
+            Normalize(pixel_mean, pixel_std),
+            PadImage(img_size=img_size)
+        ])
+
+
+    def __call__(self, image, target):
+        image, target = self.transforms(image, target)
+        target = refine_targets(target, self.img_size, self.min_box_size)
+
+        return image, target
 
 
 # TrainTransform

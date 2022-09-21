@@ -38,8 +38,7 @@ class COCOAPIEvaluator():
             image_set=image_set,
             transform=None,
             mosaic_prob=0.,
-            mixup_prob=0.,
-            affine_params=None
+            mixup_prob=0.
             )
         self.transform = transform
         self.device = device
