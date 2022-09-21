@@ -37,9 +37,13 @@ class VOCAPIEvaluator():
         self.output_dir = self.get_output_dir('voc_eval/', self.set_type)
 
         # dataset
-        self.dataset = VOCDetection(data_dir=data_dir, 
-                                    image_sets=[('2007', set_type)],
-                                    transform=transform)
+        self.dataset = VOCDetection(
+            data_dir=data_dir, 
+            mage_sets=[('2007', set_type)],
+            transform=transform,
+            mosaic_prob=0.,
+            mixup_prob=0.,
+            affine_params=None)
 
     def evaluate(self, net):
         net.eval()

@@ -11,7 +11,7 @@ from evaluator.coco_evaluator import COCOAPIEvaluator
 from evaluator.voc_evaluator import VOCAPIEvaluator
 from dataset.voc import VOCDetection
 from dataset.coco import COCODataset
-from dataset.transforms import BaseTransforms, TrainTransforms, ValTransforms
+from dataset.transforms import TrainTransforms, ValTransforms
 
 
 def sigmoid_focal_loss(logits, targets, alpha=0.25, gamma=2.0, reduction='none'):
@@ -45,13 +45,6 @@ def build_dataset(cfg, args, device):
                                       format=cfg['format'])
     val_transform = ValTransforms(img_size=cfg['test_size'],
                                   format=cfg['format'])
-    color_augment = BaseTransforms(
-        img_size=cfg['train_size'],
-        pixel_mean=cfg['pixel_mean'],
-        pixel_std=cfg['pixel_std'],
-        format=cfg['format'],
-        min_box_size=args.min_box_size
-    )
     train_transform = TrainTransforms(
         trans_config=trans_config,
         img_size=cfg['train_size'],
@@ -77,14 +70,15 @@ def build_dataset(cfg, args, device):
             img_size=cfg['train_size'],
             data_dir=data_dir,
             transform=train_transform,
-            color_augment=color_augment,
             mosaic_prob=cfg['mosaic_prob'],
-            mixup_prob=cfg['mixup_prob']
+            mixup_prob=cfg['mixup_prob'],
+            affine_params=cfg['affine_params']
             )
         # evaluator
-        evaluator = VOCAPIEvaluator(data_dir=data_dir,
-                                    device=device,
-                                    transform=val_transform)
+        evaluator = VOCAPIEvaluator(
+            data_dir=data_dir,
+            device=device,
+            transform=val_transform)
 
     elif args.dataset == 'coco':
         data_dir = os.path.join(args.root, 'COCO')
@@ -95,14 +89,15 @@ def build_dataset(cfg, args, device):
             data_dir=data_dir,
             image_set='train2017',
             transform=train_transform,
-            color_augment=color_augment,
             mosaic_prob=cfg['mosaic_prob'],
-            mixup_prob=cfg['mixup_prob']
+            mixup_prob=cfg['mixup_prob'],
+            affine_params=cfg['affine_params']
             )
         # evaluator
-        evaluator = COCOAPIEvaluator(data_dir=data_dir,
-                                     device=device,
-                                     transform=val_transform)
+        evaluator = COCOAPIEvaluator(
+            data_dir=data_dir,
+            device=device,
+            transform=val_transform)
 
     else:
         print('unknow dataset !! Only support voc, coco !!')

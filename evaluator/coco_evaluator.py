@@ -34,9 +34,13 @@ class COCOAPIEvaluator():
             image_set = 'val2017'
 
         self.dataset = COCODataset(
-                            data_dir=data_dir,
-                            image_set=image_set,
-                            transform=None)
+            data_dir=data_dir,
+            image_set=image_set,
+            transform=None,
+            mosaic_prob=0.,
+            mixup_prob=0.,
+            affine_params=None
+            )
         self.transform = transform
         self.device = device
 
