@@ -222,7 +222,7 @@ class COCODataset(Dataset):
 
 
 if __name__ == "__main__":
-    from transforms import BaseTransforms, TrainTransforms, ValTransforms
+    from transforms import TrainTransforms, ValTransforms
     
     img_size = 640
     format = 'RGB'
