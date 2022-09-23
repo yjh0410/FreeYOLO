@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torch.utils.data import DataLoader, DistributedSampler
 
 import numpy as np
 import os
@@ -118,19 +119,14 @@ def build_dataset(cfg, args, device):
 def build_dataloader(args, dataset, batch_size, collate_fn=None):
     # distributed
     if args.distributed:
-        sampler = torch.utils.data.distributed.DistributedSampler(dataset)
+        sampler = DistributedSampler(dataset)
     else:
         sampler = torch.utils.data.RandomSampler(dataset)
 
-    batch_sampler_train = torch.utils.data.BatchSampler(sampler, 
-                                                        batch_size, 
-                                                        drop_last=True)
+    batch_sampler_train = torch.utils.data.BatchSampler(sampler, batch_size, drop_last=True)
 
-    dataloader = torch.utils.data.DataLoader(dataset, 
-                                             batch_sampler=batch_sampler_train,
-                                             collate_fn=collate_fn, 
-                                             num_workers=args.num_workers,
-                                             pin_memory=True)
+    dataloader = DataLoader(dataset, batch_sampler=batch_sampler_train,
+                            collate_fn=collate_fn, num_workers=args.num_workers, pin_memory=True)
     
     return dataloader
     

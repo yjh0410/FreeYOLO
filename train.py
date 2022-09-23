@@ -107,8 +107,7 @@ def train():
     dataset, evaluator, num_classes = build_dataset(cfg, args, device)
 
     # dataloader
-    batch_size = cfg['batch_size'] * distributed_utils.get_world_size()
-    dataloader = build_dataloader(args, dataset, batch_size, CollateFunc())
+    dataloader = build_dataloader(args, dataset, cfg['batch_size'], CollateFunc())
 
     # build model
     net = build_model(
@@ -149,7 +148,7 @@ def train():
         dist.barrier()
 
     # optimizer
-    base_lr = cfg['base_lr'] * batch_size * cfg['accumulate']
+    base_lr = cfg['base_lr'] * cfg['batch_size'] * cfg['accumulate'] * distributed_utils.get_world_size()
     min_lr = base_lr * cfg['min_lr_ratio']
     optimizer, start_epoch = build_optimizer(
         model=model_without_ddp,
