@@ -200,7 +200,7 @@ class FreeYOLOv3(nn.Module):
             anchors_i = anchors_i[anchor_idxs]
 
             # decode box: [M, 4]
-            bboxes = self.decode_boxes(anchors, reg_pred, self.stride[level])
+            bboxes = self.decode_boxes(anchors_i, reg_pred_i, self.stride[level])
 
             all_scores.append(scores)
             all_labels.append(labels)
