@@ -164,19 +164,19 @@ class FreeYOLOv3(nn.Module):
         return self
 
 
-    def post_process(self, obj_pred, cls_pred, reg_pred, anchors):
+    def post_process(self, obj_preds, cls_preds, reg_preds, anchors):
         """
         Input:
-            obj_pred: List(Tensor) [[H x W, 1], ...]
-            cls_pred: List(Tensor) [[H x W, C], ...]
-            reg_pred: List(Tensor) [[H x W, 4], ...]
+            obj_preds: List(Tensor) [[H x W, 1], ...]
+            cls_preds: List(Tensor) [[H x W, C], ...]
+            reg_preds: List(Tensor) [[H x W, 4], ...]
             anchors:  List(Tensor) [[H x W, 2], ...]
         """
         all_scores = []
         all_labels = []
         all_bboxes = []
         
-        for level, obj_pred_i, cls_pred_i, reg_pred_i, anchors_i in enumerate(zip(obj_pred, cls_pred, reg_pred, anchors)):
+        for level, (obj_pred_i, cls_pred_i, reg_pred_i, anchors_i) in enumerate(zip(obj_preds, cls_preds, reg_preds, anchors)):
             # (H x W x C,)
             scores_i = (torch.sqrt(obj_pred_i.sigmoid() * cls_pred_i.sigmoid())).flatten()
 
@@ -274,9 +274,6 @@ class FreeYOLOv3(nn.Module):
             all_cls_preds.append(cls_pred)
             all_reg_preds.append(reg_pred)
             all_anchors.append(anchors)
-
-            # scores
-            scores, labels = torch.max(obj_pred.sigmoid() * cls_pred.sigmoid(), dim=-1)
 
         # post process
         bboxes, scores, labels = self.post_process(all_obj_preds, all_cls_preds, all_reg_preds, all_anchors)
