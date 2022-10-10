@@ -108,7 +108,7 @@ class FreeYOLOv3(nn.Module):
     def decode_boxes(self, anchors, pred_regs, stride):
         """
             anchors:  (List[Tensor]) [1, M, 2] or [M, 2]
-            pred_reg: (List[Tensor]) [B, M, 4] or [M, 4] (l, t, r, b)
+            pred_reg: (List[Tensor]) [B, M, 4] or [B, M, 4]
         """
         # center of bbox
         pred_ctr_xy = anchors + pred_regs[..., :2] * stride
@@ -247,7 +247,7 @@ class FreeYOLOv3(nn.Module):
         pyramid_feats = [feats['layer2'], feats['layer3'], feats['layer4']]
         pyramid_feats = self.fpn(pyramid_feats)
 
-        # shared head
+        # non-shared heads
         all_obj_preds = []
         all_cls_preds = []
         all_reg_preds = []
@@ -299,7 +299,7 @@ class FreeYOLOv3(nn.Module):
             pyramid_feats = [feats['layer2'], feats['layer3'], feats['layer4']]
             pyramid_feats = self.fpn(pyramid_feats)
 
-            # shared head
+            # non-shared heads
             all_anchors = []
             all_obj_preds = []
             all_cls_preds = []
