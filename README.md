@@ -93,6 +93,18 @@ python test.py -d coco \
                --show
 ```
 
+# Evaluation
+```Shell
+python eval.py -d coco-val \
+               --cuda \
+               -v yolo_free \
+               --img_size 640 \
+               --weight path/to/weight \
+               --root path/to/dataset/ \
+               --show
+```
+
+
 # Demo
 I have provide some images in `data/demo/images/`, so you can run following command to run a demo:
 

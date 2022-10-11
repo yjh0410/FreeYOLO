@@ -80,9 +80,13 @@ yolo_config = {
 
     'yolo_anchor': {
         # input
-        'train_size': 640,
-        'test_size': 608,
-        'random_size': [320, 352, 384, 416, 448, 480, 512, 544, 576, 608, 640],
+        # input
+        'train_size': 800,
+        'test_size': 640,
+        'random_size': [320, 352, 384, 416,
+                        448, 480, 512, 544,
+                        576, 608, 640, 672,
+                        704, 736, 768, 800],
         'mosaic_prob': 0.5,
         'mixup_prob': 0.5,
         'format': 'RGB',
