@@ -29,7 +29,7 @@ class ELANBlock(nn.Module):
             else:
                 self.cv3.append(Conv(inter_dim2, inter_dim2, k=3, p=1, act_type=act_type, norm_type=norm_type, depthwise=depthwise))
 
-        self.out = Conv(inter_dim*2+inter_dim2*len(self.cv3), out_dim, k=1)
+        self.out = Conv(inter_dim*2+inter_dim2*len(self.cv3), out_dim, k=1, act_type=act_type, norm_type=norm_type)
 
 
     def forward(self, x):
