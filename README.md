@@ -47,20 +47,8 @@ Main results on COCO-val:
 | Model        |  Scale  | FPS<sup><br>2080ti |  FLOPs  |  Params |    AP    |    AP50    |  Weight  |
 |--------------|---------|--------------------|---------|---------|----------|------------|----------|
 | YOLOF        |  608    |  74                |  87.7 B |  48.3 M |   41.0   |    61.3    | [github]() |
-| AnchorYOLO   |  608    |  45                |  76.3 B |  62.0 M |   42.5   |    62.1    | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_anchor_42.5_62.1.pth) |
-| FreeYOLO-v1  |  608    |  51                |  76.0 B |  61.8 M |   43.7   |    62.6    | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_43.7_62.6.pth) |
-| FreeYOLO-v1  |  640    |  45                |  84.2 B |  61.8 M |   43.4   |    62.0    | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_43.7_62.6.pth) |
-| FreeYOLO-v2  |  640    |  45                |  86.6 B |  67.6 M |   44.5   |    65.0    | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_v2_44.5_65.0.pth) |
-| FreeYOLO-v3  |  640    |  58                |  72.4 B |  44.1 M |   44.8   |    65.8    | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_v3_44.5_65.0.pth) |
-
-
-## VOC
-
-| Model        |  Scale  |  AP50 |  Weight  |
-|--------------|---------|-------|----------|
-| YOLOF        |  608    |  84.0 | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolof_84.0.pth) |
-| AnchorYOLO   |  608    |  84.4 | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_anchor_84.4.pth) |
-| FreeYOLO-v1  |  608    |  84.9 | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_84.9.pth) |
+| AnchorYOLO   |  608    |  45                |  76.3 B |  62.0 M |   43.4   |    63.6    | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_anchor_43.4_63.6.pth) |
+| FreeYOLO     |  640    |  58                |  72.4 B |  44.1 M |   44.8   |    65.8    | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_44.8_65.8.pth) |
 
 
 # Train
