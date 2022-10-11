@@ -119,14 +119,14 @@ class AnchorYOLO(nn.Module):
         return anchor_xy, anchor_wh
         
 
-    def decode_boxes(self, level, anchor_xy, anchor_wh, pred_reg):
+    def decode_boxes(self, anchor_xy, anchor_wh, pred_reg, stride):
         """
             anchor_xy:  (List[Tensor]) [M, 2]
             anchor_wh:  (List[Tensor]) [M, 2]
             pred_reg:   (List[Tensor]) [M, 4]
         """
         pred_ctr_delta = pred_reg[..., :2].sigmoid() * 3.0 - 1.5
-        pred_ctr = (anchor_xy + pred_ctr_delta) * self.stride[level]
+        pred_ctr = (anchor_xy + pred_ctr_delta) * stride
         pred_wh = pred_reg[..., 2:].exp() * anchor_wh
         
         pred_x1y1 = pred_ctr - pred_wh * 0.5
@@ -174,55 +174,45 @@ class AnchorYOLO(nn.Module):
         return keep
 
 
-    @torch.no_grad()
-    def inference_single_image(self, x):
-        img_h, img_w = x.shape[2:]
-        # backbone
-        feats = self.backbone(x)
-
-        # neck
-        feats['layer4'] = self.neck(feats['layer4'])
-
-        # fpn
-        pyramid_feats = [feats['layer2'], feats['layer3'], feats['layer4']]
-        pyramid_feats = self.fpn(pyramid_feats)
-
-        # shared head
+    def post_process(self, obj_preds, cls_preds, reg_preds, anchor_xy, anchor_wh):
+        """
+        Input:
+            obj_preds: List(Tensor) [[H x W, 1], ...]
+            cls_preds: List(Tensor) [[H x W, C], ...]
+            reg_preds: List(Tensor) [[H x W, 4], ...]
+            anchors:  List(Tensor) [[H x W, 2], ...]
+        """
         all_scores = []
         all_labels = []
         all_bboxes = []
-        for level, (feat, head) in enumerate(zip(pyramid_feats, self.non_shared_heads)):
-            cls_feat, reg_feat = head(feat)
+        
+        for level, (obj_pred_i, cls_pred_i, reg_pred_i, anchor_xy_i, anchor_wh_i) \
+                in enumerate(zip(obj_preds, cls_preds, reg_preds, anchor_xy, anchor_wh)):
+            # (H x W x C,)
+            scores_i = (torch.sqrt(obj_pred_i.sigmoid() * cls_pred_i.sigmoid())).flatten()
 
-            # [1, C, H, W]
-            obj_pred = self.obj_preds[level](reg_feat)
-            cls_pred = self.cls_preds[level](cls_feat)
-            reg_pred = self.reg_preds[level](reg_feat)
+            # Keep top k top scoring indices only.
+            num_topk = min(self.topk, reg_pred_i.size(0))
 
-            # decode box
-            _, _, H, W = cls_pred.size()
-            fmp_size = [H, W]
-            # [1, KC, H, W] -> [H, W, KC] -> [M, C]
-            obj_pred = obj_pred[0].permute(1, 2, 0).contiguous().view(-1, 1)
-            cls_pred = cls_pred[0].permute(1, 2, 0).contiguous().view(-1, self.num_classes)
-            reg_pred = reg_pred[0].permute(1, 2, 0).contiguous().view(-1, 4)
+            # torch.sort is actually faster than .topk (at least on GPUs)
+            predicted_prob, topk_idxs = scores_i.sort(descending=True)
+            topk_scores = predicted_prob[:num_topk]
+            topk_idxs = topk_idxs[:num_topk]
 
-            # scores
-            scores, labels = torch.max(obj_pred.sigmoid() * cls_pred.sigmoid(), dim=-1)
+            # filter out the proposals with low confidence score
+            keep_idxs = topk_scores > self.conf_thresh
+            scores = topk_scores[keep_idxs]
+            topk_idxs = topk_idxs[keep_idxs]
 
-            # anchors: [M, 2]
-            anchor_xy, anchor_wh = self.generate_anchors(level, fmp_size)
+            anchor_idxs = torch.div(topk_idxs, self.num_classes, rounding_mode='floor')
+            labels = topk_idxs % self.num_classes
 
-            # topk
-            if scores.shape[0] > self.topk:
-                scores, indices = torch.topk(scores, self.topk)
-                labels = labels[indices]
-                reg_pred = reg_pred[indices]
-                anchor_xy = anchor_xy[indices]
-                anchor_wh = anchor_wh[indices]
+            reg_pred_i = reg_pred_i[anchor_idxs]
+            anchor_xy_i = anchor_xy_i[anchor_idxs]
+            anchor_wh_i = anchor_wh_i[anchor_idxs]
 
             # decode box: [M, 4]
-            bboxes = self.decode_boxes(level, anchor_xy, anchor_wh, reg_pred)
+            bboxes = self.decode_boxes(anchor_xy_i, anchor_wh_i, reg_pred_i, self.stride[level])
 
             all_scores.append(scores)
             all_labels.append(labels)
@@ -236,12 +226,6 @@ class AnchorYOLO(nn.Module):
         scores = scores.cpu().numpy()
         labels = labels.cpu().numpy()
         bboxes = bboxes.cpu().numpy()
-
-        # threshold
-        keep = np.where(scores >= self.conf_thresh)
-        scores = scores[keep]
-        labels = labels[keep]
-        bboxes = bboxes[keep]
 
         # nms
         keep = np.zeros(len(bboxes), dtype=np.int)
@@ -258,6 +242,57 @@ class AnchorYOLO(nn.Module):
         bboxes = bboxes[keep]
         scores = scores[keep]
         labels = labels[keep]
+
+        return bboxes, scores, labels
+
+
+    @torch.no_grad()
+    def inference_single_image(self, x):
+        img_h, img_w = x.shape[2:]
+        # backbone
+        feats = self.backbone(x)
+
+        # neck
+        feats['layer4'] = self.neck(feats['layer4'])
+
+        # fpn
+        pyramid_feats = [feats['layer2'], feats['layer3'], feats['layer4']]
+        pyramid_feats = self.fpn(pyramid_feats)
+
+        # shared head
+        all_obj_preds = []
+        all_cls_preds = []
+        all_reg_preds = []
+        all_anchor_xy = []
+        all_anchor_wh = []
+        for level, (feat, head) in enumerate(zip(pyramid_feats, self.non_shared_heads)):
+            cls_feat, reg_feat = head(feat)
+
+            # [1, C, H, W]
+            obj_pred = self.obj_preds[level](reg_feat)
+            cls_pred = self.cls_preds[level](cls_feat)
+            reg_pred = self.reg_preds[level](reg_feat)
+
+            # decode box
+            _, _, H, W = cls_pred.size()
+            fmp_size = [H, W]
+            # anchors: [M, 2]
+            anchor_xy, anchor_wh = self.generate_anchors(level, fmp_size)
+
+            # [1, KC, H, W] -> [H, W, KC] -> [M, C]
+            obj_pred = obj_pred[0].permute(1, 2, 0).contiguous().view(-1, 1)
+            cls_pred = cls_pred[0].permute(1, 2, 0).contiguous().view(-1, self.num_classes)
+            reg_pred = reg_pred[0].permute(1, 2, 0).contiguous().view(-1, 4)
+
+            all_obj_preds.append(obj_pred)
+            all_cls_preds.append(cls_pred)
+            all_reg_preds.append(reg_pred)
+            all_anchor_xy.append(anchor_xy)
+            all_anchor_wh.append(anchor_wh)
+
+        # post process
+        bboxes, scores, labels = self.post_process(
+            all_obj_preds, all_cls_preds, all_reg_preds, all_anchor_xy, all_anchor_wh)
 
         # normalize bbox
         bboxes /= max(img_h, img_w)
@@ -303,10 +338,10 @@ class AnchorYOLO(nn.Module):
                 cls_pred = cls_pred.permute(0, 2, 3, 1).contiguous().view(B, -1, self.num_classes)
                 reg_pred = reg_pred.permute(0, 2, 3, 1).contiguous().view(B, -1, 4)
                 box_pred = self.decode_boxes(
-                    level, 
                     anchor_xy.unsqueeze(0),
                     anchor_wh.unsqueeze(0),
-                    reg_pred
+                    reg_pred,
+                    self.stride[level]
                     )
 
                 all_obj_preds.append(obj_pred)
