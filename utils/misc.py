@@ -141,6 +141,10 @@ def get_total_grad_norm(parameters, norm_type=2):
 
 
 def load_weight(device, model, path_to_ckpt):
+    if path_to_ckpt is None:
+        print('no weight file ...')
+        return model
+        
     checkpoint = torch.load(path_to_ckpt, map_location='cpu')
     # checkpoint state dict
     checkpoint_state_dict = checkpoint.pop("model")
