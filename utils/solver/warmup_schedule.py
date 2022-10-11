@@ -2,20 +2,17 @@
 # Build warmup scheduler
 
 
-def build_warmup(name='linear', 
-                 base_lr=0.01, 
-                 wp_iter=500, 
-                 warmup_factor=0.00066667):
+def build_warmup(cfg, base_lr=0.01, wp_iter=500):
     print('==============================')
-    print('WarmUpScheduler: {}'.format(name))
+    print('WarmUpScheduler: {}'.format(cfg['warmup']))
     print('--base_lr: {}'.format(base_lr))
-    print('--warmup_factor: {}'.format(warmup_factor))
-    print('--wp_iter: {}'.format(wp_iter))
+    print('--warmup_factor: {}'.format(cfg['warmup_factor']))
+    print('--wp_iter: {}'.format(cfg['wp_iter']))
 
-    warmup_scheduler = WarmUpScheduler(name=name, 
+    warmup_scheduler = WarmUpScheduler(name=cfg['warmup'], 
                                        base_lr=base_lr, 
                                        wp_iter=wp_iter, 
-                                       warmup_factor=warmup_factor)
+                                       warmup_factor=cfg['warmup_factor'])
     
     return warmup_scheduler
 

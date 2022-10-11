@@ -150,23 +150,11 @@ def train():
     # optimizer
     base_lr = cfg['base_lr'] * cfg['batch_size'] * cfg['accumulate'] * distributed_utils.get_world_size()
     min_lr = base_lr * cfg['min_lr_ratio']
-    optimizer, start_epoch = build_optimizer(
-        model=model_without_ddp,
-        base_lr=base_lr,
-        name=cfg['optimizer'],
-        momentum=cfg['momentum'],
-        weight_decay=cfg['weight_decay'],
-        resume=args.resume
-        )
+    optimizer, start_epoch = build_optimizer(cfg=cfg, base_lr=base_lr, resume=args.resume)
     
     # warmup scheduler
     wp_iter = len(dataloader) * cfg['wp_epoch']
-    warmup_scheduler = build_warmup(
-        name=cfg['warmup'],
-        base_lr=base_lr,
-        wp_iter=wp_iter,
-        warmup_factor=cfg['warmup_factor']
-        )
+    warmup_scheduler = build_warmup(cfg=cfg, base_lr=base_lr, wp_iter=wp_iter)
 
     # EMA
     if args.ema:

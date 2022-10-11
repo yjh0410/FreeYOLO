@@ -2,32 +2,27 @@ import torch
 from torch import optim
 
 
-def build_optimizer(model,
-                    base_lr=0.0,
-                    name='sgd',
-                    momentum=0.,
-                    weight_decay=0.,
-                    resume=None):
+def build_optimizer(cfg, model, base_lr=0.0, resume=None):
     print('==============================')
-    print('Optimizer: {}'.format(name))
-    print('--momentum: {}'.format(momentum))
-    print('--weight_decay: {}'.format(weight_decay))
+    print('Optimizer: {}'.format(cfg['optimizer']))
+    print('--momentum: {}'.format(cfg['momentum']))
+    print('--weight_decay: {}'.format(cfg['weight_decay']))
 
-    if name == 'sgd':
+    if cfg['optimizer'] == 'sgd':
         optimizer = optim.SGD(model.parameters(), 
                                 lr=base_lr,
-                                momentum=momentum,
-                                weight_decay=weight_decay)
+                                momentum=cfg['momentum'],
+                                weight_decay=cfg['weight_decay'])
 
-    elif name == 'adam':
+    elif cfg['optimizer'] == 'adam':
         optimizer = optim.Adam(model.parameters(), 
                                 lr=base_lr,
-                                weight_decay=weight_decay)
+                                weight_decay=cfg['weight_decay'])
                                 
-    elif name == 'adamw':
+    elif cfg['optimizer'] == 'adamw':
         optimizer = optim.AdamW(model.parameters(), 
                                 lr=base_lr,
-                                weight_decay=weight_decay)
+                                weight_decay=cfg['weight_decay'])
                                 
     start_epoch = 0
     if resume is not None:
