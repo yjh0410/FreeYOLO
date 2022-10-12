@@ -188,7 +188,7 @@ class AnchorYOLO(nn.Module):
         
         for level, (obj_pred_i, cls_pred_i, reg_pred_i, anchor_xy_i, anchor_wh_i) \
                 in enumerate(zip(obj_preds, cls_preds, reg_preds, anchor_xy, anchor_wh)):
-            # (H x W x C,)
+            # (H x W x KA x C,)
             scores_i = (torch.sqrt(obj_pred_i.sigmoid() * cls_pred_i.sigmoid())).flatten()
 
             # Keep top k top scoring indices only.
