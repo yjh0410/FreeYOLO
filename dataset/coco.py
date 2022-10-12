@@ -121,8 +121,8 @@ class COCODataset(Dataset):
                     cls_id = self.class_ids.index(label_ind)
 
                     anno.append([xmin, ymin, xmax, ymax, cls_id])  # [xmin, ymin, xmax, ymax, label_ind]
-            else:
-                print('No bbox !!!')
+            # else:
+            #     print('No bbox !!!')
 
         # guard against no boxes via resizing
         anno = np.array(anno).reshape(-1, 5)
