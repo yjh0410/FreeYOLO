@@ -1,5 +1,5 @@
 from .cspdarknet53 import build_cspdarknet53
-from .cspdarknets import build_cspd
+from .shufflenetv2 import build_shufflenetv2
 from .elannet import build_elannet
 
 
@@ -19,9 +19,10 @@ def build_backbone(cfg, trainable=False):
             pretrained=pretrained,
             res5_dilation=res5_dilation
             )
-    elif 'cspd' in cfg['backbone']:
-        model, feat_dim = build_cspd(
-            model_name=cfg['backbone'],
+            
+    elif cfg['backbone'] == 'shufflenet_v2':
+        model, feat_dim = build_shufflenetv2(
+            model_size=cfg['model_size'],
             pretrained=pretrained
         )
 

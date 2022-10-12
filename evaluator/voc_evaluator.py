@@ -39,7 +39,7 @@ class VOCAPIEvaluator():
         # dataset
         self.dataset = VOCDetection(
             data_dir=data_dir, 
-            mage_sets=[('2007', set_type)],
+            image_sets=[('2007', set_type)],
             transform=transform,
             mosaic_prob=0.,
             mixup_prob=0.)

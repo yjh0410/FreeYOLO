@@ -108,3 +108,31 @@ class SPPBlockCSP(nn.Module):
         y = self.cv3(torch.cat([x1, x3], dim=1))
 
         return y
+
+
+# SPP block with depthwise conv
+class SPPBlockDW(nn.Module):
+    """
+        Depth-wise Spatial Pyramid Pooling Block
+    """
+    def __init__(self,
+                 in_dim,
+                 out_dim,
+                 expand_ratio=0.5,
+                 pooling_size=[5, 9, 13],
+                 act_type='lrelu',
+                 norm_type='BN',
+                 depthwise=True):
+        super(SPPBlockDW, self).__init__()
+        assert depthwise
+        inter_dim = int(in_dim * expand_ratio)
+        self.m = nn.Sequential(
+            Conv(in_dim, inter_dim, k=1, act_type=act_type, norm_type=norm_type),
+            Conv(inter_dim, inter_dim, k=3, p=1, act_type=act_type, norm_type=norm_type, depthwise=depthwise),
+            SPP(inter_dim, inter_dim, expand_ratio, pooling_size, act_type=act_type, norm_type=norm_type),
+            Conv(inter_dim, inter_dim, k=3, p=1, act_type=act_type, norm_type=norm_type, depthwise=depthwise),
+            Conv(inter_dim, out_dim, k=1, act_type=act_type, norm_type=norm_type)
+        )
+        
+    def forward(self, x):
+        return self.m(x)

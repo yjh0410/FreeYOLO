@@ -149,7 +149,7 @@ def train():
     # optimizer
     base_lr = cfg['base_lr'] * cfg['batch_size'] * cfg['accumulate'] * distributed_utils.get_world_size()
     min_lr = base_lr * cfg['min_lr_ratio']
-    optimizer, start_epoch = build_optimizer(cfg=cfg, base_lr=base_lr, resume=args.resume)
+    optimizer, start_epoch = build_optimizer(cfg, model_without_ddp, base_lr, args.resume)
     
     # warmup scheduler
     wp_iter = len(dataloader) * cfg['wp_epoch']

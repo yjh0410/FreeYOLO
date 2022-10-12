@@ -7,7 +7,7 @@ def build_warmup(cfg, base_lr=0.01, wp_iter=500):
     print('WarmUpScheduler: {}'.format(cfg['warmup']))
     print('--base_lr: {}'.format(base_lr))
     print('--warmup_factor: {}'.format(cfg['warmup_factor']))
-    print('--wp_iter: {}'.format(cfg['wp_iter']))
+    print('--wp_iter: {}'.format(wp_iter))
 
     warmup_scheduler = WarmUpScheduler(name=cfg['warmup'], 
                                        base_lr=base_lr, 

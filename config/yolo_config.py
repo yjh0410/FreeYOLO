@@ -157,6 +157,82 @@ yolo_config = {
         'wp_epoch': 1,
         },
 
+    'yolo_nano': {
+        # input
+        'train_size': 640,
+        'test_size': 416,
+        'random_size': [320, 352, 384, 416,
+                        448, 480, 512, 544,
+                        576, 608, 640],
+        'mosaic_prob': 0.5,
+        'mixup_prob': 0.5,
+        'format': 'RGB',
+        'pixel_mean': [123.675, 116.28, 103.53],
+        'pixel_std': [58.395, 57.12, 57.375],
+        'transforms': [{'name': 'DistortTransform',
+                         'hue': 0.1,
+                         'saturation': 1.5,
+                         'exposure': 1.5},
+                         {'name': 'RandomHorizontalFlip'},
+                         {'name': 'ToTensor'},
+                         {'name': 'Resize'},
+                         {'name': 'Normalize'},
+                         {'name': 'PadImage'}],
+        # model
+        'backbone': 'shufflenet_v2',
+        'model_size': '1.0x',
+        'pretrained': True,
+        'stride': [8, 16, 32],  # P3, P4, P5
+        # neck
+        'neck': 'spp_block_dw',
+        'neck_dim': 256,
+        'expand_ratio': 0.5,
+        'pooling_size': [5, 9, 13],
+        'neck_act': 'lrelu',
+        'neck_norm': 'BN',
+        'neck_depthwise': True,
+        # fpn
+        'fpn': 'pafpn_elan_dw',
+        'fpn_size': 'tiny',
+        'fpn_dim': [116, 232, 256],
+        'fpn_norm': 'BN',
+        'fpn_act': 'lrelu',
+        'fpn_depthwise': True,
+        # head
+        'head': 'decoupled_head',
+        'head_dim': 64,
+        'head_norm': 'BN',
+        'head_act': 'lrelu',
+        'num_cls_head': 2,
+        'num_reg_head': 2,
+        'head_depthwise': True,
+        # post process
+        'conf_thresh': 0.01,
+        'nms_thresh': 0.5,
+        # matcher
+        'matcher': {'center_sampling_radius': 2.5,
+                    'topk_candicate': 10},
+        # loss
+        'loss_obj_weight': 1.0,
+        'loss_cls_weight': 1.0,
+        'loss_reg_weight': 5.0,
+        # training configuration
+        'max_epoch': 300,
+        'no_aug_epoch': 15,
+        'batch_size': 64,
+        'accumulate': 1, # 4
+        'base_lr': 0.01 / 64.,
+        'min_lr_ratio': 0.05, # 0.05
+        # optimizer
+        'optimizer': 'sgd',
+        'momentum': 0.9,
+        'weight_decay': 5e-4,
+        # warmup strategy
+        'warmup': 'linear',
+        'warmup_factor': 0.00066667,
+        'wp_epoch': 1,
+        },
+
     'yolof': {
         # input
         'train_size': 640,

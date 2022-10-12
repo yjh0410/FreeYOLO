@@ -1,6 +1,7 @@
 import torch
 from .yolo_free.yolo_free import FreeYOLO
 from .yolo_anchor.yolo_anchor import AnchorYOLO
+from .yolo_nano.yolo_nano import YOLONano
 from .yolof.yolof import YOLOF
 
 
@@ -26,6 +27,15 @@ def build_model(args,
 
     elif args.version == 'yolo_anchor':
         model = AnchorYOLO(cfg=cfg,
+                           device=device, 
+                           num_classes=num_classes, 
+                           trainable=trainable,
+                           conf_thresh=cfg['conf_thresh'],
+                           nms_thresh=cfg['nms_thresh'],
+                           topk=args.topk)
+
+    elif args.version == 'yolo_nano':
+        model = YOLONano(cfg=cfg,
                            device=device, 
                            num_classes=num_classes, 
                            trainable=trainable,
