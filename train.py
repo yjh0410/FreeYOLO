@@ -141,8 +141,7 @@ def train():
         FLOPs_and_Params(model=model_copy, 
                          img_size=cfg['test_size'], 
                          device=device)
-        model_copy.trainable = True
-        model_copy.train()
+        del model_copy
     if args.distributed:
         # wait for all processes to synchronize
         dist.barrier()
