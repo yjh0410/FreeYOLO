@@ -37,7 +37,7 @@ class YOLONano(nn.Module):
         self.neck = build_neck(cfg=cfg, in_dim=bk_dim[-1], out_dim=cfg['neck_dim'])
         
         ## fpn
-        self.fpn = build_fpn(cfg=cfg, in_dims=cfg['fpn_dim'], out_dim=cfg['head_dim'])
+        self.fpn = build_fpn(cfg=cfg, in_dims=bk_dim, out_dim=cfg['head_dim'])
 
         ## non-shared heads
         self.non_shared_heads = nn.ModuleList(
