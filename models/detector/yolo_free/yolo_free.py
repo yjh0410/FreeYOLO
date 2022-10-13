@@ -2,7 +2,6 @@ import torch
 import numpy as np
 import torch.nn as nn
 
-from ...basic.repconv import RepConv
 from ...backbone import build_backbone
 from ...neck import build_neck, build_fpn
 from ...head.decoupled_head import DecoupledHead
@@ -152,16 +151,6 @@ class FreeYOLO(nn.Module):
             order = order[inds + 1]
 
         return keep
-
-
-    def fuse_repconv(self):
-        print('Fusing RepCpnv layers... ')
-        for m in self.modules():
-            if isinstance(m, RepConv):
-                #print(f" fuse_repvgg_block")
-                m.fuse_repvgg_block()
-        self.info()
-        return self
 
 
     def post_process(self, obj_preds, cls_preds, reg_preds, anchors):
