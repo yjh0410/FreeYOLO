@@ -154,16 +154,6 @@ class YOLONano(nn.Module):
         return keep
 
 
-    def fuse_repconv(self):
-        print('Fusing RepCpnv layers... ')
-        for m in self.modules():
-            if isinstance(m, RepConv):
-                #print(f" fuse_repvgg_block")
-                m.fuse_repvgg_block()
-        self.info()
-        return self
-
-
     def post_process(self, obj_preds, cls_preds, reg_preds, anchors):
         """
         Input:
