@@ -281,3 +281,110 @@ class PaFPNELAN(nn.Module):
             return out_feats_proj
 
         return out_feats
+
+
+# PaFPN-ELAN-DW
+class PaFPNELAN_DW(nn.Module):
+    def __init__(self, 
+                 in_dims=[116, 232, 464],
+                 out_dim=64,
+                 depthwise=True,
+                 norm_type='BN',
+                 act_type='lrelu'):
+        super(PaFPNELAN_DW, self).__init__()
+        assert depthwise
+        self.in_dims = in_dims
+        self.out_dim = out_dim
+        c3, c4, c5 = in_dims
+
+        # top dwon
+        ## P5 -> P4
+        self.cv1 = Conv(c5, 128, k=1, norm_type=norm_type, act_type=act_type)
+        self.cv2 = Conv(c4, 128, k=1, norm_type=norm_type, act_type=act_type)
+        self.head_elan_1 = ELANBlock(in_dim=128 + 128,
+                                     out_dim=128,  # 64
+                                     fpn_size='tiny',
+                                     depthwise=depthwise,
+                                     norm_type=norm_type,
+                                     act_type=act_type)
+
+        # P4 -> P3
+        self.cv3 = Conv(128, 64, k=1, norm_type=norm_type, act_type=act_type)
+        self.cv4 = Conv(c3, 64, k=1, norm_type=norm_type, act_type=act_type)
+        self.head_elan_2 = ELANBlock(in_dim=64 + 64,
+                                     out_dim=64,  # 128
+                                     fpn_size='tiny',
+                                     depthwise=depthwise,
+                                     norm_type=norm_type,
+                                     act_type=act_type)
+
+        # bottom up
+        # P3 -> P4
+        self.mp1 = nn.Sequential(
+            nn.MaxPool2d((2, 2), 2),
+            Conv(64, 128, k=1, act_type=act_type, norm_type=norm_type)
+        )
+        self.head_elan_3 = ELANBlock(in_dim=128 + 128,
+                                     out_dim=128,  # 128
+                                     fpn_size='tiny',
+                                     depthwise=depthwise,
+                                     norm_type=norm_type,
+                                     act_type=act_type)
+
+        # P4 -> P5
+        self.mp2 = nn.Sequential(
+            nn.MaxPool2d((2, 2), 2),
+            Conv(128, 256, k=1, act_type=act_type, norm_type=norm_type)
+        )
+        self.head_elan_4 = ELANBlock(in_dim=256 + 256,
+                                     out_dim=256,  # 256
+                                     fpn_size='tiny',
+                                     depthwise=depthwise,
+                                     norm_type=norm_type,
+                                     act_type=act_type)
+
+        # output proj layers
+        if self.out_dim is not None:
+            self.out_layers = nn.ModuleList([
+                Conv(in_dim, self.out_dim, k=1,
+                     norm_type=norm_type, act_type=act_type)
+                     for in_dim in [64, 128, 256]
+                     ])
+
+
+    def forward(self, features):
+        c3, c4, c5 = features
+
+        # Top down
+        ## P5 -> P4
+        c6 = self.cv1(c5)
+        c7 = F.interpolate(c6, scale_factor=2.0)
+        c8 = torch.cat([c7, self.cv2(c4)], dim=1)
+        c9 = self.head_elan_1(c8)
+        ## P4 -> P3
+        c10 = self.cv3(c9)
+        c11 = F.interpolate(c10, scale_factor=2.0)
+        c12 = torch.cat([c11, self.cv4(c3)], dim=1)
+        c13 = self.head_elan_2(c12)
+
+        # Bottom up
+        # p3 -> P4
+        c14 = self.mp1(c13)
+        c15 = torch.cat([c14, c9], dim=1)
+        c16 = self.head_elan_3(c15)
+        # P4 -> P5
+        c17 = self.mp2(c16)
+        c18 = torch.cat([c17, c5], dim=1)
+        c19 = self.head_elan_4(c18)
+
+        out_feats = [c13, c16, c19] # [P3, P4, P5]
+        
+        # output proj layers
+        if self.out_dim is not None:
+            out_feats_proj = []
+            for feat, layer in zip(out_feats, self.out_layers):
+                out_feats_proj.append(layer(feat))
+            return out_feats_proj
+
+        return out_feats
+        

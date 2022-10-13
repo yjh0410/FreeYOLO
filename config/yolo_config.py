@@ -185,15 +185,16 @@ yolo_config = {
         'stride': [8, 16, 32],  # P3, P4, P5
         # neck
         'neck': 'spp_block_dw',
-        'neck_dim': 464,
+        'neck_dim': 256,
         'expand_ratio': 0.5,
         'pooling_size': [5, 9, 13],
         'neck_act': 'lrelu',
         'neck_norm': 'BN',
         'neck_depthwise': True,
         # fpn
-        'fpn': 'pafpn_csp',
-        'fpn_depth': 1,
+        'fpn': 'pafpn_elan_dw',
+        'fpn_size': 'tiny',
+        'fpn_dim': [116, 232, 256],
         'fpn_norm': 'BN',
         'fpn_act': 'lrelu',
         'fpn_depthwise': True,
