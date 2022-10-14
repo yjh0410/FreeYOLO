@@ -90,12 +90,12 @@ class FreeYOLO(nn.Module):
         # obj pred
         for obj_pred in self.obj_preds:
             b = obj_pred.bias.view(1, -1)
-            b.data.fill_(-bias_value.item())
+            b.data.fill_(bias_value.item())
             obj_pred.bias = torch.nn.Parameter(b.view(-1), requires_grad=True)
         # cls pred
         for cls_pred in self.cls_preds:
             b = cls_pred.bias.view(1, -1)
-            b.data.fill_(-bias_value.item())
+            b.data.fill_(bias_value.item())
             cls_pred.bias = torch.nn.Parameter(b.view(-1), requires_grad=True)
 
 
