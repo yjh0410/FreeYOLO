@@ -165,7 +165,7 @@ yolo_config = {
                         448, 480, 512, 544,
                         576, 608, 640],
         'mosaic_prob': 0.5,
-        'mixup_prob': 0.5,
+        'mixup_prob': 0.0,
         'format': 'RGB',
         'pixel_mean': [123.675, 116.28, 103.53],
         'pixel_std': [58.395, 57.12, 57.375],
@@ -219,7 +219,7 @@ yolo_config = {
         # training configuration
         'max_epoch': 300,
         'no_aug_epoch': 15,
-        'batch_size': 16,
+        'batch_size': 64,
         'accumulate': 1, # 4
         'base_lr': 0.01 / 64.,
         'min_lr_ratio': 0.05, # 0.05
