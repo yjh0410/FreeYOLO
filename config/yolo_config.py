@@ -62,7 +62,7 @@ yolo_config = {
         'loss_cls_weight': 1.0,
         'loss_reg_weight': 5.0,
         # training configuration
-        'max_epoch': 250,
+        'max_epoch': 300,
         'no_aug_epoch': 15,
         'batch_size': 16,
         'accumulate': 1, # 4
