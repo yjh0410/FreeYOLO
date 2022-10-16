@@ -72,18 +72,26 @@ class AnchorYOLO(nn.Module):
             self.init_yolo()
 
 
-    def init_yolo(self):  
+    def init_yolo(self): 
+        # Init yolo
+        for m in self.modules():
+            if isinstance(m, nn.BatchNorm2d):
+                m.eps = 1e-3
+                m.momentum = 0.03
+                
+        # Init bias
         init_prob = 0.01
         bias_value = -torch.log(torch.tensor((1. - init_prob) / init_prob))
-        # Init head
-        init_prob = 0.01
-        bias_value = -torch.log(torch.tensor((1. - init_prob) / init_prob))
-        # init obj pred
+        # obj pred
         for obj_pred in self.obj_preds:
-            nn.init.constant_(obj_pred.bias, bias_value)
-        # init cls pred
+            b = obj_pred.bias.view(self.num_anchors, -1)
+            b.data.fill_(bias_value.item())
+            obj_pred.bias = torch.nn.Parameter(b.view(-1), requires_grad=True)
+        # cls pred
         for cls_pred in self.cls_preds:
-            nn.init.constant_(cls_pred.bias, bias_value)
+            b = cls_pred.bias.view(self.num_anchors, -1)
+            b.data.fill_(bias_value.item())
+            cls_pred.bias = torch.nn.Parameter(b.view(-1), requires_grad=True)
 
 
     def generate_anchors(self, level, fmp_size):
