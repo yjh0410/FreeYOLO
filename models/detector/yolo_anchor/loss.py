@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from .matcher import Matcher
+from .matcher import YoloMatcher
 from utils.box_ops import get_ious
 from utils.distributed_utils import get_world_size, is_dist_avail_and_initialized
 
@@ -25,7 +25,7 @@ class Criterion(object):
         self.obj_lossf = nn.BCEWithLogitsLoss(reduction='none')
         self.cls_lossf = nn.BCEWithLogitsLoss(reduction='none')
         # matcher
-        self.matcher = Matcher(
+        self.matcher = YoloMatcher(
             num_classes=num_classes,
             num_anchors=cfg['num_anchors'],
             iou_thresh=cfg['matcher']['iou_thresh'],

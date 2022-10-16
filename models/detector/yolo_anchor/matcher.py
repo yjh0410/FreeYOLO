@@ -3,7 +3,7 @@ import numpy as np
 import torch
 
 
-class Matcher(object):
+class YoloMatcher(object):
     def __init__(self, num_classes, num_anchors, anchor_size, iou_thresh):
         self.num_classes = num_classes
         self.num_anchors = num_anchors
@@ -143,7 +143,7 @@ class Matcher(object):
                     x2s, y2s = x2 / stride, y2 / stride
                     fmp_h, fmp_w = fmp_sizes[level]
 
-                    # 3x3 center prior
+                    # 3x3 center sampling
                     for j in range(grid_y - 1, grid_y + 2):
                         for i in range(grid_x - 1, grid_x + 2):
                             is_in_box = (j >= y1s and j < y2s) and (i >= x1s and i < x2s)
