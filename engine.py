@@ -35,7 +35,8 @@ def train_with_warmup(epoch,
                       args, 
                       device, 
                       ema,
-                      model, 
+                      model,
+                      criterion,
                       cfg, 
                       dataloader, 
                       optimizer, 
@@ -64,7 +65,9 @@ def train_with_warmup(epoch,
 
         # inference
         with torch.cuda.amp.autocast(enabled=args.fp16):
-            loss_dict = model(images, targets=targets)
+            outputs = model(images)
+            # loss
+            loss_dict = criterion(outputs=outputs, targets=targets)
             losses = loss_dict['losses']
 
         # reduce            
@@ -117,7 +120,8 @@ def train_one_epoch(epoch,
                     args, 
                     device, 
                     ema,
-                    model, 
+                    model,
+                    criterion,
                     cfg, 
                     dataloader, 
                     optimizer,
@@ -142,7 +146,9 @@ def train_one_epoch(epoch,
 
         # inference
         with torch.cuda.amp.autocast(enabled=args.fp16):
-            loss_dict = model(images, targets=targets)
+            outputs = model(images)
+            # loss
+            loss_dict = criterion(outputs=outputs, targets=targets)
             losses = loss_dict['losses']
 
         # reduce            

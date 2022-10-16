@@ -110,7 +110,7 @@ def train():
     dataloader = build_dataloader(args, dataset, cfg['batch_size'], CollateFunc())
 
     # build model
-    net = build_model(
+    model, criterion = build_model(
         args=args, 
         cfg=cfg,
         device=device,
@@ -119,7 +119,6 @@ def train():
         coco_pretrained=args.coco_pretrained,
         resume=args.resume
         )
-    model = net
     model = model.to(device).train()
 
     # SyncBatchNorm
@@ -177,7 +176,8 @@ def train():
                               args=args, 
                               device=device, 
                               ema=ema,
-                              model=model, 
+                              model=model,
+                              criterion=criterion,
                               cfg=cfg, 
                               dataloader=dataloader, 
                               optimizer=optimizer, 
@@ -208,7 +208,8 @@ def train():
                             args=args, 
                             device=device,
                             ema=ema, 
-                            model=model, 
+                            model=model,
+                            criterion=criterion,
                             cfg=cfg, 
                             dataloader=dataloader, 
                             optimizer=optimizer,

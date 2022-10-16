@@ -154,6 +154,20 @@ class Criterion(object):
 
         return loss_dict
 
-    
+
+def build_criterion(cfg, device, num_classes):
+    criterion = Criterion(
+        cfg=cfg,
+        device=device,
+        alpha=cfg['alpha'],
+        gamma=cfg['gamma'],
+        loss_cls_weight=cfg['loss_cls_weight'],
+        loss_reg_weight=cfg['loss_reg_weight'],
+        num_classes=num_classes
+        )    
+
+    return criterion
+
+
 if __name__ == "__main__":
     pass

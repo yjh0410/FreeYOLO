@@ -65,17 +65,6 @@ class FreeYOLO(nn.Module):
             # init bias
             self.init_yolo()
 
-        # --------- Criterion for Training ----------
-        if trainable:
-            self.criterion = Criterion(
-                cfg=cfg,
-                device=device,
-                loss_obj_weight=cfg['loss_obj_weight'],
-                loss_cls_weight=cfg['loss_cls_weight'],
-                loss_reg_weight=cfg['loss_reg_weight'],
-                num_classes=num_classes
-                )
-
 
     def init_yolo(self): 
         # Init yolo
@@ -284,7 +273,7 @@ class FreeYOLO(nn.Module):
         return bboxes, scores, labels
 
 
-    def forward(self, x, targets=None):
+    def forward(self, x):
         if not self.trainable:
             return self.inference_single_image(x)
         else:
@@ -336,8 +325,5 @@ class FreeYOLO(nn.Module):
                        "anchors": all_anchors,           # List(Tensor) [B, M, 2]
                        'strides': self.stride}           # List(Int) [8, 16, 32]
 
-            # loss
-            loss_dict = self.criterion(outputs = outputs, targets = targets)
-
-            return loss_dict 
+            return outputs 
     

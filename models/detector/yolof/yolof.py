@@ -55,17 +55,6 @@ class YOLOF(nn.Module):
             # init bias
             self._init_pred_layers()
 
-        # --------- Criterion for Training ----------
-        if trainable:
-            self.criterion = Criterion(
-                cfg=cfg,
-                device=device,
-                alpha=cfg['alpha'],
-                gamma=cfg['gamma'],
-                loss_cls_weight=cfg['loss_cls_weight'],
-                loss_reg_weight=cfg['loss_reg_weight'],
-                num_classes=num_classes)
-
 
     def _init_pred_layers(self):  
         # init cls pred
@@ -320,7 +309,4 @@ class YOLOF(nn.Module):
                 'anchors': anchor_boxes
                 }
 
-            # loss
-            loss_dict = self.criterion(outputs=outputs, targets=targets)
-
-            return loss_dict 
+            return outputs 

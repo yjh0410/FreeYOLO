@@ -1,8 +1,8 @@
 import torch
-from .yolo_free.yolo_free import FreeYOLO
-from .yolo_anchor.yolo_anchor import AnchorYOLO
-from .yolo_nano.yolo_nano import YOLONano
-from .yolof.yolof import YOLOF
+from .yolo_free.build import build_yolo_free
+from .yolo_anchor.build import build_yolo_anchor
+from .yolo_nano.build import build_yolo_nano
+from .yolof.build import build_yolof
 
 
 # build object detector
@@ -16,44 +16,21 @@ def build_model(args,
     print('==============================')
     print('Build {} ...'.format(args.version.upper()))
     
-    if args.version == 'yolo_free':
-        model = FreeYOLO(cfg=cfg,
-                         device=device, 
-                         num_classes=num_classes, 
-                         trainable=trainable,
-                         conf_thresh=cfg['conf_thresh'],
-                         nms_thresh=cfg['nms_thresh'],
-                         topk=args.topk)
-
-    elif args.version == 'yolo_anchor':
-        model = AnchorYOLO(cfg=cfg,
-                           device=device, 
-                           num_classes=num_classes, 
-                           trainable=trainable,
-                           conf_thresh=cfg['conf_thresh'],
-                           nms_thresh=cfg['nms_thresh'],
-                           topk=args.topk)
-
-    elif args.version == 'yolo_nano':
-        model = YOLONano(cfg=cfg,
-                           device=device, 
-                           num_classes=num_classes, 
-                           trainable=trainable,
-                           conf_thresh=cfg['conf_thresh'],
-                           nms_thresh=cfg['nms_thresh'],
-                           topk=args.topk)
-
-    elif args.version == 'yolof':
-        model = YOLOF(cfg=cfg,
-                     device=device, 
-                     num_classes=num_classes, 
-                     trainable=trainable,
-                     conf_thresh=cfg['conf_thresh'],
-                     nms_thresh=cfg['nms_thresh'],
-                     topk=args.topk)
-
     print('==============================')
     print('Model Configuration: \n', cfg)
+
+    # build yolo
+    if args.version == 'yolo_free':
+        model, criterion = build_yolo_free(args, cfg, device, num_classes, trainable)
+
+    elif args.version == 'yolo_anchor':
+        model, criterion = build_yolo_anchor(args, cfg, device, num_classes, trainable)
+
+    elif args.version == 'yolo_nano':
+        model, criterion = build_yolo_nano(args, cfg, device, num_classes, trainable)
+
+    elif args.version == 'yolof':
+        model, criterion = build_yolof(args, cfg, device, num_classes, trainable)
 
     # Load COCO pretrained weight
     if coco_pretrained is not None:
@@ -77,11 +54,15 @@ def build_model(args,
 
         model.load_state_dict(checkpoint_state_dict, strict=False)
 
+    # keep training
     if resume is not None:
         print('keep training: ', resume)
         checkpoint = torch.load(resume, map_location='cpu')
         # checkpoint state dict
         checkpoint_state_dict = checkpoint.pop("model")
         model.load_state_dict(checkpoint_state_dict)
-                        
-    return model
+
+    if trainable:
+        return model, criterion
+    else:      
+        return model
