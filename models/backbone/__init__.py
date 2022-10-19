@@ -1,6 +1,7 @@
 from .cspdarknet53 import build_cspdarknet53
 from .shufflenetv2 import build_shufflenetv2
 from .elannet import build_elannet
+from .cspdarknet_tiny import build_cspdarknet_tiny
 
 
 def build_backbone(cfg, trainable=False):
@@ -28,6 +29,11 @@ def build_backbone(cfg, trainable=False):
 
     elif cfg['backbone'] == 'elannet':
         model, feat_dim = build_elannet(
+            pretrained=pretrained
+        )
+
+    elif cfg['backbone'] == 'cspdarknet_tiny':
+        model, feat_dim = build_cspdarknet_tiny(
             pretrained=pretrained
         )
         

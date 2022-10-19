@@ -7,8 +7,8 @@ from ...neck import build_neck, build_fpn
 from ...head.decoupled_head import DecoupledHead
 
 
-# Anchor-free YOLO-Nano
-class YOLONano(nn.Module):
+# Tiny YOLO
+class YOLOTiny(nn.Module):
     def __init__(self, 
                  cfg,
                  device, 
@@ -17,7 +17,7 @@ class YOLONano(nn.Module):
                  nms_thresh = 0.6,
                  trainable = False, 
                  topk = 1000):
-        super(YOLONano, self).__init__()
+        super(YOLOTiny, self).__init__()
         # --------- Basic Parameters ----------
         self.cfg = cfg
         self.device = device
@@ -33,10 +33,10 @@ class YOLONano(nn.Module):
         self.backbone, bk_dim = build_backbone(cfg=cfg, trainable=trainable)
 
         ## neck
-        self.neck = build_neck(cfg=cfg, in_dim=bk_dim[-1], out_dim=cfg['neck_dim'])
+        self.neck = build_neck(cfg=cfg, in_dim=bk_dim[-1], out_dim=bk_dim[-1])
         
         ## fpn
-        self.fpn = build_fpn(cfg=cfg, in_dims=cfg['fpn_dim'], out_dim=cfg['head_dim'])
+        self.fpn = build_fpn(cfg=cfg, in_dims=bk_dim, out_dim=cfg['head_dim'])
 
         ## non-shared heads
         self.non_shared_heads = nn.ModuleList(

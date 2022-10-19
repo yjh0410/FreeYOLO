@@ -49,6 +49,8 @@ Main results on COCO-val:
 | YOLOF        |  608    |  74                |  87.7 B |  48.3 M |   41.0   |    61.3    | [github]() |
 | AnchorYOLO   |  608    |  45                |  76.3 B |  62.0 M |   43.4   |    63.6    | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_anchor_43.4_63.6.pth) |
 | FreeYOLO     |  640    |  58                |  72.4 B |  44.1 M |   45.0   |    66.0    | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_45.0_66.0.pth) |
+| YOLO-Tiny    |  416    |                  |   |   |      |        | [github]() |
+| YOLO-Nano    |  416    |                  |   |   |      |        | [github]() |
 
 
 # Train
