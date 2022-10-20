@@ -286,7 +286,7 @@ class PaFPNELAN(nn.Module):
 # PaFPN-ELAN-DW
 class PaFPNELAN_DW(nn.Module):
     def __init__(self, 
-                 in_dims=[116, 232, 464],
+                 in_dims=[116, 232, 256],
                  out_dim=64,
                  depthwise=True,
                  norm_type='BN',
@@ -312,7 +312,7 @@ class PaFPNELAN_DW(nn.Module):
         self.cv3 = Conv(128, 64, k=1, norm_type=norm_type, act_type=act_type)
         self.cv4 = Conv(c3, 64, k=1, norm_type=norm_type, act_type=act_type)
         self.head_elan_2 = ELANBlock(in_dim=64 + 64,
-                                     out_dim=64,  # 128
+                                     out_dim=64,  # 64
                                      fpn_size='tiny',
                                      depthwise=depthwise,
                                      norm_type=norm_type,
