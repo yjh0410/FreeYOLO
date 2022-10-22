@@ -33,10 +33,10 @@ class YOLOTiny(nn.Module):
         self.backbone, bk_dim = build_backbone(cfg=cfg, trainable=trainable)
 
         ## neck
-        self.neck = build_neck(cfg=cfg, in_dim=bk_dim[-1], out_dim=bk_dim[-1])
+        self.neck = build_neck(cfg=cfg, in_dim=bk_dim[-1], out_dim=cfg['neck_dim'])
         
         ## fpn
-        self.fpn = build_fpn(cfg=cfg, in_dims=bk_dim, out_dim=cfg['head_dim'])
+        self.fpn = build_fpn(cfg=cfg, in_dims=cfg['fpn_dim'], out_dim=cfg['head_dim'])
 
         ## non-shared heads
         self.non_shared_heads = nn.ModuleList(

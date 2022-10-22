@@ -178,25 +178,27 @@ yolo_config = {
                          {'name': 'Normalize'},
                          {'name': 'PadImage'}],
         # model
-        'backbone': 'cspdarknet_tiny',
+        'backbone': 'elannet_tiny',
         'pretrained': True,
         'stride': [8, 16, 32],  # P3, P4, P5
         # neck
         'neck': 'spp_block_csp',
+        'neck_dim': 256,
         'expand_ratio': 0.5,
         'pooling_size': [5, 9, 13],
         'neck_act': 'lrelu',
         'neck_norm': 'BN',
         'neck_depthwise': False,
         # fpn
-        'fpn': 'pafpn_csp',
-        'fpn_depth': 1,
+        'fpn': 'pafpn_elan',
+        'fpn_size': 'tiny', # 'large', 'tiny'
+        'fpn_dim': [128, 256, 256],
         'fpn_norm': 'BN',
         'fpn_act': 'lrelu',
         'fpn_depthwise': False,
         # head
         'head': 'decoupled_head',
-        'head_dim': 128,
+        'head_dim': 64,
         'head_norm': 'BN',
         'head_act': 'lrelu',
         'num_cls_head': 2,
@@ -251,28 +253,27 @@ yolo_config = {
                          {'name': 'Normalize'},
                          {'name': 'PadImage'}],
         # model
-        'backbone': 'shufflenet_v2',
-        'model_size': '1.0x',
+        'backbone': 'elannet_nano',
         'pretrained': True,
         'stride': [8, 16, 32],  # P3, P4, P5
         # neck
         'neck': 'spp_block_dw',
-        'neck_dim': 256,
+        'neck_dim': 128,
         'expand_ratio': 0.5,
         'pooling_size': [5, 9, 13],
         'neck_act': 'lrelu',
         'neck_norm': 'BN',
         'neck_depthwise': True,
         # fpn
-        'fpn': 'pafpn_elan_dw',
-        'fpn_size': 'tiny',
-        'fpn_dim': [116, 232, 256],
+        'fpn': 'pafpn_elan',
+        'fpn_size': 'nano',
+        'fpn_dim': [64, 128, 128],
         'fpn_norm': 'BN',
         'fpn_act': 'lrelu',
         'fpn_depthwise': True,
         # head
         'head': 'decoupled_head',
-        'head_dim': 96,
+        'head_dim': 64,
         'head_norm': 'BN',
         'head_act': 'lrelu',
         'num_cls_head': 2,

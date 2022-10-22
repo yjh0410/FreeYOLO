@@ -1,6 +1,6 @@
 from .spp import SPPBlock, SPPBlockCSP, SPPBlockDW
 from .dilated_encoder import DilatedEncoder
-from .pafpn import PaFPNCSP, PaFPNELAN, PaFPNELAN_DW
+from .pafpn import PaFPNCSP, PaFPNELAN
 
 
 def build_fpn(cfg, in_dims, out_dim):
@@ -19,17 +19,11 @@ def build_fpn(cfg, in_dims, out_dim):
     elif model == 'pafpn_elan':
         fpn_net = PaFPNELAN(in_dims=in_dims,
                             out_dim=out_dim,
+                            fpn_size=cfg['fpn_size'],
                             depthwise=cfg['fpn_depthwise'],
                             norm_type=cfg['fpn_norm'],
                             act_type=cfg['fpn_act'])
-                            
-    elif model == 'pafpn_elan_dw':
-        fpn_net = PaFPNELAN_DW(in_dims=in_dims,
-                               out_dim=out_dim,
-                               depthwise=cfg['fpn_depthwise'],
-                               norm_type=cfg['fpn_norm'],
-                               act_type=cfg['fpn_act'])
-                            
+                                                        
 
     return fpn_net
 

@@ -31,7 +31,7 @@ class Conv(nn.Module):
                     convs.append(nn.LeakyReLU(0.1, inplace=True))
 
             # pointwise conv
-            convs.append(nn.Conv2d(c1, c2, kernel_size=1, stride=s, padding=0, dilation=d, groups=1, bias=False))
+            convs.append(nn.Conv2d(c1, c2, kernel_size=1, stride=1, padding=0, dilation=d, groups=1, bias=False))
             convs.append(nn.BatchNorm2d(c2))
             if act_type is not None:
                 if act_type == 'silu':
@@ -174,17 +174,117 @@ class ELANNet(nn.Module):
         return outputs
 
 
+# ELANNet-Tiny
+class ELANNet_Tiny(nn.Module):
+    """
+    ELAN-Net of YOLOv7-Tiny.
+    """
+    def __init__(self, depthwise=False):
+        super(ELANNet_Tiny, self).__init__()
+        
+        # tiny backbone
+        self.layer_1 = Conv(3, 32, k=3, p=1, s=2, act_type='lrelu', depthwise=depthwise)       # P1/2
+
+        self.layer_2 = nn.Sequential(   
+            Conv(32, 64, k=3, p=1, s=2, act_type='lrelu', depthwise=depthwise),             
+            ELANBlock(in_dim=64, out_dim=64, expand_ratio=0.5,
+                    model_size='tiny', act_type='lrelu', depthwise=depthwise)                  # P2/4
+        )
+        self.layer_3 = nn.Sequential(
+            nn.MaxPool2d((2, 2), 2),             
+            ELANBlock(in_dim=64, out_dim=128, expand_ratio=0.5,
+                    model_size='tiny', act_type='lrelu', depthwise=depthwise)                  # P3/8
+        )
+        self.layer_4 = nn.Sequential(
+            nn.MaxPool2d((2, 2), 2),             
+            ELANBlock(in_dim=128, out_dim=256, expand_ratio=0.5,
+                    model_size='tiny', act_type='lrelu', depthwise=depthwise)                  # P4/16
+        )
+        self.layer_5 = nn.Sequential(
+            nn.MaxPool2d((2, 2), 2),             
+            ELANBlock(in_dim=256, out_dim=512, expand_ratio=0.5,
+                    model_size='tiny', act_type='lrelu', depthwise=depthwise)                  # P5/32
+        )
+
+
+    def forward(self, x):
+        c1 = self.layer_1(x)
+        c2 = self.layer_2(c1)
+        c3 = self.layer_3(c2)
+        c4 = self.layer_4(c3)
+        c5 = self.layer_5(c4)
+
+        outputs = {
+            'layer2': c3,
+            'layer3': c4,
+            'layer4': c5
+        }
+        return outputs
+
+
+# ELANNet-Nano
+class ELANNet_Nano(nn.Module):
+    def __init__(self, depthwise=True):
+        super(ELANNet_Nano, self).__init__()
+        assert depthwise
+        
+        # tiny backbone
+        self.layer_1 = Conv(3, 16, k=3, p=1, s=2, act_type='lrelu', depthwise=depthwise)       # P1/2
+
+        self.layer_2 = nn.Sequential(   
+            Conv(16, 32, k=3, p=1, s=2, act_type='lrelu', depthwise=depthwise),             
+            ELANBlock(in_dim=32, out_dim=32, expand_ratio=0.5,
+                    model_size='tiny', act_type='lrelu', depthwise=depthwise)                  # P2/4
+        )
+        self.layer_3 = nn.Sequential(
+            nn.MaxPool2d((2, 2), 2),             
+            ELANBlock(in_dim=32, out_dim=64, expand_ratio=0.5,
+                    model_size='tiny', act_type='lrelu', depthwise=depthwise)                  # P3/8
+        )
+        self.layer_4 = nn.Sequential(
+            nn.MaxPool2d((2, 2), 2),             
+            ELANBlock(in_dim=64, out_dim=128, expand_ratio=0.5,
+                    model_size='tiny', act_type='lrelu', depthwise=depthwise)                  # P4/16
+        )
+        self.layer_5 = nn.Sequential(
+            nn.MaxPool2d((2, 2), 2),             
+            ELANBlock(in_dim=128, out_dim=256, expand_ratio=0.5,
+                    model_size='tiny', act_type='lrelu', depthwise=depthwise)                  # P5/32
+        )
+
+
+    def forward(self, x):
+        c1 = self.layer_1(x)
+        c2 = self.layer_2(c1)
+        c3 = self.layer_3(c2)
+        c4 = self.layer_4(c3)
+        c5 = self.layer_5(c4)
+
+        outputs = {
+            'layer2': c3,
+            'layer3': c4,
+            'layer4': c5
+        }
+        return outputs
+
+
 # build ELAN-Net
-def build_elannet(pretrained=False):
+def build_elannet(model_name='elannet', pretrained=False):
     # model
-    backbone = ELANNet()
-    arch = 'elannet'
-    feat_dims = [512, 1024, 1024]
+    if model_name == 'elannet':
+        backbone = ELANNet()
+        feat_dims = [512, 1024, 1024]
+    elif model_name == 'elannet_tiny':
+        backbone = ELANNet_Tiny()
+        feat_dims = [128, 256, 512]
+    elif model_name == 'elannet_nano':
+        backbone = ELANNet_Nano(depthwise=True)
+        feat_dims = [64, 128, 256]
 
     # load weight
     if pretrained:
         print('Loading pretrained weight ...')
-        url = model_urls[arch]
+        url = model_urls[model_name]
         checkpoint = torch.hub.load_state_dict_from_url(
             url=url, map_location="cpu", check_hash=True)
         # checkpoint state dict
@@ -209,7 +309,7 @@ def build_elannet(pretrained=False):
 
 if __name__ == '__main__':
     import time
-    model, feats = build_elannet(pretrained=True, model_size='large')
+    model, feats = build_elannet(model_name='elannet_nano', pretrained=False)
     x = torch.randn(1, 3, 224, 224)
     t0 = time.time()
     outputs = model(x)

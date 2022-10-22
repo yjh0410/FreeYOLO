@@ -129,11 +129,10 @@ class Conv(nn.Module):
         convs = []
         add_bias = False if norm_type else True
         if depthwise:
-            assert c1 == c2, "In depthwise conv, the in_dim (c1) should be equal to out_dim (c2)."
-            convs.append(get_conv2d(c1, c2, k=k, p=p, s=s, d=d, g=c1, padding_mode=padding_mode, bias=add_bias))
+            convs.append(get_conv2d(c1, c1, k=k, p=p, s=s, d=d, g=c1, padding_mode=padding_mode, bias=add_bias))
             # depthwise conv
             if norm_type:
-                convs.append(get_norm(norm_type, c2))
+                convs.append(get_norm(norm_type, c1))
             if act_type:
                 convs.append(get_activation(act_type))
             # pointwise conv
