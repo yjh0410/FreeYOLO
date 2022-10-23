@@ -365,7 +365,7 @@ yolo_config = {
         # training configuration
         'max_epoch': 300,
         'no_aug_epoch': 15,
-        'batch_size': 1,
+        'batch_size': 16,
         'accumulate': 1,
         'base_lr': 0.01 / 64.,
         'min_lr_ratio': 0.01,
