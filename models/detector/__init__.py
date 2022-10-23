@@ -3,7 +3,7 @@ from .yolo_free.build import build_yolo_free
 from .yolo_anchor.build import build_yolo_anchor
 from .yolo_tiny.build import build_yolo_tiny
 from .yolo_nano.build import build_yolo_nano
-from .yolof.build import build_yolof
+from .yolo_sl.build import build_yolo_sl
 
 
 # build object detector
@@ -33,8 +33,8 @@ def build_model(args,
     elif args.version == 'yolo_nano':
         model, criterion = build_yolo_nano(args, cfg, device, num_classes, trainable)
 
-    elif args.version == 'yolof':
-        model, criterion = build_yolof(args, cfg, device, num_classes, trainable)
+    elif args.version == 'yolo_sl':
+        model, criterion = build_yolo_sl(args, cfg, device, num_classes, trainable)
 
     # Load COCO pretrained weight
     if coco_pretrained is not None:

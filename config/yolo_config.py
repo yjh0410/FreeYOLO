@@ -141,7 +141,7 @@ yolo_config = {
         'loss_reg_weight': 5.0,
         # training configuration
         'max_epoch': 300,
-        'no_aug_epoch': -1,
+        'no_aug_epoch': 15,
         'batch_size': 16,
         'accumulate': 1,
         'base_lr': 0.01 / 64.,
@@ -306,13 +306,14 @@ yolo_config = {
         'wp_epoch': 1,
         },
 
-    'yolof': {
+    'yolo_sl': {
         # input
-        'train_size': 640,
-        'test_size': 608,
+        'train_size': 800,
+        'test_size': 640,
         'random_size': [320, 352, 384, 416,
                         448, 480, 512, 544,
-                        576, 608, 640],
+                        576, 608, 640, 672,
+                        704, 736, 768, 800],
         'mosaic_prob': 0.5,
         'mixup_prob': 0.5,
         'format': 'RGB',
@@ -329,44 +330,40 @@ yolo_config = {
                          {'name': 'Normalize'},
                          {'name': 'PadImage'}],
         # model
-        'backbone': 'cspdarknet53',
+        'backbone': 'elannet',
         'pretrained': True,
-        'res5_dilation': True,
-        'stride': 16,
-        'anchor_size': [[16, 16],   [32, 32],   [64, 64],
-                        [128, 128], [256, 256], [512, 512]],
-        'ctr_clamp': 32,
+        'stride': 32,
+        'anchor_size': [[10, 13],   [16, 30],   [33, 23],
+                        [30, 61],   [62, 45],   [59, 119],
+                        [116, 90],  [156, 198], [373, 326]],
+        'num_anchors': 9,  # number of anchor boxes on each level
         # neck
-        'neck': 'dilated_encoder',
-        'expand_ratio': 0.25,
-        'dilation_list': [1, 2, 3, 4, 5, 6, 7, 8],
-        'neck_act': 'lrelu',
+        'neck': 'spp_block_csp',
+        'expand_ratio': 0.5,
+        'pooling_size': [5, 9, 13],
+        'neck_act': 'silu',
         'neck_norm': 'BN',
         'neck_depthwise': False,
         # head
         'head': 'decoupled_head',
         'head_dim': 512,
         'head_norm': 'BN',
-        'head_act': 'lrelu',
-        'num_cls_head': 2,
+        'head_act': 'silu',
+        'num_cls_head': 4,
         'num_reg_head': 4,
         'head_depthwise': False,
         # post process
         'conf_thresh': 0.01,
         'nms_thresh': 0.5,
         # matcher
-        'matcher': {'topk_candidates': 4,
-                    'igt': 0.7,
-                    'iou_t': 0.15},
+        'matcher': {'iou_thresh': 0.5},
         # loss
-        'alpha': 0.25,
-        'gamma': 2.0,
         'loss_obj_weight': 1.0,
         'loss_cls_weight': 1.0,
-        'loss_reg_weight': 1.0,
+        'loss_reg_weight': 5.0,
         # training configuration
-        'max_epoch': 150,
-        'no_aug_epoch': -1,
+        'max_epoch': 300,
+        'no_aug_epoch': 15,
         'batch_size': 16,
         'accumulate': 1,
         'base_lr': 0.01 / 64.,
@@ -374,7 +371,7 @@ yolo_config = {
         # optimizer
         'optimizer': 'sgd',
         'momentum': 0.9,
-        'weight_decay': 1e-4,
+        'weight_decay': 5e-4,
         # warmup strategy
         'warmup': 'linear',
         'warmup_factor': 0.00066667,

@@ -1,5 +1,4 @@
 from .spp import SPPBlock, SPPBlockCSP, SPPBlockDW
-from .dilated_encoder import DilatedEncoder
 from .pafpn import PaFPNCSP, PaFPNELAN
 
 
@@ -63,15 +62,6 @@ def build_neck(cfg, in_dim, out_dim):
             depthwise=cfg['neck_depthwise']
             )
 
-    elif model == 'dilated_encoder':
-        neck = DilatedEncoder(
-            in_dim, out_dim, 
-            expand_ratio=cfg['expand_ratio'], 
-            dilation_list=cfg['dilation_list'],
-            act_type=cfg['neck_act'],
-            norm_type=cfg['neck_norm'],
-            depthwise=cfg['neck_depthwise']
-            )
 
     return neck
     

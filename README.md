@@ -46,12 +46,13 @@ Main results on COCO-val:
 
 | Model        |  Scale  | FPS<sup><br>2080ti |  FLOPs  |  Params |    AP    |    AP50    |  Weight  |
 |--------------|---------|--------------------|---------|---------|----------|------------|----------|
-| YOLOF        |  608    |  74                |  87.7 B |  48.3 M |   41.0   |    61.3    | [github]() |
-| AnchorYOLO   |  608    |  45                |  76.3 B |  62.0 M |   43.4   |    63.6    | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_anchor_43.4_63.6.pth) |
-| FreeYOLO     |  640    |  58                |  72.4 B |  44.1 M |   45.0   |    66.0    | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_45.0_66.0.pth) |
+| AnchorYOLO   |  640    |  45                |  84.4 B |  62.0 M |      |        | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_anchor_43.4_63.6.pth) |
+| FreeYOLO     |  640    |  58                |  72.4 B |  44.1 M |      |        | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_45.0_66.0.pth) |
+| YOLO-SL      |  640    |                  |   |   |      |        | [github]() |
 | YOLO-Tiny    |  416    |                  |   |   |      |        | [github]() |
 | YOLO-Nano    |  416    |                  |   |   |      |        | [github]() |
 
+New AP results and weight files are coming ...
 
 # Train
 ## Single GPU
