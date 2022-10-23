@@ -4,6 +4,8 @@ import torch.nn as nn
 
 model_urls = {
     "elannet": "https://github.com/yjh0410/image_classification_pytorch/releases/download/weight/elannet.pth",
+    "elannet_tiny": None,
+    "elannet_nano": None
 }
 
 
@@ -285,24 +287,27 @@ def build_elannet(model_name='elannet', pretrained=False):
     if pretrained:
         print('Loading pretrained weight ...')
         url = model_urls[model_name]
-        checkpoint = torch.hub.load_state_dict_from_url(
-            url=url, map_location="cpu", check_hash=True)
-        # checkpoint state dict
-        checkpoint_state_dict = checkpoint.pop("model")
-        # model state dict
-        model_state_dict = backbone.state_dict()
-        # check
-        for k in list(checkpoint_state_dict.keys()):
-            if k in model_state_dict:
-                shape_model = tuple(model_state_dict[k].shape)
-                shape_checkpoint = tuple(checkpoint_state_dict[k].shape)
-                if shape_model != shape_checkpoint:
+        if url is not None:
+            checkpoint = torch.hub.load_state_dict_from_url(
+                url=url, map_location="cpu", check_hash=True)
+            # checkpoint state dict
+            checkpoint_state_dict = checkpoint.pop("model")
+            # model state dict
+            model_state_dict = backbone.state_dict()
+            # check
+            for k in list(checkpoint_state_dict.keys()):
+                if k in model_state_dict:
+                    shape_model = tuple(model_state_dict[k].shape)
+                    shape_checkpoint = tuple(checkpoint_state_dict[k].shape)
+                    if shape_model != shape_checkpoint:
+                        checkpoint_state_dict.pop(k)
+                else:
                     checkpoint_state_dict.pop(k)
-            else:
-                checkpoint_state_dict.pop(k)
-                print(k)
+                    print(k)
 
-        backbone.load_state_dict(checkpoint_state_dict)
+            backbone.load_state_dict(checkpoint_state_dict)
+        else:
+            print('No backbone pretrained: {}'.format(model_name))
 
     return backbone, feat_dims
 

@@ -81,7 +81,7 @@ class SLYOLO(nn.Module):
 
         # generate grid cells
         anchor_y, anchor_x = torch.meshgrid([torch.arange(fmp_h), torch.arange(fmp_w)])
-        anchor_xy = torch.stack([anchor_x, anchor_y], dim=-1).float().view(-1, 2) + 0.5
+        anchor_xy = torch.stack([anchor_x, anchor_y], dim=-1).float().view(-1, 2)
         # [HW, 2] -> [HW, KA, 2] -> [M, 2]
         anchor_xy = anchor_xy.unsqueeze(1).repeat(1, self.num_anchors, 1)
         anchor_xy = anchor_xy.view(-1, 2).to(self.device)
@@ -110,12 +110,12 @@ class SLYOLO(nn.Module):
         return pred_box
 
 
-    def nms(self, dets, scores):
+    def nms(self, bboxes, scores):
         """"Pure Python NMS."""
-        x1 = dets[:, 0]  #xmin
-        y1 = dets[:, 1]  #ymin
-        x2 = dets[:, 2]  #xmax
-        y2 = dets[:, 3]  #ymax
+        x1 = bboxes[:, 0]  #xmin
+        y1 = bboxes[:, 1]  #ymin
+        x2 = bboxes[:, 2]  #xmax
+        y2 = bboxes[:, 3]  #ymax
 
         areas = (x2 - x1) * (y2 - y1)
         order = scores.argsort()[::-1]
@@ -134,9 +134,9 @@ class SLYOLO(nn.Module):
             h = np.maximum(1e-10, yy2 - yy1)
             inter = w * h
 
-            ovr = inter / (areas[i] + areas[order[1:]] - inter + 1e-14)
-            #reserve all the boundingbox whose ovr less than thresh
-            inds = np.where(ovr <= self.nms_thresh)[0]
+            iou = inter / (areas[i] + areas[order[1:]] - inter + 1e-14)
+            #reserve all the boundingbox whose iou less than thresh
+            inds = np.where(iou <= self.nms_thresh)[0]
             order = order[inds + 1]
 
         return keep
