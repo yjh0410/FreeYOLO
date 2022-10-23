@@ -81,10 +81,10 @@ class SLYOLO(nn.Module):
 
         # generate grid cells
         anchor_y, anchor_x = torch.meshgrid([torch.arange(fmp_h), torch.arange(fmp_w)])
-        anchor_xy = torch.stack([anchor_x, anchor_y], dim=-1).float().view(-1, 2)
+        anchor_xy = torch.stack([anchor_x, anchor_y], dim=-1).float().view(-1, 2) + 0.5
         # [HW, 2] -> [HW, KA, 2] -> [M, 2]
         anchor_xy = anchor_xy.unsqueeze(1).repeat(1, self.num_anchors, 1)
-        anchor_xy = anchor_xy.view(-1, 2).to(self.device)
+        anchor_xy = anchor_xy.view(-1, 2).to(self.device) * self.stride
 
         # [KA, 2] -> [1, KA, 2] -> [HW, KA, 2] -> [M, 2]
         anchor_wh = anchor_size.unsqueeze(0).repeat(fmp_h*fmp_w, 1, 1)
@@ -99,8 +99,7 @@ class SLYOLO(nn.Module):
             anchor_wh:  [Tensor] -> [M, 2]
             pred_reg:   [Tensor] -> [M, 4]
         """
-        pred_ctr_delta = pred_reg[..., :2].sigmoid()
-        pred_ctr = (anchor_xy + pred_ctr_delta) * self.stride
+        pred_ctr = anchor_xy + pred_reg[..., :2] * self.stride
         pred_wh = pred_reg[..., 2:].exp() * anchor_wh
         
         pred_x1y1 = pred_ctr - pred_wh * 0.5
@@ -270,10 +269,11 @@ class SLYOLO(nn.Module):
             box_pred = self.decode_boxes(anchor_xy.unsqueeze(0), anchor_wh.unsqueeze(0), reg_pred)
             
             # output dict
-            outputs = {"pred_obj": obj_pred,        # List [B, M, 1]
-                       "pred_cls": cls_pred,        # List [B, M, C]
-                       "pred_box": box_pred,        # List [B, M, 4]
+            outputs = {"pred_obj": obj_pred,        # [B, M, 1]
+                       "pred_cls": cls_pred,        # [B, M, C]
+                       "pred_box": box_pred,        # [B, M, 4]
                        'fmp_size': fmp_size,        # List
+                       "anchors": anchor_xy,        # [M, 2]
                        'stride': self.stride,       # Int
                        }
 

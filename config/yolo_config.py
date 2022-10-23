@@ -356,7 +356,8 @@ yolo_config = {
         'conf_thresh': 0.01,
         'nms_thresh': 0.5,
         # matcher
-        'matcher': {'iou_thresh': 0.5},
+        'matcher': {'center_sampling_radius': 1.5,
+                    'topk_candicate': 5},
         # loss
         'loss_obj_weight': 1.0,
         'loss_cls_weight': 1.0,
@@ -364,7 +365,7 @@ yolo_config = {
         # training configuration
         'max_epoch': 300,
         'no_aug_epoch': 15,
-        'batch_size': 16,
+        'batch_size': 1,
         'accumulate': 1,
         'base_lr': 0.01 / 64.,
         'min_lr_ratio': 0.01,

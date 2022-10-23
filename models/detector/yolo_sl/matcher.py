@@ -1,139 +1,201 @@
-import math
-import numpy as np
 import torch
+import torch.nn.functional as F
+from utils.box_ops import *
 
 
-class YoloMatcher(object):
-    def __init__(self, num_classes, num_anchors, anchor_size, iou_thresh):
+# YOLOX SimOTA
+class SimOTA(object):
+    def __init__(self, 
+                 num_classes,
+                 center_sampling_radius,
+                 topk_candidate
+                 ):
         self.num_classes = num_classes
-        self.num_anchors = num_anchors
-        self.iou_thresh = iou_thresh
-        self.anchor_boxes = np.array(
-            [[0., 0., anchor[0], anchor[1]]
-            for anchor in anchor_size]
-            )  # [KA, 4]
-
-
-    def compute_iou(self, anchor_boxes, gt_box):
-        """
-            anchor_boxes : ndarray -> [KA, 4] (cx, cy, bw, bh).
-            gt_box : ndarray -> [1, 4] (cx, cy, bw, bh).
-        """
-        # anchors: [KA, 4]
-        anchors = np.zeros_like(anchor_boxes)
-        anchors[..., :2] = anchor_boxes[..., :2] - anchor_boxes[..., 2:] * 0.5  # x1y1
-        anchors[..., 2:] = anchor_boxes[..., :2] + anchor_boxes[..., 2:] * 0.5  # x2y2
-        anchors_area = anchor_boxes[..., 2] * anchor_boxes[..., 3]
-        
-        # gt_box: [1, 4] -> [KA, 4]
-        gt_box = np.array(gt_box).reshape(-1, 4)
-        gt_box = np.repeat(gt_box, anchors.shape[0], axis=0)
-        gt_box_ = np.zeros_like(gt_box)
-        gt_box_[..., :2] = gt_box[..., :2] - gt_box[..., 2:] * 0.5  # x1y1
-        gt_box_[..., 2:] = gt_box[..., :2] + gt_box[..., 2:] * 0.5  # x2y2
-        gt_box_area = np.prod(gt_box[..., 2:] - gt_box[..., :2], axis=1)
-
-        # intersection
-        inter_w = np.minimum(anchors[:, 2], gt_box_[:, 2]) - \
-                  np.maximum(anchors[:, 0], gt_box_[:, 0])
-        inter_h = np.minimum(anchors[:, 3], gt_box_[:, 3]) - \
-                  np.maximum(anchors[:, 1], gt_box_[:, 1])
-        inter_area = inter_w * inter_h
-        
-        # union
-        union_area = anchors_area + gt_box_area - inter_area
-
-        # iou
-        iou = inter_area / union_area
-        iou = np.clip(iou, a_min=1e-10, a_max=1.0)
-        
-        return iou
+        self.center_sampling_radius = center_sampling_radius
+        self.topk_candidate = topk_candidate
 
 
     @torch.no_grad()
-    def __call__(self, fmp_size, stride, targets):
-        """
-            fmp_size: (List) [fmp_h, fmp_w]
-            stride: (Int) -> 32 stride of network output.
-            targets: (Dict) dict{'boxes': [...], 
-                                 'labels': [...], 
-                                 'orig_size': ...}
-        """
-        # prepare
-        bs = len(targets)
-        fmp_h, fmp_w = fmp_size
-        gt_objectness = torch.zeros([bs, fmp_h, fmp_w, self.num_anchors, 1]) 
-        gt_classes = torch.zeros([bs, fmp_h, fmp_w, self.num_anchors, self.num_classes]) 
-        gt_bboxes = torch.zeros([bs, fmp_h, fmp_w, self.num_anchors, 4]) 
+    def __call__(self, 
+                 stride, 
+                 anchors, 
+                 pred_obj, 
+                 pred_cls, 
+                 pred_box, 
+                 tgt_labels,
+                 tgt_bboxes):
+        # [M,]
+        strides = torch.ones_like(anchors[:, 0]) * stride
 
-        for bi in range(bs):
-            targets_per_image = targets[bi]
-            # [N,]
-            tgt_cls = targets_per_image["labels"].numpy()
-            # [N, 4]
-            tgt_box = targets_per_image['boxes'].numpy()
+        # [M, 2]
+        num_anchor = anchors.shape[0]        
+        num_gt = len(tgt_labels)
 
-            for box, label in zip(tgt_box, tgt_cls):
-                # get a bbox coords
-                label = int(label)
-                x1, y1, x2, y2 = box.tolist()
-                # xyxy -> cxcywh
-                xc, yc = (x2 + x1) * 0.5, (y2 + y1) * 0.5
-                bw, bh = x2 - x1, y2 - y1
-                gt_box = [0, 0, bw, bh]
+        fg_mask, is_in_boxes_and_center = \
+            self.get_in_boxes_info(
+                tgt_bboxes,
+                anchors,
+                strides,
+                num_anchor,
+                num_gt
+                )
 
-                # check target
-                if bw < 1. or bh < 1.:
-                    # invalid target
-                    continue
+        obj_preds_ = pred_obj[fg_mask]   # [Mp, 1]
+        cls_preds_ = pred_cls[fg_mask]   # [Mp, C]
+        box_preds_ = pred_box[fg_mask]   # [Mp, 4]
+        num_in_boxes_anchor = box_preds_.shape[0]
 
-                # compute IoU
-                iou = self.compute_iou(self.anchor_boxes, gt_box)
-                iou_mask = (iou > self.iou_thresh)
+        # [N, Mp]
+        pair_wise_ious, _ = box_iou(tgt_bboxes, box_preds_)
+        pair_wise_ious_loss = -torch.log(pair_wise_ious + 1e-8)
 
-                label_assignment_results = []
-                if iou_mask.sum() == 0:
-                    # We assign the anchor box with highest IoU score.
-                    anchor_idx = np.argmax(iou)
+        # [N, C] -> [N, Mp, C]
+        gt_cls = (
+            F.one_hot(tgt_labels.long(), self.num_classes)
+            .float()
+            .unsqueeze(1)
+            .repeat(1, num_in_boxes_anchor, 1)
+        )
 
-                    # compute the grid cell
-                    xc_s = xc / stride
-                    yc_s = yc / stride
-                    grid_x = int(xc_s)
-                    grid_y = int(yc_s)
+        with torch.cuda.amp.autocast(enabled=False):
+            score_preds_ = torch.sqrt(
+                cls_preds_.float().unsqueeze(0).repeat(num_gt, 1, 1).sigmoid_()
+                * obj_preds_.float().unsqueeze(0).repeat(num_gt, 1, 1).sigmoid_()
+            ) # [N, Mp, C]
+            pair_wise_cls_loss = F.binary_cross_entropy(
+                score_preds_, gt_cls, reduction="none"
+            ).sum(-1) # [N, Mp]
+        del score_preds_
 
-                    label_assignment_results.append([grid_x, grid_y, anchor_idx])
-                else:            
-                    for iou_ind, iou_m in enumerate(iou_mask):
-                        if iou_m:
-                            anchor_idx = iou_ind  # anchor index
+        cost = (
+            pair_wise_cls_loss
+            + 3.0 * pair_wise_ious_loss
+            + 100000.0 * (~is_in_boxes_and_center)
+        ) # [N, Mp]
 
-                            # compute the gride cell
-                            xc_s = xc / stride
-                            yc_s = yc / stride
-                            grid_x = int(xc_s)
-                            grid_y = int(yc_s)
+        (
+            num_fg,
+            gt_matched_classes,         # [num_fg,]
+            pred_ious_this_matching,    # [num_fg,]
+            matched_gt_inds,            # [num_fg,]
+        ) = self.dynamic_k_matching(
+            cost,
+            pair_wise_ious,
+            tgt_labels,
+            num_gt,
+            fg_mask
+            )
+        del pair_wise_cls_loss, cost, pair_wise_ious, pair_wise_ious_loss
 
-                            label_assignment_results.append([grid_x, grid_y, anchor_idx])
+        return (
+                gt_matched_classes,
+                fg_mask,
+                pred_ious_this_matching,
+                matched_gt_inds,
+                num_fg,
+        )
 
-                # label assignment
-                for result in label_assignment_results:
-                    grid_x, grid_y, anchor_idx = result
-                    x1s, y1s = x1 / stride, y1 / stride
-                    x2s, y2s = x2 / stride, y2 / stride
-                    fmp_h, fmp_w = fmp_size
 
-                    # check
-                    is_in_box = (grid_y >= y1s and grid_y < y2s) and (grid_x >= x1s and grid_x < x2s)
-                    is_valid = (grid_y >= 0 and grid_y < fmp_h) and (grid_x >= 0 and grid_x < fmp_w)
+    def get_in_boxes_info(
+        self,
+        gt_bboxes,   # [N, 4]
+        anchors,     # [M, 2]
+        strides,     # [M,]
+        num_anchors, # M
+        num_gt,      # N
+        ):
+        # anchor center
+        x_centers = anchors[:, 0]
+        y_centers = anchors[:, 1]
 
-                    if is_in_box and is_valid:
-                        gt_objectness[bi, grid_y, grid_x, anchor_idx, 0] = 1.0
-                        gt_classes[bi, grid_y, grid_x, anchor_idx, label] = 1.0
-                        gt_bboxes[bi, grid_y, grid_x, anchor_idx] = torch.as_tensor([x1, y1, x2, y2])
-        # [B, M, C]
-        gt_objectness = gt_objectness.view(bs, -1, 1).float()
-        gt_classes = gt_classes.view(bs, -1, self.num_classes).float()
-        gt_bboxes = gt_bboxes.view(bs, -1, 4).float()
+        # [M,] -> [1, M] -> [N, M]
+        x_centers = x_centers.unsqueeze(0).repeat(num_gt, 1)
+        y_centers = y_centers.unsqueeze(0).repeat(num_gt, 1)
 
-        return gt_objectness, gt_classes, gt_bboxes
+        # [N,] -> [N, 1] -> [N, M]
+        gt_bboxes_l = gt_bboxes[:, 0].unsqueeze(1).repeat(1, num_anchors) # x1
+        gt_bboxes_t = gt_bboxes[:, 1].unsqueeze(1).repeat(1, num_anchors) # y1
+        gt_bboxes_r = gt_bboxes[:, 2].unsqueeze(1).repeat(1, num_anchors) # x2
+        gt_bboxes_b = gt_bboxes[:, 3].unsqueeze(1).repeat(1, num_anchors) # y2
+
+        b_l = x_centers - gt_bboxes_l
+        b_r = gt_bboxes_r - x_centers
+        b_t = y_centers - gt_bboxes_t
+        b_b = gt_bboxes_b - y_centers
+        bbox_deltas = torch.stack([b_l, b_t, b_r, b_b], 2)
+
+        is_in_boxes = bbox_deltas.min(dim=-1).values > 0.0
+        is_in_boxes_all = is_in_boxes.sum(dim=0) > 0
+        # in fixed center
+        center_radius = self.center_sampling_radius
+
+        # [N, 2]
+        gt_centers = (gt_bboxes[:, :2] + gt_bboxes[:, 2:]) * 0.5
+        
+        # [1, M]
+        center_radius_ = center_radius * strides.unsqueeze(0)
+
+        gt_bboxes_l = gt_centers[:, 0].unsqueeze(1).repeat(1, num_anchors) - center_radius_ # x1
+        gt_bboxes_t = gt_centers[:, 1].unsqueeze(1).repeat(1, num_anchors) - center_radius_ # y1
+        gt_bboxes_r = gt_centers[:, 0].unsqueeze(1).repeat(1, num_anchors) + center_radius_ # x2
+        gt_bboxes_b = gt_centers[:, 1].unsqueeze(1).repeat(1, num_anchors) + center_radius_ # y2
+
+        c_l = x_centers - gt_bboxes_l
+        c_r = gt_bboxes_r - x_centers
+        c_t = y_centers - gt_bboxes_t
+        c_b = gt_bboxes_b - y_centers
+        center_deltas = torch.stack([c_l, c_t, c_r, c_b], 2)
+        is_in_centers = center_deltas.min(dim=-1).values > 0.0
+        is_in_centers_all = is_in_centers.sum(dim=0) > 0
+
+        # in boxes and in centers
+        is_in_boxes_anchor = is_in_boxes_all | is_in_centers_all
+
+        is_in_boxes_and_center = (
+            is_in_boxes[:, is_in_boxes_anchor] & is_in_centers[:, is_in_boxes_anchor]
+        )
+        return is_in_boxes_anchor, is_in_boxes_and_center
+    
+    
+    def dynamic_k_matching(
+        self, 
+        cost, 
+        pair_wise_ious, 
+        gt_classes, 
+        num_gt, 
+        fg_mask
+        ):
+        # Dynamic K
+        # ---------------------------------------------------------------
+        matching_matrix = torch.zeros_like(cost, dtype=torch.uint8)
+
+        ious_in_boxes_matrix = pair_wise_ious
+        n_candidate_k = min(self.topk_candidate, ious_in_boxes_matrix.size(1))
+        topk_ious, _ = torch.topk(ious_in_boxes_matrix, n_candidate_k, dim=1)
+        dynamic_ks = torch.clamp(topk_ious.sum(1).int(), min=1)
+        dynamic_ks = dynamic_ks.tolist()
+        for gt_idx in range(num_gt):
+            _, pos_idx = torch.topk(
+                cost[gt_idx], k=dynamic_ks[gt_idx], largest=False
+            )
+            matching_matrix[gt_idx][pos_idx] = 1
+
+        del topk_ious, dynamic_ks, pos_idx
+
+        anchor_matching_gt = matching_matrix.sum(0)
+        if (anchor_matching_gt > 1).sum() > 0:
+            _, cost_argmin = torch.min(cost[:, anchor_matching_gt > 1], dim=0)
+            matching_matrix[:, anchor_matching_gt > 1] *= 0
+            matching_matrix[cost_argmin, anchor_matching_gt > 1] = 1
+        fg_mask_inboxes = matching_matrix.sum(0) > 0
+        num_fg = fg_mask_inboxes.sum().item()
+
+        fg_mask[fg_mask.clone()] = fg_mask_inboxes
+
+        matched_gt_inds = matching_matrix[:, fg_mask_inboxes].argmax(0)
+        gt_matched_classes = gt_classes[matched_gt_inds]
+
+        pred_ious_this_matching = (matching_matrix * pair_wise_ious).sum(0)[
+            fg_mask_inboxes
+        ]
+        return num_fg, gt_matched_classes, pred_ious_this_matching, matched_gt_inds
