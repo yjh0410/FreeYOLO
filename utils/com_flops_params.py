@@ -7,7 +7,7 @@ def FLOPs_and_Params(model, img_size, device):
     print('==============================')
     flops, params = profile(model, inputs=(x, ), verbose=False)
     print('==============================')
-    print('FLOPs : {:.2f} B'.format(flops / 1e9))
+    print('GFLOPs : {:.2f}'.format(flops / 1e9 * 2))
     print('Params : {:.2f} M'.format(params / 1e6))
 
 
