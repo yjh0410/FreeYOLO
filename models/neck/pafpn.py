@@ -12,22 +12,35 @@ class ELANBlock(nn.Module):
     """
     def __init__(self, in_dim, out_dim, fpn_size='large', depthwise=False, act_type='silu', norm_type='BN'):
         super(ELANBlock, self).__init__()
-        if fpn_size == 'large':
-            e1, e2 = 0.5, 0.5
-            d = 4
-        elif fpn_size == 'tiny' or 'nano':
+        if fpn_size == 'tiny' or fpn_size =='nano':
             e1, e2 = 0.25, 1.0
-            d = 2
+            width = 2
+            depth = 1
+        elif fpn_size == 'large':
+            e1, e2 = 0.5, 0.5
+            width = 4
+            depth = 1
+        elif fpn_size == 'huge':
+            e1, e2 = 0.5, 0.5
+            width = 4
+            depth = 2
         inter_dim = int(in_dim * e1)
         inter_dim2 = int(inter_dim * e2) 
         self.cv1 = Conv(in_dim, inter_dim, k=1, act_type=act_type, norm_type=norm_type)
         self.cv2 = Conv(in_dim, inter_dim, k=1, act_type=act_type, norm_type=norm_type)
         self.cv3 = nn.ModuleList()
-        for idx in range(d):
+        for idx in range(width):
             if idx == 0:
-                self.cv3.append(Conv(inter_dim, inter_dim2, k=3, p=1, act_type=act_type, norm_type=norm_type, depthwise=depthwise))
+                cvs = [Conv(inter_dim, inter_dim2, k=3, p=1, act_type=act_type, norm_type=norm_type, depthwise=depthwise)]
             else:
-                self.cv3.append(Conv(inter_dim2, inter_dim2, k=3, p=1, act_type=act_type, norm_type=norm_type, depthwise=depthwise))
+                cvs = [Conv(inter_dim2, inter_dim2, k=3, p=1, act_type=act_type, norm_type=norm_type, depthwise=depthwise)]
+            # deeper
+            if depth > 1:
+                for _ in range(1, depth):
+                    cvs.append(Conv(inter_dim2, inter_dim2, k=3, p=1, act_type=act_type, norm_type=norm_type, depthwise=depthwise))
+                self.cv3.append(nn.Sequential(*cvs))
+            else:
+                self.cv3.append(cvs[0])
 
         self.out = Conv(inter_dim*2+inter_dim2*len(self.cv3), out_dim, k=1)
 
@@ -172,13 +185,15 @@ class PaFPNELAN(nn.Module):
         self.in_dims = in_dims
         self.out_dim = out_dim
         c3, c4, c5 = in_dims
-        if fpn_size == 'large':
-            width = 1.0
-        elif fpn_size == 'tiny':
+        if fpn_size == 'tiny':
             width = 0.5
         elif fpn_size == 'nano':
             assert depthwise
             width = 0.5
+        elif fpn_size == 'large':
+            width = 1.0
+        elif fpn_size == 'huge':
+            width = 1.25
 
         # top dwon
         ## P5 -> P4
@@ -203,7 +218,7 @@ class PaFPNELAN(nn.Module):
 
         # bottom up
         # P3 -> P4
-        if fpn_size == 'large':
+        if fpn_size == 'large' or fpn_size == 'huge':
             self.mp1 = DownSample(int(128 * width), act_type=act_type,
                                   norm_type=norm_type, depthwise=depthwise)
         elif fpn_size == 'tiny':
@@ -222,7 +237,7 @@ class PaFPNELAN(nn.Module):
                                      act_type=act_type)
 
         # P4 -> P5
-        if fpn_size == 'large':
+        if fpn_size == 'large' or fpn_size == 'huge':
             self.mp2 = DownSample(int(256 * width), act_type=act_type,
                                   norm_type=norm_type, depthwise=depthwise)
         elif fpn_size == 'tiny':

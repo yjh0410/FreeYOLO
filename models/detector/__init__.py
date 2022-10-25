@@ -1,9 +1,7 @@
 import torch
-from .yolo_free.build import build_yolo_free
-from .yolo_anchor.build import build_yolo_anchor
-from .yolo_tiny.build import build_yolo_tiny
-from .yolo_nano.build import build_yolo_nano
 from .yolo_sl.build import build_yolo_sl
+from .yolo_anchor.build import build_yolo_anchor
+from .yolo_free.build import build_yolo_free
 
 
 # build object detector
@@ -21,17 +19,11 @@ def build_model(args,
     print('Model Configuration: \n', cfg)
 
     # build yolo
-    if args.version == 'yolo_free':
+    if args.version in ['yolo_free', 'yolo_free_huge', 'yolo_free_tiny', 'yolo_free_nano']:
         model, criterion = build_yolo_free(args, cfg, device, num_classes, trainable)
 
     elif args.version == 'yolo_anchor':
         model, criterion = build_yolo_anchor(args, cfg, device, num_classes, trainable)
-
-    elif args.version == 'yolo_tiny':
-        model, criterion = build_yolo_tiny(args, cfg, device, num_classes, trainable)
-
-    elif args.version == 'yolo_nano':
-        model, criterion = build_yolo_nano(args, cfg, device, num_classes, trainable)
 
     elif args.version == 'yolo_sl':
         model, criterion = build_yolo_sl(args, cfg, device, num_classes, trainable)
