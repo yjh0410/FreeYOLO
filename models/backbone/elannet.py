@@ -188,7 +188,7 @@ class ELANNet_Huge(nn.Module):
     def __init__(self, depthwise=False):
         super(ELANNet_Huge, self).__init__()
         
-        # large backbone
+        # huge backbone
         self.layer_1 = nn.Sequential(
             Conv(3, 40, k=3, p=1, act_type='silu', depthwise=depthwise),      
             Conv(40, 80, k=3, p=1, s=2, act_type='silu', depthwise=depthwise),
@@ -285,7 +285,7 @@ class ELANNet_Nano(nn.Module):
         super(ELANNet_Nano, self).__init__()
         assert depthwise
         
-        # tiny backbone
+        # nano backbone
         self.layer_1 = Conv(3, 16, k=3, p=1, s=2, act_type='lrelu', depthwise=depthwise)       # P1/2
 
         self.layer_2 = nn.Sequential(   
