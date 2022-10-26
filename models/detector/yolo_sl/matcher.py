@@ -67,6 +67,8 @@ class SimOTA(object):
             ).sum(-1) # [N, Mp]
         del score_preds_
 
+        print(pair_wise_cls_loss.shape, is_in_boxes_and_center.shape)
+
         cost = (
             pair_wise_cls_loss
             + 3.0 * pair_wise_ious_loss

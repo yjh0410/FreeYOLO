@@ -61,7 +61,7 @@ yolo_config = {
         # training configuration
         'max_epoch': 200,
         'no_aug_epoch': 15,
-        'batch_size': 16,
+        'batch_size': 1,
         'accumulate': 1,
         'base_lr': 0.01 / 64.,
         'min_lr_ratio': 0.01,
@@ -218,7 +218,7 @@ yolo_config = {
         'batch_size': 16,
         'accumulate': 1, # 4
         'base_lr': 0.01 / 64.,
-        'min_lr_ratio': 0.05, # 0.05
+        'min_lr_ratio': 0.01, # 0.05
         # optimizer
         'optimizer': 'sgd',
         'momentum': 0.9,
@@ -294,7 +294,7 @@ yolo_config = {
         'batch_size': 16,
         'accumulate': 1, # 4
         'base_lr': 0.01 / 64.,
-        'min_lr_ratio': 0.05, # 0.05
+        'min_lr_ratio': 0.01, # 0.05
         # optimizer
         'optimizer': 'sgd',
         'momentum': 0.9,
@@ -369,7 +369,7 @@ yolo_config = {
         'batch_size': 16,
         'accumulate': 1, # 4
         'base_lr': 0.01 / 64.,
-        'min_lr_ratio': 0.05, # 0.05
+        'min_lr_ratio': 0.01, # 0.05
         # optimizer
         'optimizer': 'sgd',
         'momentum': 0.9,
@@ -444,7 +444,7 @@ yolo_config = {
         'batch_size': 64,
         'accumulate': 1, # 4
         'base_lr': 0.01 / 64.,
-        'min_lr_ratio': 0.05, # 0.05
+        'min_lr_ratio': 0.01, # 0.05
         # optimizer
         'optimizer': 'sgd',
         'momentum': 0.9,
