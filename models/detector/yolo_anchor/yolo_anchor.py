@@ -6,6 +6,8 @@ from ...backbone import build_backbone
 from ...neck import build_neck, build_fpn
 from ...head.decoupled_head import DecoupledHead
 
+from utils.misc import nms
+
 
 # Anchor-based YOLO
 class AnchorYOLO(nn.Module):
@@ -100,13 +102,14 @@ class AnchorYOLO(nn.Module):
         fmp_h, fmp_w = fmp_size
         # [KA, 2]
         anchor_size = self.anchor_size[level]
+        stride = self.stride[level]
 
         # generate grid cells
         anchor_y, anchor_x = torch.meshgrid([torch.arange(fmp_h), torch.arange(fmp_w)])
         anchor_xy = torch.stack([anchor_x, anchor_y], dim=-1).float().view(-1, 2) + 0.5
         # [HW, 2] -> [HW, KA, 2] -> [M, 2]
         anchor_xy = anchor_xy.unsqueeze(1).repeat(1, self.num_anchors, 1)
-        anchor_xy = anchor_xy.view(-1, 2).to(self.device)
+        anchor_xy = anchor_xy.view(-1, 2).to(self.device) * stride
 
         # [KA, 2] -> [1, KA, 2] -> [HW, KA, 2] -> [M, 2]
         anchor_wh = anchor_size.unsqueeze(0).repeat(fmp_h*fmp_w, 1, 1)
@@ -122,7 +125,7 @@ class AnchorYOLO(nn.Module):
             pred_reg:   (List[Tensor]) [M, 4]
         """
         pred_ctr_delta = pred_reg[..., :2].sigmoid() * 3.0 - 1.5
-        pred_ctr = (anchor_xy + pred_ctr_delta) * stride
+        pred_ctr = anchor_xy + pred_ctr_delta * stride
         pred_wh = pred_reg[..., 2:].exp() * anchor_wh
         
         pred_x1y1 = pred_ctr - pred_wh * 0.5
@@ -130,44 +133,6 @@ class AnchorYOLO(nn.Module):
         pred_box = torch.cat([pred_x1y1, pred_x2y2], dim=-1)
 
         return pred_box
-
-
-    def nms(self, dets, scores):
-        """"Pure Python NMS."""
-        x1 = dets[:, 0]  #xmin
-        y1 = dets[:, 1]  #ymin
-        x2 = dets[:, 2]  #xmax
-        y2 = dets[:, 3]  #ymax
-
-        areas = (x2 - x1) * (y2 - y1)
-        order = scores.argsort()[::-1]
-
-        keep = []
-        while order.size > 0:
-            i = order[0]
-            keep.append(i)
-            # compute iou
-            xx1 = np.maximum(x1[i], x1[order[1:]])
-            yy1 = np.maximum(y1[i], y1[order[1:]])
-            xx2 = np.minimum(x2[i], x2[order[1:]])
-            yy2 = np.minimum(y2[i], y2[order[1:]])
-
-            # intersection
-            w = np.maximum(1e-10, xx2 - xx1)
-            h = np.maximum(1e-10, yy2 - yy1)
-            inter = w * h
-
-            # union
-            union = areas[i] + areas[order[1:]] - inter
-
-            # iou
-            iou = inter / np.clip(union, a_min=1e-10, a_max=np.inf)
-
-            #nms thresh
-            inds = np.where(iou <= self.nms_thresh)[0]
-            order = order[inds + 1]
-
-        return keep
 
 
     def post_process(self, obj_preds, cls_preds, reg_preds, anchor_xy, anchor_wh):
@@ -231,7 +196,7 @@ class AnchorYOLO(nn.Module):
                 continue
             c_bboxes = bboxes[inds]
             c_scores = scores[inds]
-            c_keep = self.nms(c_bboxes, c_scores)
+            c_keep = nms(c_bboxes, c_scores, self.nms_thresh)
             keep[inds[c_keep]] = 1
 
         keep = np.where(keep > 0)

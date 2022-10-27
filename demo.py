@@ -7,9 +7,9 @@ import numpy as np
 import torch
 import torch.backends.cudnn as cudnn
 
-from dataset.coco import coco_class_index, coco_class_labels
 from dataset.transforms import ValTransforms
 from utils.misc import load_weight
+from utils.vis_tools import visualize
 
 from config import build_config
 from models.detector import build_model
@@ -20,7 +20,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description='FreeYOLO Demo')
 
     # basic
-    parser.add_argument('-size', '--img_size', default=608, type=int,
+    parser.add_argument('-size', '--img_size', default=640, type=int,
                         help='the max size of input image')
     parser.add_argument('--mode', default='image',
                         type=str, help='Use the data from image, video or camera')
@@ -44,35 +44,11 @@ def parse_args():
                         type=str, help='Trained state_dict file path to open')
     parser.add_argument('--topk', default=100, type=int,
                         help='topk candidates for demo')
-    
+    parser.add_argument("--no_decode", action="store_true", default=False,
+                        help="not decode in inference or yes")
+
     return parser.parse_args()
                     
-
-def plot_bbox_labels(img, bbox, label, cls_color, test_scale=0.4):
-    x1, y1, x2, y2 = bbox
-    x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
-    t_size = cv2.getTextSize(label, 0, fontScale=1, thickness=2)[0]
-    # plot bbox
-    cv2.rectangle(img, (x1, y1), (x2, y2), cls_color, 2)
-    # plot title bbox
-    cv2.rectangle(img, (x1, y1-t_size[1]), (int(x1 + t_size[0] * test_scale), y1), cls_color, -1)
-    # put the test on the title bbox
-    cv2.putText(img, label, (int(x1), int(y1 - 5)), 0, test_scale, (0, 0, 0), 1, lineType=cv2.LINE_AA)
-
-    return img
-
-
-def visualize(img, bboxes, scores, cls_inds, class_colors, vis_thresh=0.3):
-    ts = 0.4
-    for i, bbox in enumerate(bboxes):
-        if scores[i] > vis_thresh:
-            cls_color = class_colors[int(cls_inds[i])]
-            cls_id = coco_class_index[int(cls_inds[i])]
-            mess = '%s: %.2f' % (coco_class_labels[cls_id], scores[i])
-            img = plot_bbox_labels(img, bbox, mess, cls_color, test_scale=ts)
-
-    return img
-
 
 def detect(args,
            net, 
@@ -236,10 +212,8 @@ def run():
                         trainable=False)
 
     # load trained weight
-    model = load_weight(device=device, 
-                        model=model, 
-                        path_to_ckpt=args.weight)
-
+    model = load_weight(model=model, path_to_ckpt=args.weight)
+    model = model.to(device).eval()
 
     # transform
     transform = ValTransforms(

@@ -6,6 +6,8 @@ from ...backbone import build_backbone
 from ...neck import build_neck, build_fpn
 from ...head.decoupled_head import DecoupledHead
 
+from utils.misc import nms
+
 
 # Anchor-free YOLO
 class FreeYOLO(nn.Module):
@@ -16,7 +18,8 @@ class FreeYOLO(nn.Module):
                  conf_thresh = 0.05,
                  nms_thresh = 0.6,
                  trainable = False, 
-                 topk = 1000):
+                 topk = 1000,
+                 no_decode = False):
         super(FreeYOLO, self).__init__()
         # --------- Basic Parameters ----------
         self.cfg = cfg
@@ -27,6 +30,7 @@ class FreeYOLO(nn.Module):
         self.conf_thresh = conf_thresh
         self.nms_thresh = nms_thresh
         self.topk = topk
+        self.no_decode = no_decode
         
         # --------- Network Parameters ----------
         ## backbone
@@ -119,38 +123,6 @@ class FreeYOLO(nn.Module):
         return pred_box
 
 
-    def nms(self, dets, scores):
-        """"Pure Python NMS."""
-        x1 = dets[:, 0]  #xmin
-        y1 = dets[:, 1]  #ymin
-        x2 = dets[:, 2]  #xmax
-        y2 = dets[:, 3]  #ymax
-
-        areas = (x2 - x1) * (y2 - y1)
-        order = scores.argsort()[::-1]
-
-        keep = []
-        while order.size > 0:
-            i = order[0]
-            keep.append(i)
-            # compute iou
-            xx1 = np.maximum(x1[i], x1[order[1:]])
-            yy1 = np.maximum(y1[i], y1[order[1:]])
-            xx2 = np.minimum(x2[i], x2[order[1:]])
-            yy2 = np.minimum(y2[i], y2[order[1:]])
-
-            w = np.maximum(1e-10, xx2 - xx1)
-            h = np.maximum(1e-10, yy2 - yy1)
-            inter = w * h
-
-            ovr = inter / (areas[i] + areas[order[1:]] - inter + 1e-14)
-            #reserve all the boundingbox whose ovr less than thresh
-            inds = np.where(ovr <= self.nms_thresh)[0]
-            order = order[inds + 1]
-
-        return keep
-
-
     def post_process(self, obj_preds, cls_preds, reg_preds, anchors):
         """
         Input:
@@ -210,7 +182,7 @@ class FreeYOLO(nn.Module):
                 continue
             c_bboxes = bboxes[inds]
             c_scores = scores[inds]
-            c_keep = self.nms(c_bboxes, c_scores)
+            c_keep = nms(c_bboxes, c_scores, self.nms_thresh)
             keep[inds[c_keep]] = 1
 
         keep = np.where(keep > 0)
@@ -247,10 +219,13 @@ class FreeYOLO(nn.Module):
             cls_pred = self.cls_preds[level](cls_feat)
             reg_pred = self.reg_preds[level](reg_feat)
 
-            _, _, H, W = cls_pred.size()
-            fmp_size = [H, W]
-            # [M, 4]
-            anchors = self.generate_anchors(level, fmp_size)
+            if self.no_decode:
+                anchors = None
+            else:
+                _, _, H, W = cls_pred.size()
+                fmp_size = [H, W]
+                # [M, 4]
+                anchors = self.generate_anchors(level, fmp_size)
 
             # [1, C, H, W] -> [H, W, C] -> [M, C]
             obj_pred = obj_pred[0].permute(1, 2, 0).contiguous().view(-1, 1)
@@ -262,14 +237,24 @@ class FreeYOLO(nn.Module):
             all_reg_preds.append(reg_pred)
             all_anchors.append(anchors)
 
-        # post process
-        bboxes, scores, labels = self.post_process(all_obj_preds, all_cls_preds, all_reg_preds, all_anchors)
+        if self.no_decode:
+            # no post process
+            obj_preds = torch.cat(all_obj_preds, dim=0)
+            cls_preds = torch.cat(all_cls_preds, dim=0)
+            reg_preds = torch.cat(all_reg_preds, dim=0)
+            # [n_anchors_all, 4 + 1 + C]
+            outputs = torch.cat([reg_preds, obj_preds.sigmoid(), cls_preds.sigmoid()], dim=-1)
 
-        # normalize bbox
-        bboxes /= max(img_h, img_w)
-        bboxes = bboxes.clip(0., 1.)
+            return outputs
 
-        return bboxes, scores, labels
+        else:
+            # post process
+            bboxes, scores, labels = self.post_process(all_obj_preds, all_cls_preds, all_reg_preds, all_anchors)
+            # normalize bbox
+            bboxes /= max(img_h, img_w)
+            bboxes = bboxes.clip(0., 1.)
+
+            return bboxes, scores, labels
 
 
     def forward(self, x):

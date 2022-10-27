@@ -11,13 +11,16 @@ def build_yolo_free(args,
     print('==============================')
     print('Build {} ...'.format(args.version.upper()))
     
-    model = FreeYOLO(cfg=cfg,
-                        device=device, 
-                        num_classes=num_classes, 
-                        trainable=trainable,
-                        conf_thresh=cfg['conf_thresh'],
-                        nms_thresh=cfg['nms_thresh'],
-                        topk=args.topk)
+    model = FreeYOLO(
+        cfg=cfg,
+        device=device, 
+        num_classes=num_classes,
+        trainable=trainable,
+        conf_thresh=cfg['conf_thresh'],
+        nms_thresh=cfg['nms_thresh'],
+        topk=args.topk,
+        no_decode=args.no_decode
+        )
 
     criterion = None
     # build criterion for training

@@ -1,5 +1,4 @@
 import torch
-from .yolo_sl.build import build_yolo_sl
 from .yolo_anchor.build import build_yolo_anchor
 from .yolo_free.build import build_yolo_free
 
@@ -24,9 +23,6 @@ def build_model(args,
 
     elif args.version == 'yolo_anchor':
         model, criterion = build_yolo_anchor(args, cfg, device, num_classes, trainable)
-
-    elif args.version == 'yolo_sl':
-        model, criterion = build_yolo_sl(args, cfg, device, num_classes, trainable)
 
     # Load COCO pretrained weight
     if coco_pretrained is not None:

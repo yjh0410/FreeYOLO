@@ -27,6 +27,9 @@ def parse_args():
                         help='NMS threshold')
     parser.add_argument('--topk', default=100, type=int,
                         help='NMS threshold')
+    parser.add_argument("--no_decode", action="store_true", default=False,
+                        help="not decode in inference or yes")
+
     # data root
     parser.add_argument('--root', default='/mnt/share/ssd2/dataset',
                         help='data root')

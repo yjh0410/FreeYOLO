@@ -15,27 +15,6 @@ from dataset.coco import COCODataset
 from dataset.transforms import BaseTransforms, TrainTransforms, ValTransforms
 
 
-def sigmoid_focal_loss(logits, targets, alpha=0.25, gamma=2.0, reduction='none'):
-    p = torch.sigmoid(logits)
-    ce_loss = F.binary_cross_entropy_with_logits(input=logits, 
-                                                    target=targets, 
-                                                    reduction="none")
-    p_t = p * targets + (1.0 - p) * (1.0 - targets)
-    loss = ce_loss * ((1.0 - p_t) ** gamma)
-
-    if alpha >= 0:
-        alpha_t = alpha * targets + (1.0 - alpha) * (1.0 - targets)
-        loss = alpha_t * loss
-
-    if reduction == "mean":
-        loss = loss.mean()
-
-    elif reduction == "sum":
-        loss = loss.sum()
-
-    return loss
-
-
 def build_dataset(cfg, args, device):
     # transform
     trans_config = cfg['transforms']
@@ -131,20 +110,10 @@ def build_dataloader(args, dataset, batch_size, collate_fn=None):
     return dataloader
     
 
-def get_total_grad_norm(parameters, norm_type=2):
-    parameters = list(filter(lambda p: p.grad is not None, parameters))
-    norm_type = float(norm_type)
-    device = parameters[0].grad.device
-    total_norm = torch.norm(torch.stack([torch.norm(p.grad.detach(), norm_type).to(device) for p in parameters]),
-                            norm_type)
-    return total_norm
-
-
-def load_weight(device, model, path_to_ckpt):
+def load_weight(model, path_to_ckpt):
     # check ckpt file
     if path_to_ckpt is None:
         print('no weight file ...')
-        model = model.to(device).eval()
 
         return model
 
@@ -165,7 +134,6 @@ def load_weight(device, model, path_to_ckpt):
             print(k)
 
     model.load_state_dict(checkpoint_state_dict)
-    model = model.to(device).eval()
     print('Finished loading model!')
 
     return model
@@ -174,6 +142,70 @@ def load_weight(device, model, path_to_ckpt):
 def is_parallel(model):
     # Returns True if model is of type DP or DDP
     return type(model) in (nn.parallel.DataParallel, nn.parallel.DistributedDataParallel)
+
+
+def replace_module(module, replaced_module_type, new_module_type, replace_func=None) -> nn.Module:
+    """
+    Replace given type in module to a new type. mostly used in deploy.
+
+    Args:
+        module (nn.Module): model to apply replace operation.
+        replaced_module_type (Type): module type to be replaced.
+        new_module_type (Type)
+        replace_func (function): python function to describe replace logic. Defalut value None.
+
+    Returns:
+        model (nn.Module): module that already been replaced.
+    """
+
+    def default_replace_func(replaced_module_type, new_module_type):
+        return new_module_type()
+
+    if replace_func is None:
+        replace_func = default_replace_func
+
+    model = module
+    if isinstance(module, replaced_module_type):
+        model = replace_func(replaced_module_type, new_module_type)
+    else:  # recurrsively replace
+        for name, child in module.named_children():
+            new_child = replace_module(child, replaced_module_type, new_module_type)
+            if new_child is not child:  # child is already replaced
+                model.add_module(name, new_child)
+
+    return model
+
+
+def nms(bboxes, scores, nms_thresh):
+    """"Pure Python NMS."""
+    x1 = bboxes[:, 0]  #xmin
+    y1 = bboxes[:, 1]  #ymin
+    x2 = bboxes[:, 2]  #xmax
+    y2 = bboxes[:, 3]  #ymax
+
+    areas = (x2 - x1) * (y2 - y1)
+    order = scores.argsort()[::-1]
+
+    keep = []
+    while order.size > 0:
+        i = order[0]
+        keep.append(i)
+        # compute iou
+        xx1 = np.maximum(x1[i], x1[order[1:]])
+        yy1 = np.maximum(y1[i], y1[order[1:]])
+        xx2 = np.minimum(x2[i], x2[order[1:]])
+        yy2 = np.minimum(y2[i], y2[order[1:]])
+
+        w = np.maximum(1e-10, xx2 - xx1)
+        h = np.maximum(1e-10, yy2 - yy1)
+        inter = w * h
+
+        iou = inter / (areas[i] + areas[order[1:]] - inter + 1e-14)
+        #reserve all the boundingbox whose ovr less than thresh
+        inds = np.where(iou <= nms_thresh)[0]
+        order = order[inds + 1]
+
+    return keep
 
 
 # Model EMA

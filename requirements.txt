@@ -13,3 +13,9 @@ matplotlib
 numpy
 
 pycocotools
+
+onnxsim
+
+onnxruntime
+
+loguru

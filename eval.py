@@ -16,10 +16,11 @@ from models.detector import build_model
 def parse_args():
     parser = argparse.ArgumentParser(description='FreeYOLO')
     # basic
-    parser.add_argument('-size', '--img_size', default=608, type=int,
+    parser.add_argument('-size', '--img_size', default=640, type=int,
                         help='the max size of input image')
     parser.add_argument('--cuda', action='store_true', default=False,
                         help='Use cuda')
+
     # model
     parser.add_argument('-v', '--version', default='yolo_free', type=str,
                         help='build YOLO')
@@ -31,6 +32,9 @@ def parse_args():
                         help='NMS threshold')
     parser.add_argument('--topk', default=1000, type=int,
                         help='topk candidates for testing')
+    parser.add_argument("--no_decode", action="store_true", default=False,
+                        help="not decode in inference or yes")
+
     # dataset
     parser.add_argument('--root', default='/mnt/share/ssd2/dataset',
                         help='data root')
@@ -114,9 +118,8 @@ if __name__ == '__main__':
                         trainable=False)
 
     # load trained weight
-    model = load_weight(device=device, 
-                        model=model, 
-                        path_to_ckpt=args.weight)
+    model = load_weight(model=model, path_to_ckpt=args.weight)
+    model = model.to(device).eval()
 
     # TTA
     test_aug = TestTimeAugmentation(num_classes=num_classes) if args.test_aug else None

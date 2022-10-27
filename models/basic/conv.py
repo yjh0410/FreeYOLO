@@ -4,6 +4,14 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
+class SiLU(nn.Module):
+    """export-friendly version of nn.SiLU()"""
+
+    @staticmethod
+    def forward(x):
+        return x * torch.sigmoid(x)
+
+
 def get_conv2d(c1, c2, k, p, s, d, g, padding_mode='ZERO', bias=False):
     if padding_mode == 'ZERO':
         conv = nn.Conv2d(c1, c2, k, stride=s, padding=p, dilation=d, groups=g, bias=bias)
