@@ -47,6 +47,7 @@ class COCOAPIEvaluator():
         self.ap50_95 = 0.
         self.ap50 = 0.
 
+    @torch.no_grad()
     def evaluate(self, model):
         """
         COCO average precision (AP) Evaluation. Iterate inference on the test dataset
@@ -80,11 +81,10 @@ class COCOAPIEvaluator():
             id_ = int(id_)
             ids.append(id_)
             # inference
-            with torch.no_grad():
-                outputs = model(x)
-                bboxes, scores, cls_inds = outputs
-                # rescale
-                bboxes *= max(orig_h, orig_w)
+            outputs = model(x)
+            bboxes, scores, cls_inds = outputs
+            # rescale
+            bboxes *= max(orig_h, orig_w)
 
             for i, box in enumerate(bboxes):
                 x1 = float(box[0])
