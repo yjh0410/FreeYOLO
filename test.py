@@ -47,15 +47,6 @@ def parse_args():
                         help='data root')
     parser.add_argument('-d', '--dataset', default='coco',
                         help='coco, voc.')
-    # TTA
-    parser.add_argument('-tta', '--test_aug', action='store_true', default=False,
-                        help='use test augmentation.')
-    parser.add_argument('-fp', '--flip', action='store_true', default=False,
-                        help='use flip in test augmentation.')
-    parser.add_argument('--tta_min_size', default=640, type=int,
-                        help='use flip in test augmentation.')
-    parser.add_argument('--tta_max_size', default=640, type=int,
-                        help='use flip in test augmentation.')
 
     return parser.parse_args()
 
