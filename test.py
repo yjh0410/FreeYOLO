@@ -9,7 +9,6 @@ from dataset.voc import VOC_CLASSES, VOCDetection
 from dataset.coco import coco_class_index, coco_class_labels, COCODataset
 from dataset.transforms import ValTransforms
 from utils.misc import load_weight
-from utils.vis_tools import visualize
 from utils import fuse_conv_bn
 
 from config import build_config
@@ -60,6 +59,51 @@ def parse_args():
 
     return parser.parse_args()
 
+
+def plot_bbox_labels(img, bbox, label=None, cls_color=None, text_scale=0.4):
+    x1, y1, x2, y2 = bbox
+    x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
+    t_size = cv2.getTextSize(label, 0, fontScale=1, thickness=2)[0]
+    # plot bbox
+    cv2.rectangle(img, (x1, y1), (x2, y2), cls_color, 2)
+    
+    if label is not None:
+        # plot title bbox
+        cv2.rectangle(img, (x1, y1-t_size[1]), (int(x1 + t_size[0] * text_scale), y1), cls_color, -1)
+        # put the test on the title bbox
+        cv2.putText(img, label, (int(x1), int(y1 - 5)), 0, text_scale, (0, 0, 0), 1, lineType=cv2.LINE_AA)
+
+    return img
+
+
+def visualize(img, 
+              bboxes, 
+              scores, 
+              labels, 
+              vis_thresh, 
+              class_colors, 
+              class_names, 
+              class_indexs=None, 
+              dataset_name='voc'):
+    ts = 0.4
+    for i, bbox in enumerate(bboxes):
+        if scores[i] > vis_thresh:
+            cls_id = int(labels[i])
+            if dataset_name == 'coco':
+                cls_color = class_colors[cls_id]
+                cls_id = class_indexs[cls_id]
+            else:
+                cls_color = class_colors[cls_id]
+                
+            if len(class_names) > 1:
+                mess = '%s: %.2f' % (class_names[cls_id], scores[i])
+            else:
+                cls_color = [255, 0, 0]
+                mess = None
+            img = plot_bbox_labels(img, bbox, mess, cls_color, text_scale=ts)
+
+    return img
+        
 
 @torch.no_grad()
 def test(args,
