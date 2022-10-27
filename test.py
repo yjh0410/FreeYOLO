@@ -13,7 +13,7 @@ from utils.vis_tools import visualize
 from utils import fuse_conv_bn
 
 from config import build_config
-from models.detector import build_model
+from models import build_model
 
 
 def parse_args():

@@ -1,6 +1,6 @@
 import torch
-from .yolo_anchor.build import build_yolo_anchor
-from .yolo_free.build import build_yolo_free
+from .yolo_free.loss import build_criterion
+from .yolo_free.yolo_free import FreeYOLO
 
 
 # build object detector
@@ -16,13 +16,17 @@ def build_model(args,
     
     print('==============================')
     print('Model Configuration: \n', cfg)
-
-    # build yolo
-    if args.version in ['yolo_free', 'yolo_free_huge', 'yolo_free_tiny', 'yolo_free_nano']:
-        model, criterion = build_yolo_free(args, cfg, device, num_classes, trainable)
-
-    elif args.version == 'yolo_anchor':
-        model, criterion = build_yolo_anchor(args, cfg, device, num_classes, trainable)
+    
+    model = FreeYOLO(
+        cfg=cfg,
+        device=device, 
+        num_classes=num_classes,
+        trainable=trainable,
+        conf_thresh=cfg['conf_thresh'],
+        nms_thresh=cfg['nms_thresh'],
+        topk=args.topk,
+        no_decode=args.no_decode
+        )
 
     # Load COCO pretrained weight
     if coco_pretrained is not None:
@@ -55,6 +59,8 @@ def build_model(args,
         model.load_state_dict(checkpoint_state_dict)
 
     if trainable:
+        # build criterion for training
+        criterion = build_criterion(cfg, device, num_classes)
         return model, criterion
     else:      
         return model

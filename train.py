@@ -18,7 +18,7 @@ from utils.solver.warmup_schedule import build_warmup
 from engine import train_with_warmup, train_one_epoch, val_one_epoch
 
 from config import build_config
-from models.detector import build_model
+from models import build_model
 
 
 def parse_args():
@@ -46,6 +46,8 @@ def parse_args():
                         help='coco pretrained weight')
     parser.add_argument('-r', '--resume', default=None, type=str,
                         help='keep training')
+    parser.add_argument("--no_decode", action="store_true", default=False,
+                        help="not decode in inference or yes")
 
     # dataset
     parser.add_argument('--root', default='/mnt/share/ssd2/dataset',

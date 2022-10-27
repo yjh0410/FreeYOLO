@@ -12,7 +12,7 @@ from utils.misc import load_weight
 from utils.vis_tools import visualize
 
 from config import build_config
-from models.detector import build_model
+from models import build_model
 
 
 

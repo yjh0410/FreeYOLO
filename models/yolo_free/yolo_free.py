@@ -2,11 +2,11 @@ import torch
 import numpy as np
 import torch.nn as nn
 
-from ...backbone import build_backbone
-from ...neck import build_neck, build_fpn
-from ...head.decoupled_head import DecoupledHead
+from ..backbone import build_backbone
+from ..neck import build_neck, build_fpn
+from ..head.decoupled_head import DecoupledHead
 
-from utils.misc import nms
+from utils.nms import multiclass_nms
 
 
 # Anchor-free YOLO
@@ -169,26 +169,14 @@ class FreeYOLO(nn.Module):
         labels = torch.cat(all_labels)
         bboxes = torch.cat(all_bboxes)
 
-        # to cpu
+        # to cpu & numpy
         scores = scores.cpu().numpy()
         labels = labels.cpu().numpy()
         bboxes = bboxes.cpu().numpy()
 
         # nms
-        keep = np.zeros(len(bboxes), dtype=np.int)
-        for i in range(self.num_classes):
-            inds = np.where(labels == i)[0]
-            if len(inds) == 0:
-                continue
-            c_bboxes = bboxes[inds]
-            c_scores = scores[inds]
-            c_keep = nms(c_bboxes, c_scores, self.nms_thresh)
-            keep[inds[c_keep]] = 1
-
-        keep = np.where(keep > 0)
-        bboxes = bboxes[keep]
-        scores = scores[keep]
-        labels = labels[keep]
+        scores, labels, bboxes = multiclass_nms(
+            scores, labels, bboxes, self.nms_thresh, self.num_classes, False)
 
         return bboxes, scores, labels
 

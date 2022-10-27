@@ -11,7 +11,7 @@ from utils import fuse_conv_bn
 from utils.misc import load_weight
 
 from config import build_config
-from models.detector import build_model
+from models import build_model
 
 
 def parse_args():

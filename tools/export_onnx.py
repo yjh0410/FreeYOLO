@@ -13,7 +13,7 @@ from torch import nn
 from models.basic.conv import SiLU
 from utils.misc import load_weight, replace_module
 from config import build_config
-from models.detector import build_model
+from models import build_model
 
 
 def make_parser():
