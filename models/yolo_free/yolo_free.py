@@ -238,6 +238,7 @@ class FreeYOLO(nn.Module):
         else:
             # post process
             bboxes, scores, labels = self.post_process(all_obj_preds, all_cls_preds, all_reg_preds, all_anchors)
+            
             # normalize bbox
             bboxes /= max(img_h, img_w)
             bboxes = bboxes.clip(0., 1.)
