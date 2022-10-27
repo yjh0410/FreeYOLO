@@ -137,8 +137,6 @@ class FreeYOLO(nn.Module):
         for level, (obj_pred_i, cls_pred_i, reg_pred_i, anchors_i) in enumerate(zip(obj_preds, cls_preds, reg_preds, anchors)):
             # (H x W x C,)
             scores_i = (torch.sqrt(obj_pred_i.sigmoid() * cls_pred_i.sigmoid())).flatten()
-            print(scores_i, scores_i.shape)
-            exit()
 
             # Keep top k top scoring indices only.
             num_topk = min(self.topk, reg_pred_i.size(0))
@@ -147,6 +145,9 @@ class FreeYOLO(nn.Module):
             predicted_prob, topk_idxs = scores_i.sort(descending=True)
             topk_scores = predicted_prob[:num_topk]
             topk_idxs = topk_idxs[:num_topk]
+
+            print(topk_scores, topk_scores.shape)
+            exit()
 
             # filter out the proposals with low confidence score
             keep_idxs = topk_scores > self.conf_thresh
