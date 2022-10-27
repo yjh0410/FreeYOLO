@@ -174,9 +174,9 @@ class FreeYOLO(nn.Module):
         bboxes = bboxes.cpu().numpy()
 
         # nms
-        print(self.conf_thresh, self.nms_thresh, self.topk)
         scores, labels, bboxes = multiclass_nms(
             scores, labels, bboxes, self.nms_thresh, self.num_classes, False)
+        print(scores, len(scores))
 
         return bboxes, scores, labels
 
