@@ -132,15 +132,15 @@ def train():
         model = DDP(model, device_ids=[args.gpu])
         model_without_ddp = model.module
 
-    # compute FLOPs and Params
-    if distributed_utils.is_main_process:
-        model_copy = deepcopy(model_without_ddp)
-        model_copy.trainable = False
-        model_copy.eval()
-        FLOPs_and_Params(model=model_copy, 
-                         img_size=cfg['test_size'], 
-                         device=device)
-        del model_copy
+    # # compute FLOPs and Params
+    # if distributed_utils.is_main_process:
+    #     model_copy = deepcopy(model_without_ddp)
+    #     model_copy.trainable = False
+    #     model_copy.eval()
+    #     FLOPs_and_Params(model=model_copy, 
+    #                      img_size=cfg['test_size'], 
+    #                      device=device)
+    #     del model_copy
     if args.distributed:
         # wait for all processes to synchronize
         dist.barrier()
