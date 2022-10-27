@@ -137,6 +137,8 @@ class FreeYOLO(nn.Module):
         for level, (obj_pred_i, cls_pred_i, reg_pred_i, anchors_i) in enumerate(zip(obj_preds, cls_preds, reg_preds, anchors)):
             # (H x W x C,)
             scores_i = (torch.sqrt(obj_pred_i.sigmoid() * cls_pred_i.sigmoid())).flatten()
+            print(scores_i, scores_i.shape)
+            exit()
 
             # Keep top k top scoring indices only.
             num_topk = min(self.topk, reg_pred_i.size(0))
@@ -242,9 +244,6 @@ class FreeYOLO(nn.Module):
         else:
             # post process
             bboxes, scores, labels = self.post_process(all_obj_preds, all_cls_preds, all_reg_preds, all_anchors)
-
-            print(scores, len(scores))
-            exit()
             
             # normalize bbox
             bboxes /= max(img_h, img_w)
