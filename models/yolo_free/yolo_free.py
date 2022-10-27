@@ -137,9 +137,6 @@ class FreeYOLO(nn.Module):
         for level, (obj_pred_i, cls_pred_i, reg_pred_i, anchors_i) in enumerate(zip(obj_preds, cls_preds, reg_preds, anchors)):
             # (H x W x C,)
             scores_i = (torch.sqrt(obj_pred_i.sigmoid() * cls_pred_i.sigmoid())).flatten()
-            obj = torch.sqrt(obj_pred_i.sigmoid()).flatten()
-            print(obj, obj.shape)
-            exit()
 
             # Keep top k top scoring indices only.
             num_topk = min(self.topk, reg_pred_i.size(0))
@@ -188,7 +185,8 @@ class FreeYOLO(nn.Module):
 
     @torch.no_grad()
     def inference_single_image(self, x):
-        print(x.shape)
+        print(self.obj_preds[0].bias)
+        exit()
         img_h, img_w = x.shape[2:]
         # backbone
         feats = self.backbone(x)
