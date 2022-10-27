@@ -77,7 +77,6 @@ class COCOAPIEvaluator():
             x = self.transform(img)[0]
             x = x.unsqueeze(0).to(self.device)
             
-            print(x)
             id_ = int(id_)
             ids.append(id_)
             # inference
@@ -87,6 +86,7 @@ class COCOAPIEvaluator():
                 # rescale
                 bboxes *= max(orig_h, orig_w)
 
+                print(bboxes)
             for i, box in enumerate(bboxes):
                 x1 = float(box[0])
                 y1 = float(box[1])
