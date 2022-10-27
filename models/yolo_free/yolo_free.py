@@ -146,8 +146,8 @@ class FreeYOLO(nn.Module):
             topk_scores = predicted_prob[:num_topk]
             topk_idxs = topk_idxs[:num_topk]
 
-            print(topk_scores, topk_scores.shape, self.num_classes)
-            exit()
+            # print(topk_scores, topk_scores.shape, self.num_classes)
+            # exit()
 
             # filter out the proposals with low confidence score
             keep_idxs = topk_scores > self.conf_thresh
@@ -208,7 +208,6 @@ class FreeYOLO(nn.Module):
             obj_pred = self.obj_preds[level](reg_feat)
             cls_pred = self.cls_preds[level](cls_feat)
             reg_pred = self.reg_preds[level](reg_feat)
-            print(obj_pred.shape)
 
             if self.no_decode:
                 anchors = None
