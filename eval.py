@@ -111,8 +111,7 @@ if __name__ == '__main__':
 
     # load trained weight
     model = load_weight(model=model, path_to_ckpt=args.weight)
-    model = model.to(device)
-    model = model.eval()
+    model.to(device).eval()
 
     # transform
     transform = ValTransforms(
