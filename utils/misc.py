@@ -110,7 +110,7 @@ def build_dataloader(args, dataset, batch_size, collate_fn=None):
     return dataloader
     
 
-def load_weight(model, path_to_ckpt):
+def load_weight(device, model, path_to_ckpt):
     # check ckpt file
     if path_to_ckpt is None:
         print('no weight file ...')
@@ -120,6 +120,8 @@ def load_weight(model, path_to_ckpt):
     checkpoint = torch.load(path_to_ckpt, map_location='cpu')
     checkpoint_state_dict = checkpoint.pop("model")
     model.load_state_dict(checkpoint_state_dict)
+
+    model = model.to(device).eval()
 
     print('Finished loading model!')
 
