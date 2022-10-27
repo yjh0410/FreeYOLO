@@ -209,6 +209,7 @@ class FreeYOLO(nn.Module):
             obj_pred = self.obj_preds[level](reg_feat)
             cls_pred = self.cls_preds[level](cls_feat)
             reg_pred = self.reg_preds[level](reg_feat)
+            print(obj_pred.shape)
 
             if self.no_decode:
                 anchors = None
@@ -227,7 +228,7 @@ class FreeYOLO(nn.Module):
             all_cls_preds.append(cls_pred)
             all_reg_preds.append(reg_pred)
             all_anchors.append(anchors)
-
+        exit()
         if self.no_decode:
             # no post process
             obj_preds = torch.cat(all_obj_preds, dim=0)
