@@ -108,7 +108,7 @@ class FreeYOLO(nn.Module):
     def decode_boxes(self, anchors, pred_regs, stride):
         """
             anchors:  (List[Tensor]) [1, M, 2] or [M, 2]
-            pred_reg: (List[Tensor]) [B, M, 4] or [B, M, 4]
+            pred_reg: (List[Tensor]) [B, M, 4] or [M, 4]
         """
         # center of bbox
         pred_ctr_xy = anchors + pred_regs[..., :2] * stride
@@ -137,6 +137,8 @@ class FreeYOLO(nn.Module):
         for level, (obj_pred_i, cls_pred_i, reg_pred_i, anchors_i) in enumerate(zip(obj_preds, cls_preds, reg_preds, anchors)):
             # (H x W x C,)
             scores_i = (torch.sqrt(obj_pred_i.sigmoid() * cls_pred_i.sigmoid())).flatten()
+            print(scores_i, scores_i.shape)
+            exit()
 
             # Keep top k top scoring indices only.
             num_topk = min(self.topk, reg_pred_i.size(0))
@@ -176,7 +178,6 @@ class FreeYOLO(nn.Module):
         # nms
         scores, labels, bboxes = multiclass_nms(
             scores, labels, bboxes, self.nms_thresh, self.num_classes, False)
-        print(scores, len(scores), min(scores))
 
         return bboxes, scores, labels
 
