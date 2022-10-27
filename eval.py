@@ -110,7 +110,9 @@ if __name__ == '__main__':
                         trainable=False)
 
     # load trained weight
-    model = load_weight(device=device, model=model, path_to_ckpt=args.weight)
+    model = load_weight(model=model, path_to_ckpt=args.weight)
+    model = model.to(device)
+    model = model.eval()
 
     # transform
     transform = ValTransforms(
