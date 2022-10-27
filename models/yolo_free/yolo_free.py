@@ -63,9 +63,8 @@ class FreeYOLO(nn.Module):
                               ])                 
 
         # --------- Network Initialization ----------
-        if trainable:
-            # init bias
-            self.init_yolo()
+        # init bias
+        self.init_yolo()
 
 
     def init_yolo(self): 
