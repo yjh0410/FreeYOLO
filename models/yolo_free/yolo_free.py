@@ -146,7 +146,7 @@ class FreeYOLO(nn.Module):
             topk_scores = predicted_prob[:num_topk]
             topk_idxs = topk_idxs[:num_topk]
 
-            print(topk_scores, topk_scores.shape)
+            print(topk_scores, topk_scores.shape, self.num_classes)
             exit()
 
             # filter out the proposals with low confidence score
