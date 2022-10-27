@@ -137,7 +137,8 @@ class FreeYOLO(nn.Module):
         for level, (obj_pred_i, cls_pred_i, reg_pred_i, anchors_i) in enumerate(zip(obj_preds, cls_preds, reg_preds, anchors)):
             # (H x W x C,)
             scores_i = (torch.sqrt(obj_pred_i.sigmoid() * cls_pred_i.sigmoid())).flatten()
-            print(scores_i, scores_i.shape)
+            obj = torch.sqrt(obj_pred_i.sigmoid()).flatten()
+            print(obj, obj.shape)
             exit()
 
             # Keep top k top scoring indices only.
@@ -211,7 +212,6 @@ class FreeYOLO(nn.Module):
             obj_pred = self.obj_preds[level](reg_feat)
             cls_pred = self.cls_preds[level](cls_feat)
             reg_pred = self.reg_preds[level](reg_feat)
-            print(obj_pred.shape)
 
             if self.no_decode:
                 anchors = None
