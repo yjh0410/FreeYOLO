@@ -228,7 +228,7 @@ class FreeYOLO(nn.Module):
             all_cls_preds.append(cls_pred)
             all_reg_preds.append(reg_pred)
             all_anchors.append(anchors)
-        exit()
+
         if self.no_decode:
             # no post process
             obj_preds = torch.cat(all_obj_preds, dim=0)
@@ -242,6 +242,9 @@ class FreeYOLO(nn.Module):
         else:
             # post process
             bboxes, scores, labels = self.post_process(all_obj_preds, all_cls_preds, all_reg_preds, all_anchors)
+
+            print(scores, len(scores))
+            exit()
             
             # normalize bbox
             bboxes /= max(img_h, img_w)
