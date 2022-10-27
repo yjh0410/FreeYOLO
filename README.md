@@ -46,7 +46,6 @@ Main results on COCO-val:
 
 | Model         |  Scale  | FPS<sup><br>2080ti |  GFLOPs | Params(M) |    AP    |    AP50    |  Weight  |
 |---------------|---------|--------------------|---------|---------|----------|------------|----------|
-| AnchorYOLO    |  640    |  45                |  168.8  |   62.0    |      |        | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_anchor_43.4_63.6.pth) |
 | FreeYOLO      |  640    |  58                |  144.8  |   44.1    |      |        | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_45.0_66.0.pth) |
 | FreeYOLO-Huge |  640    |                  | 257.8  |   78.9    |      |        |  |
 | FreeYOLO-Tiny |  416    |                  |   5.9  |    6.2    |      |        |  |
