@@ -28,8 +28,6 @@ def build_model(args,
         no_decode=args.no_decode
         )
 
-    print(model.conf_thresh, model.nms_thresh, model.topk)
-
     # Load COCO pretrained weight
     if coco_pretrained is not None:
         print('Loading COCO pretrained weight ...')

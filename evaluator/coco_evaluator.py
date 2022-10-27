@@ -72,6 +72,8 @@ class COCOAPIEvaluator():
             img, id_ = self.dataset.pull_image(index)
             orig_h, orig_w, _ = img.shape
 
+            print(img)
+
             # preprocess
             x = self.transform(img)[0]
             x = x.unsqueeze(0).to(self.device)
