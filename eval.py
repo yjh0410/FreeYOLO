@@ -7,7 +7,7 @@ from evaluator.voc_evaluator import VOCAPIEvaluator
 from evaluator.coco_evaluator import COCOAPIEvaluator
 
 from dataset.transforms import ValTransforms
-from utils.misc import load_weight, TestTimeAugmentation
+from utils.misc import load_weight
 
 from config import build_config
 from models import build_model
@@ -40,9 +40,6 @@ def parse_args():
                         help='data root')
     parser.add_argument('-d', '--dataset', default='coco',
                         help='coco, voc.')
-    # TTA
-    parser.add_argument('-tta', '--test_aug', action='store_true', default=False,
-                        help='use test augmentation.')
 
     return parser.parse_args()
 
@@ -120,9 +117,6 @@ if __name__ == '__main__':
     # load trained weight
     model = load_weight(model=model, path_to_ckpt=args.weight)
     model = model.to(device).eval()
-
-    # TTA
-    test_aug = TestTimeAugmentation(num_classes=num_classes) if args.test_aug else None
 
     # transform
     transform = ValTransforms(

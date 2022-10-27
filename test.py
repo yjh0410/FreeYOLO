@@ -8,7 +8,7 @@ import torch
 from dataset.voc import VOC_CLASSES, VOCDetection
 from dataset.coco import coco_class_index, coco_class_labels, COCODataset
 from dataset.transforms import ValTransforms
-from utils.misc import load_weight, TestTimeAugmentation
+from utils.misc import load_weight
 from utils.vis_tools import visualize
 from utils import fuse_conv_bn
 
@@ -72,7 +72,6 @@ def test(args,
          class_names=None, 
          class_indexs=None, 
          show=False,
-         test_aug=None, 
          dataset_name='coco'):
     num_images = len(dataset)
     save_path = os.path.join('det_results/', args.dataset, args.version)
@@ -90,11 +89,7 @@ def test(args,
 
         t0 = time.time()
         # inference
-        if test_aug is not None:
-            # test augmentation:
-            bboxes, scores, labels = test_aug(x, net)
-        else:
-            bboxes, scores, labels = net(x)
+        bboxes, scores, labels = net(x)
         print("detection time used ", time.time() - t0, "s")
         
         # rescale
@@ -176,13 +171,6 @@ if __name__ == '__main__':
         print('fuse conv and bn ...')
         model = fuse_conv_bn(model)
 
-    # TTA
-    test_aug = TestTimeAugmentation(
-        num_classes=num_classes,
-        min_size=args.tta_min_size,
-        max_size=args.tta_max_size,
-        test_flip=args.flip) if args.test_aug else None
-
     # transform
     transform = ValTransforms(
         img_size=args.img_size,
@@ -202,5 +190,4 @@ if __name__ == '__main__':
         class_names=class_names,
         class_indexs=class_indexs,
         show=args.show,
-        test_aug=test_aug,
         dataset_name=args.dataset)
