@@ -83,7 +83,7 @@ def detect(args,
                 x = x.unsqueeze(0).to(device)
                 # inference
                 t0 = time.time()
-                bboxes, scores, cls_inds = net(x)
+                bboxes, scores, labels = net(x)
                 t1 = time.time()
                 print("detection time used ", t1-t0, "s")
 
@@ -95,7 +95,7 @@ def detect(args,
                 frame_processed = visualize(img=frame, 
                                             bboxes=bboxes,
                                             scores=scores, 
-                                            cls_inds=cls_inds,
+                                            labels=labels,
                                             class_colors=class_colors,
                                             vis_thresh=vis_thresh)
                 cv2.imshow('detection result', frame_processed)
@@ -117,7 +117,7 @@ def detect(args,
 
             # inference
             t0 = time.time()
-            bboxes, scores, cls_inds = net(x)
+            bboxes, scores, labels = net(x)
             t1 = time.time()
             print("detection time used ", t1-t0, "s")
 
@@ -129,7 +129,7 @@ def detect(args,
             img_processed = visualize(img=image, 
                                       bboxes=bboxes,
                                       scores=scores, 
-                                      cls_inds=cls_inds,
+                                      labels=labels,
                                       class_colors=class_colors,
                                       vis_thresh=vis_thresh)
             cv2.imwrite(os.path.join(save_path, str(i).zfill(6)+'.jpg'), img_processed)
@@ -161,7 +161,7 @@ def detect(args,
 
                 # inference
                 t0 = time.time()
-                bboxes, scores, cls_inds = net(x)
+                bboxes, scores, labels = net(x)
                 t1 = time.time()
                 print("detection time used ", t1-t0, "s")
 
@@ -173,7 +173,7 @@ def detect(args,
                 frame_processed = visualize(img=frame, 
                                             bboxes=bboxes,
                                             scores=scores, 
-                                            cls_inds=cls_inds,
+                                            labels=labels,
                                             class_colors=class_colors,
                                             vis_thresh=vis_thresh)
 

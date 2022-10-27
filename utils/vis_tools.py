@@ -16,12 +16,12 @@ def plot_bbox_labels(img, bbox, label, cls_color, test_scale=0.4):
     return img
 
 
-def visualize(img, bboxes, scores, cls_inds, class_colors, vis_thresh=0.3):
+def visualize(img, bboxes, scores, labels, class_colors, vis_thresh=0.3):
     ts = 0.4
     for i, bbox in enumerate(bboxes):
         if scores[i] > vis_thresh:
-            cls_color = class_colors[int(cls_inds[i])]
-            cls_id = coco_class_index[int(cls_inds[i])]
+            cls_color = class_colors[int(labels[i])]
+            cls_id = coco_class_index[int(labels[i])]
             mess = '%s: %.2f' % (coco_class_labels[cls_id], scores[i])
             img = plot_bbox_labels(img, bbox, mess, cls_color, test_scale=ts)
 
