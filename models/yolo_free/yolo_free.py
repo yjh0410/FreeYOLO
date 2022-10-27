@@ -185,7 +185,7 @@ class FreeYOLO(nn.Module):
 
     @torch.no_grad()
     def inference_single_image(self, x):
-        print(self.obj_preds[0].bias)
+        print(self.non_shared_heads[0].cls_feats[0][1])
         exit()
         img_h, img_w = x.shape[2:]
         # backbone
