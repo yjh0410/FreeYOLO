@@ -99,7 +99,6 @@ if __name__ == '__main__':
         print('unknow dataset !! we only support voc, coco-val, coco-test !!!')
         exit(0)
 
-
     # config
     cfg = build_config(args)
 
@@ -112,8 +111,7 @@ if __name__ == '__main__':
 
     # load trained weight
     model = load_weight(model=model, path_to_ckpt=args.weight)
-    model = model.to(device)
-    model.eval()
+    model.to(device).eval()
 
     # transform
     transform = ValTransforms(
