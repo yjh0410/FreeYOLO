@@ -208,6 +208,7 @@ class FreeYOLO(nn.Module):
             obj_pred = self.obj_preds[level](reg_feat)
             cls_pred = self.cls_preds[level](cls_feat)
             reg_pred = self.reg_preds[level](reg_feat)
+            print(obj_pred.shape)
 
             if self.no_decode:
                 anchors = None
