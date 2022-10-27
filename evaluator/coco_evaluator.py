@@ -86,7 +86,7 @@ class COCOAPIEvaluator():
                 # rescale
                 bboxes *= max(orig_h, orig_w)
 
-                print(bboxes)
+                print(bboxes, len(bboxes))
             for i, box in enumerate(bboxes):
                 x1 = float(box[0])
                 y1 = float(box[1])
