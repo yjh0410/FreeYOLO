@@ -3,7 +3,7 @@ import torch.nn as nn
 
 from ..backbone import build_backbone
 from ..neck import build_neck, build_fpn
-from ..head.decoupled_head import DecoupledHead
+from ..head import build_head
 
 from utils.nms import multiclass_nms
 
@@ -43,7 +43,7 @@ class FreeYOLO(nn.Module):
 
         ## non-shared heads
         self.non_shared_heads = nn.ModuleList(
-            [DecoupledHead(cfg) 
+            [build_head(cfg) 
             for _ in range(len(cfg['stride']))
             ])
 

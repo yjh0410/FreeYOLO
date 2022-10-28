@@ -3,6 +3,7 @@ import cv2
 import os
 import time
 import numpy as np
+from copy import deepcopy
 import torch
 
 from dataset.voc import VOC_CLASSES, VOCDetection
@@ -196,6 +197,15 @@ if __name__ == '__main__':
                         device=device, 
                         num_classes=num_classes, 
                         trainable=False)
+
+    # compute FLOPs and Params
+    model_copy = deepcopy(model)
+    model_copy.trainable = False
+    model_copy.eval()
+    model(model=model_copy,
+          img_size=args.img_size, 
+          device=device)
+    del model_copy
 
     # load trained weight
     model = load_weight(model=model, path_to_ckpt=args.weight)
