@@ -6,6 +6,7 @@ import argparse
 import os
 
 import cv2
+import time
 import numpy as np
 
 import onnxruntime
@@ -17,7 +18,7 @@ from utils.vis_tools import visualize
 
 def make_parser():
     parser = argparse.ArgumentParser("onnxruntime inference sample")
-    parser.add_argument("-v", "--version", type=str, default="yolo_free.onnx",
+    parser.add_argument("--weight", type=str, default="yolo_free.onnx",
                         help="Input your onnx model.")
     parser.add_argument("-i", "--image_path", type=str, default='test_image.jpg',
                         help="Path to your input image.")
@@ -33,26 +34,50 @@ def make_parser():
 if __name__ == '__main__':
     args = make_parser().parse_args()
 
+    # class color for better visualization
+    np.random.seed(0)
+    class_colors = [(np.random.randint(255),
+                     np.random.randint(255),
+                     np.random.randint(255)) for _ in range(80)]
+
+    # preprocessor
+    prepocess = ValTransforms(img_size=args.img_size, adaptive=False)
+
+    # postprocessor
+    postprocess = PostProcessor(
+        img_size=args.img_size, strides=[8, 16, 32],
+        num_classes=80, conf_thresh=args.score_thr, nms_thresh=0.5)
+
     # read an image
     input_shape = tuple(args.img_size, args.img_size)
     origin_img = cv2.imread(args.image_path)
 
     # preprocess
-    # TODO: preprocess image
-    image = None
-    x = None
+    x = prepocess(origin_img)[0]
+    x = x.unsqueeze(0)
 
+    t0 = time.time()
     # inference
-    session = onnxruntime.InferenceSession(args.model)
+    session = onnxruntime.InferenceSession(args.weight)
 
-    ort_inputs = {session.get_inputs()[0].name: x[None, :, :, :]}
+    ort_inputs = {session.get_inputs()[0].name: x}
     output = session.run(None, ort_inputs)
+    print("inference time: {:.1f} ms", (time.time() - t0)*100)
 
+    t0 = time.time()
     # post process
-    # TODO: post process
+    bboxes, scores, labels = postprocess(output)
+    print("post-process time: {:.1f} ms", (time.time() - t0)*100)
 
     # visualize detection
-    # TODO: vis
+    origin_img = visualize(
+        img=origin_img,
+        bboxes=bboxes,
+        scores=scores,
+        labels=labels,
+        vis_thresh=args.score_thr,
+        class_colors=class_colors
+        )
 
     # save results
     os.makedirs(args.output_dir, exist_ok=True)

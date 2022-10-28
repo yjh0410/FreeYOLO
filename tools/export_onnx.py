@@ -52,7 +52,7 @@ def make_parser():
                         type=str, help='Trained state_dict file path to open')
     parser.add_argument('--topk', default=100, type=int,
                         help='topk candidates for testing')
-    parser.add_argument("--no_decode_in_inference", action="store_true", default=False,
+    parser.add_argument("--no_decode", action="store_true", default=False,
                         help="not decode in inference or yes")
 
     return parser
@@ -78,8 +78,8 @@ def main():
     model = load_weight(model=model, path_to_ckpt=args.weight)
     model = model.to(device).eval()
 
+    # replace nn.SiLU with SiLU
     model = replace_module(model, nn.SiLU, SiLU)
-    model.head.decode_in_inference = args.decode_in_inference
 
     logger.info("loading checkpoint done.")
     dummy_input = torch.randn(args.batch_size, 3, cfg['test_size'], cfg['test_size'])

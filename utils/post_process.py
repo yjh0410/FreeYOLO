@@ -1,6 +1,6 @@
 import torch
 import numpy as np
-from .misc import nms
+from .nms import multiclass_nms
 
 
 class PostProcessor(object):
@@ -52,16 +52,22 @@ class PostProcessor(object):
         return pred_box
 
 
-    def __call__(self, obj_preds, cls_preds, reg_preds):
+    def __call__(self, predictions):
         """
         Input:
-            obj_preds: (ndarray) [n_anchors_all, 1]
-            cls_preds: (ndarray) [n_anchors_all, C]
-            reg_preds: (ndarray) [n_anchors_all, 4]
+            predictions: (ndarray) [n_anchors_all, 4+1+C]
         """
+        reg_preds = predictions[..., :4]
+        obj_preds = predictions[..., 4:5]
+        cls_preds = predictions[..., 5:]
         scores = obj_preds * cls_preds
-        scores, labels = np.max(scores), np.argmax(scores, axis=1)
-        bboxes = self.decode_boxes(self.anchors, reg_preds)
+
+        # scores & labels
+        labels = np.argmax(scores, axis=1)                      # [M,]
+        scores = scores[(np.arange(scores.shape[0]), labels)]   # [M,]
+
+        # bboxes
+        bboxes = self.decode_boxes(self.anchors, reg_preds)     # [M, 4]    
 
         # thresh
         keep = np.where(scores > self.conf_thresh)
@@ -70,19 +76,7 @@ class PostProcessor(object):
         bboxes = bboxes[keep]
 
         # nms
-        keep = np.zeros(len(bboxes), dtype=np.int)
-        for i in range(self.num_classes):
-            inds = np.where(labels == i)[0]
-            if len(inds) == 0:
-                continue
-            c_bboxes = bboxes[inds]
-            c_scores = scores[inds]
-            c_keep = nms(c_bboxes, c_scores, )
-            keep[inds[c_keep]] = 1
-
-        keep = np.where(keep > 0)
-        bboxes = bboxes[keep]
-        scores = scores[keep]
-        labels = labels[keep]
+        scores, labels, bboxes = multiclass_nms(
+            scores, labels, bboxes, self.nms_thresh, self.num_classes, True)
 
         return bboxes, scores, labels

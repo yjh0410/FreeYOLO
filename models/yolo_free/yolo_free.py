@@ -177,7 +177,7 @@ class FreeYOLO(nn.Module):
 
         # nms
         scores, labels, bboxes = multiclass_nms(
-            scores, labels, bboxes, self.nms_thresh, self.num_classes, False)
+            scores, labels, bboxes, self.nms_thresh, self.num_classes, True)
 
         return bboxes, scores, labels
 

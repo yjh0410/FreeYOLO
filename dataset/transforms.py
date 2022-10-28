@@ -485,7 +485,8 @@ class ValTransforms(object):
                  img_size=640, 
                  pixel_mean=(123.675, 116.28, 103.53), 
                  pixel_std=(58.395, 57.12, 57.375),
-                 format='RGB'):
+                 format='RGB',
+                 adaptive=True):
         self.img_size =img_size
         self.pixel_mean = pixel_mean
         self.pixel_std = pixel_std
@@ -495,7 +496,7 @@ class ValTransforms(object):
             Resize(img_size=img_size),
             Normalize(pixel_mean=self.pixel_mean,
                       pixel_std=self.pixel_std),
-            PadImage(img_size=img_size, adaptive=True)
+            PadImage(img_size=img_size, adaptive=adaptive)
         ])
 
 
