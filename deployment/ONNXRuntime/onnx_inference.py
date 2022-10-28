@@ -8,9 +8,10 @@ import os
 import cv2
 import time
 import numpy as np
+import sys
+sys.path.append('../../')
 
 import onnxruntime
-
 from dataset.transforms import ValTransforms
 from utils.post_process import PostProcessor
 from utils.vis_tools import visualize
@@ -18,11 +19,11 @@ from utils.vis_tools import visualize
 
 def make_parser():
     parser = argparse.ArgumentParser("onnxruntime inference sample")
-    parser.add_argument("--weight", type=str, default="yolo_free.onnx",
+    parser.add_argument("--weight", type=str, default="../../weight/onnx/yolo_free.onnx",
                         help="Input your onnx model.")
-    parser.add_argument("-i", "--image_path", type=str, default='test_image.jpg',
+    parser.add_argument("-i", "--image_path", type=str, default='../test_image.jpg',
                         help="Path to your input image.")
-    parser.add_argument("-o", "--output_dir", type=str, default='det_results/onnx/',
+    parser.add_argument("-o", "--output_dir", type=str, default='../../det_results/onnx/',
                         help="Path to your output directory.")
     parser.add_argument("-s", "--score_thr", type=float, default=0.3,
                         help="Score threshould to filter the result.")
