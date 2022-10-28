@@ -12,14 +12,14 @@ import sys
 sys.path.append('../../')
 
 import onnxruntime
-from dataset.transforms import ValTransforms
+from utils.pre_process import PreProcessor
 from utils.post_process import PostProcessor
 from utils.vis_tools import visualize
 
 
 def make_parser():
     parser = argparse.ArgumentParser("onnxruntime inference sample")
-    parser.add_argument("--weight", type=str, default="../../weight/onnx/yolo_free.onnx",
+    parser.add_argument("--weight", type=str, default="../../weights/onnx/yolo_free.onnx",
                         help="Input your onnx model.")
     parser.add_argument("-i", "--image_path", type=str, default='../test_image.jpg',
                         help="Path to your input image.")
@@ -42,7 +42,7 @@ if __name__ == '__main__':
                      np.random.randint(255)) for _ in range(80)]
 
     # preprocessor
-    prepocess = ValTransforms(img_size=args.img_size, adaptive=False)
+    prepocess = PreProcessor(img_size=args.img_size)
 
     # postprocessor
     postprocess = PostProcessor(
@@ -50,24 +50,24 @@ if __name__ == '__main__':
         num_classes=80, conf_thresh=args.score_thr, nms_thresh=0.5)
 
     # read an image
-    input_shape = tuple(args.img_size, args.img_size)
+    input_shape = tuple([args.img_size, args.img_size])
     origin_img = cv2.imread(args.image_path)
 
     # preprocess
-    x = prepocess(origin_img)[0]
-    x = x.unsqueeze(0)
+    x, ratio = prepocess(origin_img)
 
     t0 = time.time()
     # inference
     session = onnxruntime.InferenceSession(args.weight)
 
-    ort_inputs = {session.get_inputs()[0].name: x}
+    ort_inputs = {session.get_inputs()[0].name: x[None, :, :, :]}
     output = session.run(None, ort_inputs)
     print("inference time: {:.1f} ms", (time.time() - t0)*100)
 
     t0 = time.time()
     # post process
-    bboxes, scores, labels = postprocess(output)
+    bboxes, scores, labels = postprocess(output[0])
+    bboxes /= ratio
     print("post-process time: {:.1f} ms", (time.time() - t0)*100)
 
     # visualize detection
