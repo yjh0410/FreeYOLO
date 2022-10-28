@@ -26,10 +26,13 @@ class PreProcessor(object):
         orig_h, orig_w = image.shape[:2]
         r = min(self.input_size[0] / orig_h, self.input_size[1] / orig_w)
         resize_size = (int(orig_w * r), int(orig_h * r))
-        resized_img = cv2.resize(image, resize_size, interpolation=cv2.INTER_LINEAR)
+        if r != 1:
+            resized_img = cv2.resize(image, resize_size, interpolation=cv2.INTER_LINEAR)
+        else:
+            resized_img = image
 
         # to RGB
-        padded_img = padded_img[..., (2, 1, 0)]
+        resized_img = resized_img[..., (2, 1, 0)]
 
         # normalize
         resized_img = (resized_img - self.pixel_mean) / self.pixel_std
