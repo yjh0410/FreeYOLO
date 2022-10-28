@@ -199,6 +199,10 @@ if __name__ == '__main__':
                         num_classes=num_classes, 
                         trainable=False)
 
+    # load trained weight
+    model = load_weight(model=model, path_to_ckpt=args.weight)
+    model.to(device).eval()
+
     # compute FLOPs and Params
     model_copy = deepcopy(model)
     model_copy.trainable = False
@@ -208,10 +212,6 @@ if __name__ == '__main__':
         img_size=args.img_size, 
         device=device)
     del model_copy
-
-    # load trained weight
-    model = load_weight(model=model, path_to_ckpt=args.weight)
-    model.to(device).eval()
 
     # fuse conv bn
     if args.fuse_conv_bn:
