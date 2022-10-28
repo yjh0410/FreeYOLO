@@ -226,6 +226,8 @@ if __name__ == '__main__':
         format=cfg['format']
         )
 
+    print("================= DETECT =================")
+    
     # run
     test(args=args,
         net=model, 
