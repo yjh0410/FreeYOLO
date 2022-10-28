@@ -1,4 +1,5 @@
-import torch
+# designed for demo
+
 import numpy as np
 from .nms import multiclass_nms
 
@@ -12,8 +13,7 @@ class PostProcessor(object):
         self.strides = strides
 
         # generate anchors
-        self.anchors = self.generate_anchors()
-        self.expand_strides = strides
+        self.anchors, self.expand_strides = self.generate_anchors()
 
 
     def generate_anchors(self):
@@ -21,18 +21,26 @@ class PostProcessor(object):
             fmp_size: (List) [H, W]
         """
         all_anchors = []
+        all_expand_strides = []
         for stride in self.strides:
             # generate grid cells
             fmp_h, fmp_w = self.img_size // stride, self.img_size // stride
-            anchor_y, anchor_x = torch.meshgrid([torch.arange(fmp_h), torch.arange(fmp_w)])
+            anchor_x, anchor_y = np.meshgrid(np.arange(fmp_w), np.arange(fmp_h))
+            # [H, W, 2]
+            anchor_xy = np.stack([anchor_x, anchor_y], axis=-1)
+            shape = anchor_xy.shape[:2]
             # [H, W, 2] -> [HW, 2]
-            anchor_xy = torch.stack([anchor_x, anchor_y], dim=-1).float().view(-1, 2) + 0.5
-            anchor_xy *= stride
-            all_anchors.append(anchor_xy.to(self.device))
+            anchor_xy = (anchor_xy.reshape(-1, 2) + 0.5) * stride
+            all_anchors.append(anchor_xy)
 
-        anchors = torch.cat(all_anchors, dim=0)
+            # expanded stride
+            strides = np.full((*shape, 1), stride)
+            all_expand_strides.append(strides.reshape(-1, 1))
 
-        return anchors
+        anchors = np.concatenate(all_anchors, axis=0)
+        expand_strides = np.concatenate(all_expand_strides, axis=0)
+
+        return anchors, expand_strides
 
 
     def decode_boxes(self, anchors, pred_regs):
@@ -43,11 +51,11 @@ class PostProcessor(object):
         # center of bbox
         pred_ctr_xy = anchors[..., :2] + pred_regs[..., :2] * self.expand_strides
         # size of bbox
-        pred_box_wh = pred_regs[..., 2:].exp() * self.expand_strides
+        pred_box_wh = np.exp(pred_regs[..., 2:]) * self.expand_strides
 
         pred_x1y1 = pred_ctr_xy - 0.5 * pred_box_wh
         pred_x2y2 = pred_ctr_xy + 0.5 * pred_box_wh
-        pred_box = torch.cat([pred_x1y1, pred_x2y2], dim=-1)
+        pred_box = np.concatenate([pred_x1y1, pred_x2y2], axis=-1)
 
         return pred_box
 

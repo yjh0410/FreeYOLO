@@ -6,6 +6,8 @@
 import argparse
 import os
 from loguru import logger
+import sys
+sys.path.append('..')
 
 import torch
 from torch import nn
@@ -17,13 +19,13 @@ from models import build_model
 
 
 def make_parser():
-    parser = argparse.ArgumentParser("FreeYOLO onnx deploy")
+    parser = argparse.ArgumentParser("FreeYOLO ONNXRuntime")
     # basic
     parser.add_argument("--output-name", type=str, default="yolo_free.onnx",
                         help="output name of models")
     parser.add_argument("--input", default="images", type=str,
                         help="input node name of onnx model")
-    parser.add_argument("--output", default="weights/onnx/", type=str,
+    parser.add_argument("--output", default="output", type=str,
                         help="output node name of onnx model")
     parser.add_argument("-o", "--opset", default=11, type=int,
                         help="onnx opset version")
@@ -38,12 +40,12 @@ def make_parser():
     parser.add_argument("-expn", "--experiment-name", type=str, default=None)
     parser.add_argument("-n", "--name", type=str, default=None,
                         help="model name")
-    parser.add_argument("-c", "--ckpt", default=None, type=str,
-                        help="ckpt path")
     parser.add_argument("opts", default=None, nargs=argparse.REMAINDER,
                         help="Modify config options using the command-line")
     parser.add_argument("--decode_in_inference", action="store_true", default=False,
                         help="decode in inference or not")
+    parser.add_argument('--save_dir', default='../weights/onnx/', type=str,
+                        help='Dir to save onnx file')
 
     # model
     parser.add_argument('-v', '--version', default='yolo_free', type=str,
@@ -84,17 +86,23 @@ def main():
     logger.info("loading checkpoint done.")
     dummy_input = torch.randn(args.batch_size, 3, cfg['test_size'], cfg['test_size'])
 
+    # save onnx file
+    save_path = args.save_dir
+    os.makedirs(save_path, exist_ok=True)
+    output_name = os.path.join(save_path, args.output_name)
+
     torch.onnx._export(
         model,
         dummy_input,
-        args.output_name,
+        output_name,
         input_names=[args.input],
         output_names=[args.output],
         dynamic_axes={args.input: {0: 'batch'},
                       args.output: {0: 'batch'}} if args.dynamic else None,
         opset_version=args.opset,
     )
-    logger.info("generated onnx model named {}".format(args.output_name))
+
+    logger.info("generated onnx model named {}".format(output_name))
 
     if not args.no_onnxsim:
         import onnx
@@ -104,13 +112,18 @@ def main():
         input_shapes = {args.input: list(dummy_input.shape)} if args.dynamic else None
 
         # use onnxsimplify to reduce reduent model.
-        onnx_model = onnx.load(args.output_name)
+        onnx_model = onnx.load(output_name)
         model_simp, check = simplify(onnx_model,
                                      dynamic_input_shape=args.dynamic,
                                      input_shapes=input_shapes)
         assert check, "Simplified ONNX model could not be validated"
-        onnx.save(model_simp, args.output_name)
-        logger.info("generated simplified onnx model named {}".format(args.output_name))
+
+        # save onnxsim file
+        save_path = os.path.join(save_path, 'onnxsim')
+        os.makedirs(save_path, exist_ok=True)
+        output_name = os.path.join(save_path, args.output_name)
+        onnx.save(model_simp, output_name)
+        logger.info("generated simplified onnx model named {}".format(output_name))
 
 
 if __name__ == "__main__":

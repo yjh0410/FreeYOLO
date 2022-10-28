@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+# -*- coding:utf-8 -*-
+
 import torch
 from .yolo_free.loss import build_criterion
 from .yolo_free.yolo_free import FreeYOLO

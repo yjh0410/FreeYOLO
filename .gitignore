@@ -1,6 +1,7 @@
 *.pt
 *.pth
 *.pkl
+*.onnx
 *.pyc
 __pycache__
 det_results
