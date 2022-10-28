@@ -10,6 +10,7 @@ from dataset.voc import VOC_CLASSES, VOCDetection
 from dataset.coco import coco_class_index, coco_class_labels, COCODataset
 from dataset.transforms import ValTransforms
 from utils.misc import load_weight
+from utils.com_flops_params import FLOPs_and_Params
 from utils import fuse_conv_bn
 
 from config import build_config
@@ -202,9 +203,10 @@ if __name__ == '__main__':
     model_copy = deepcopy(model)
     model_copy.trainable = False
     model_copy.eval()
-    model(model=model_copy,
-          img_size=args.img_size, 
-          device=device)
+    FLOPs_and_Params(
+        model=model_copy,
+        img_size=args.img_size, 
+        device=device)
     del model_copy
 
     # load trained weight
