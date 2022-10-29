@@ -18,4 +18,6 @@ onnxsim
 
 onnxruntime
 
+openvino
+
 loguru

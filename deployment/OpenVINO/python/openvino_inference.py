@@ -23,9 +23,7 @@ from utils.vis_tools import visualize
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser("openvino inference sample")
-    parser.add_argument('-h', '--help', action='help',
-                    help='Show this help message and exit.')
-    parser.add_argument("-m", "--model", type=str, default="../../weights/openvino/yolo_free_large.xml",
+    parser.add_argument("-m", "--model", type=str, default="../../../weights/openvino/yolo_free_large.xml",
                         help="Input your XML model.")
     parser.add_argument("-i", "--image_path", type=str, default='../../test_image.jpg',
                         help="Path to your input image.")
