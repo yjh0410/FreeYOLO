@@ -38,7 +38,7 @@ def parse_args():
                         help="Adopting mix precision training.")
 
     # model
-    parser.add_argument('-v', '--version', default='yolo_free', type=str,
+    parser.add_argument('-v', '--version', default='yolo_free_large', type=str,
                         help='build yolo')
     parser.add_argument('--topk', default=1000, type=int,
                         help='topk candidates for evaluation')
@@ -161,22 +161,12 @@ def train():
         ema = None
 
     # start training loop
-    best_map = 1000.0
+    best_map = -1.0
     lr_schedule=True
     total_epochs = cfg['wp_epoch'] + cfg['max_epoch']
     for epoch in range(start_epoch, total_epochs):
         if args.distributed:
             dataloader.batch_sampler.sampler.set_epoch(epoch)
-
-        best_map = val_one_epoch(
-                args=args, 
-                model=ema.ema if args.ema else model_without_ddp, 
-                evaluator=evaluator,
-                optimizer=optimizer,
-                epoch=epoch,
-                best_map=best_map,
-                path_to_save=path_to_save)
-          
 
         # train one epoch
         if epoch < cfg['wp_epoch']:

@@ -38,7 +38,7 @@ def parse_args():
                         help='show visualization')
 
     # model
-    parser.add_argument('-v', '--version', default='yolo_free', type=str,
+    parser.add_argument('-v', '--version', default='yolo_free_large', type=str,
                         help='build yolo')
     parser.add_argument('--weight', default=None,
                         type=str, help='Trained state_dict file path to open')

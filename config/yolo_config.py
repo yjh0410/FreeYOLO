@@ -2,7 +2,7 @@
 
 
 yolo_config = {
-    'yolo_free': {
+    'yolo_free_large': {
         # input
         'train_size': 800,
         'test_size': 640,

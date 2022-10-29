@@ -17,7 +17,7 @@ from models import build_model
 def parse_args():
     parser = argparse.ArgumentParser(description='FreeYOLO')
     # Model
-    parser.add_argument('-v', '--version', default='yolo_free', type=str,
+    parser.add_argument('-v', '--version', default='yolo_free_large', type=str,
                         help='build yolo')
     parser.add_argument('--fuse_conv_bn', action='store_true', default=False,
                         help='fuse conv and bn')

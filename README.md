@@ -44,12 +44,12 @@ At least, please make sure your torch is version 1.x.
 
 Main results on COCO-val:
 
-| Model         |  Scale  | FPS<sup><br>2080ti |  GFLOPs | Params(M) |    AP    |    AP50    |  Weight  |
-|---------------|---------|--------------------|---------|---------|----------|------------|----------|
-| FreeYOLO      |  640    |  58                |  144.8  |   44.1    |      |        | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_45.0_66.0.pth) |
-| FreeYOLO-Huge |  640    |                  | 257.8  |   78.9    |      |        |  |
-| FreeYOLO-Tiny |  416    |                  |   5.9  |    6.2    |      |        |  |
-| FreeYOLO-Nano |  416    |                  |   1.2  |    1.0    |      |        |  |
+| Model          |  Scale  | FPS<sup><br>2080ti |  FLOPs   |  Params  |    AP    |    AP50    |  Weight  |
+|----------------|---------|--------------------|----------|----------|----------|------------|----------|
+| FreeYOLO-Nano  |  416    |                    |   1.2 G  |  1.0 M   |      |        |  |
+| FreeYOLO-Tiny  |  416    |                    |   5.9 G  |  6.2 M   |      |        |  |
+| FreeYOLO-Large |  640    |  58                |  144.8 G |  44.1 M  |      |        | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_45.0_66.0.pth) |
+| FreeYOLO-Huge  |  640    |                    |  257.8 G |  78.9 M  |      |        |  |
 
 New AP results and weight files are coming ...
 
