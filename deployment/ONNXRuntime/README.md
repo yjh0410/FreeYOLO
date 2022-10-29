@@ -11,7 +11,7 @@ Then, you can:
 
 1. Convert a standard FreeYOLO model by:
 ```shell
-python3 export_onnx.py --output-name yolo_free.onnx -n yolo_free --weight ../weight/coco/yolo_free/yolo_free.pth --no_decode
+python3 export_onnx.py --output-name yolo_free_large.onnx -n yolo_free_large --weight ../weight/coco/yolo_free_large/yolo_free_large.pth --no_decode
 ```
 
 Notes:
@@ -34,7 +34,7 @@ cd <YOLOX_HOME>/deployment/ONNXRuntime
 
 Step2. 
 ```shell
-python3 onnx_inference.py --weight ../../weights/onnx/yolo_free.onnx -i ../test_image.jp -s 0.3 --img_size 640
+python3 onnx_inference.py --weight ../../weights/onnx/11/yolo_free_large.onnx -i ../test_image.jp -s 0.3 --img_size 640
 ```
 Notes:
 * --weight: your converted onnx model

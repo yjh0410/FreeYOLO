@@ -21,7 +21,7 @@ from models import build_model
 def make_parser():
     parser = argparse.ArgumentParser("FreeYOLO ONNXRuntime")
     # basic
-    parser.add_argument("--output-name", type=str, default="yolo_free.onnx",
+    parser.add_argument("--output-name", type=str, default="yolo_free_large.onnx",
                         help="output name of models")
     parser.add_argument("--input", default="images", type=str,
                         help="input node name of onnx model")
@@ -48,7 +48,7 @@ def make_parser():
                         help='Dir to save onnx file')
 
     # model
-    parser.add_argument('-v', '--version', default='yolo_free', type=str,
+    parser.add_argument('-v', '--version', default='yolo_free_large', type=str,
                         help='build yolo')
     parser.add_argument('--weight', default=None,
                         type=str, help='Trained state_dict file path to open')
@@ -87,7 +87,7 @@ def main():
     dummy_input = torch.randn(args.batch_size, 3, cfg['test_size'], cfg['test_size'])
 
     # save onnx file
-    save_path = args.save_dir
+    save_path = os.path.join(args.save_dir, str(args.opset))
     os.makedirs(save_path, exist_ok=True)
     output_name = os.path.join(save_path, args.output_name)
 

@@ -75,11 +75,11 @@ weight path (`None` by default) to resume training. For example:
 python train.py \
         --cuda \
         -d coco \
-        -v yolo_free \
+        -v yolo_free_large \
         --ema \
         --fp16 \
         --eval_epoch 10 \
-        --resume weights/coco/yolo_free/yolo_free_epoch_151_39.24.pth
+        --resume weights/coco/yolo_free_large/yolo_free_large_epoch_151_39.24.pth
 ```
 
 Then, training will continue from 151 epoch.
@@ -88,7 +88,7 @@ Then, training will continue from 151 epoch.
 ```Shell
 python test.py -d coco \
                --cuda \
-               -v yolo_free \
+               -v yolo_free_large \
                --img_size 640 \
                --weight path/to/weight \
                --root path/to/dataset/ \
@@ -99,7 +99,7 @@ python test.py -d coco \
 ```Shell
 python eval.py -d coco-val \
                --cuda \
-               -v yolo_free \
+               -v yolo_free_large \
                --img_size 640 \
                --weight path/to/weight \
                --root path/to/dataset/ \
@@ -112,7 +112,7 @@ I have provide some images in `data/demo/images/`, so you can run following comm
 ```Shell
 python demo.py --mode image \
                --path_to_img data/demo/images/ \
-               -v yolo_free \
+               -v yolo_free_large \
                --img_size 640 \
                --cuda \
                --weight path/to/weight
@@ -123,7 +123,7 @@ If you want run a demo of streaming video detection, you need to set `--mode` to
 ```Shell
 python demo.py --mode video \
                --path_to_img data/demo/videos/your_video \
-               -v yolo_free \
+               -v yolo_free_large \
                --img_size 640 \
                --cuda \
                --weight path/to/weight
@@ -133,7 +133,7 @@ If you want run video detection with your camera, you need to set `--mode` to `c
 
 ```Shell
 python demo.py --mode camera \
-               -v yolo_free \
+               -v yolo_free_large \
                --img_size 640 \
                --cuda \
                --weight path/to/weight
