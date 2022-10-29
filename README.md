@@ -140,4 +140,5 @@ python demo.py --mode camera \
 ```
 
 # Deployment
-[ONNX export and an ONNXRuntime](./deployment/ONNXRuntime/)
+1. [ONNX export and an ONNXRuntime](./deployment/ONNXRuntime/)
+2. [OpenVINO in C++ and Python](./deployment/OpenVINO)
