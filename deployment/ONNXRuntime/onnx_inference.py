@@ -19,7 +19,7 @@ from utils.vis_tools import visualize
 
 def make_parser():
     parser = argparse.ArgumentParser("onnxruntime inference sample")
-    parser.add_argument("--weight", type=str, default="../../weights/onnx/11/yolo_free_large.onnx",
+    parser.add_argument("--model", type=str, default="../../weights/onnx/11/yolo_free_large.onnx",
                         help="Input your onnx model.")
     parser.add_argument("-i", "--image_path", type=str, default='../test_image.jpg',
                         help="Path to your input image.")
@@ -58,7 +58,7 @@ if __name__ == '__main__':
 
     t0 = time.time()
     # inference
-    session = onnxruntime.InferenceSession(args.weight)
+    session = onnxruntime.InferenceSession(args.model)
 
     ort_inputs = {session.get_inputs()[0].name: x[None, :, :, :]}
     output = session.run(None, ort_inputs)
