@@ -1,5 +1,16 @@
 ## FreeYOLO ONNXRuntime
 
+### Download FreeYOLO ONNX file
+Main results on COCO-val:
+
+| Model          |  Scale  |  FLOPs   |  Params  |    AP    |    AP50    |  ONNX  |
+|----------------|---------|----------|----------|----------|------------|----------|
+| FreeYOLO-Nano  |  416    |   1.2 G  |  1.0 M   |      |        |  |
+| FreeYOLO-Tiny  |  416    |   5.9 G  |  6.2 M   |      |        |  |
+| FreeYOLO-Large |  640    |  144.8 G |  44.1 M  |      |        |  |
+| FreeYOLO-Huge  |  640    |  257.8 G |  78.9 M  |      |        |  |
+
+
 ### Convert Your Model to ONNX
 
 First, you should move to <FreeYOLO_HOME> by:

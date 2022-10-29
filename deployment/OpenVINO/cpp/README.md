@@ -2,17 +2,15 @@
 
 This tutorial includes a C++ demo for OpenVINO, as well as some converted models.
 
-### Download OpenVINO models.
+## Download FreeYOLO OpenVINO model
+Main results on COCO-val:
 
-| Model | Parameters | GFLOPs | Test Size | mAP | Weights |
-|:------| :----: | :----: | :---: | :---: | :---: |
-|  [YOLOX-Nano](../../../exps/default/nano.py) |  0.91M  | 1.08 | 416x416 | 25.8 | [github](https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_nano_openvino.tar.gz) |
-|  [YOLOX-Tiny](../../../exps/default/yolox_tiny.py) | 5.06M     | 6.45 | 416x416 |32.8 | [github](https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_tiny_openvino.tar.gz) |
-|  [YOLOX-S](../../../exps/default/yolox_s.py) | 9.0M | 26.8 | 640x640 |40.5 | [github](https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_s_openvino.tar.gz) |
-|  [YOLOX-M](../../../exps/default/yolox_m.py) | 25.3M | 73.8 | 640x640 |47.2 | [github](https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_m_openvino.tar.gz) |
-|  [YOLOX-L](../../../exps/default/yolox_l.py) | 54.2M | 155.6 | 640x640 |50.1 | [github](https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_l_openvino.tar.gz) |
-|  [YOLOX-Darknet53](../../../exps/default/yolov3.py) | 63.72M | 185.3 | 640x640 |48.0 | [github](https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_dark_openvino.tar.gz) | 
-|  [YOLOX-X](../../../exps/default/yolox_x.py) | 99.1M | 281.9 | 640x640 |51.5 | [github](https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_x_openvino.tar.gz) |
+| Model          |  Scale  |  FLOPs   |  Params  |    AP    |    AP50    |  ONNX  |
+|----------------|---------|----------|----------|----------|------------|----------|
+| FreeYOLO-Nano  |  416    |   1.2 G  |  1.0 M   |      |        |  |
+| FreeYOLO-Tiny  |  416    |   5.9 G  |  6.2 M   |      |        |  |
+| FreeYOLO-Large |  640    |  144.8 G |  44.1 M  |      |        |  |
+| FreeYOLO-Huge  |  640    |  257.8 G |  78.9 M  |      |        |  |
 
 ## Install OpenVINO Toolkit
 

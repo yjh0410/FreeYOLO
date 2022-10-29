@@ -2,6 +2,16 @@
 
 This tutorial includes a Python demo for OpenVINO, as well as some converted models.
 
+## Download FreeYOLO OpenVINO model
+Main results on COCO-val:
+
+| Model          |  Scale  |  FLOPs   |  Params  |    AP    |    AP50    |  ONNX  |
+|----------------|---------|----------|----------|----------|------------|----------|
+| FreeYOLO-Nano  |  416    |   1.2 G  |  1.0 M   |      |        |  |
+| FreeYOLO-Tiny  |  416    |   5.9 G  |  6.2 M   |      |        |  |
+| FreeYOLO-Large |  640    |  144.8 G |  44.1 M  |      |        |  |
+| FreeYOLO-Huge  |  640    |  257.8 G |  78.9 M  |      |        |  |
+
 ## Install OpenVINO Toolkit
 
 Please visit [Openvino Homepage](https://docs.openvinotoolkit.org/latest/get_started_guides.html) for more details.
