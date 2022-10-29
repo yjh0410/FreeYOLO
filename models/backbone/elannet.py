@@ -5,7 +5,7 @@ import torch.nn as nn
 model_urls = {
     "elannet": "https://github.com/yjh0410/image_classification_pytorch/releases/download/weight/elannet.pth",
     "elannet_huge": None,
-    "elannet_tiny": None,
+    "elannet_tiny": "https://github.com/yjh0410/image_classification_pytorch/releases/download/weight/elannet_tiny.pth",
     "elannet_nano": None
 }
 
