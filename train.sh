@@ -7,4 +7,4 @@ python train.py \
         --ema \
         --fp16 \
         --eval_epoch 10 \
-        --resume weights/coco/yolo_free_large/yolo_free_large_epoch_201_47.08.pth
+        --resume weights/coco/yolo_free_large/yolo_free_large_47.1.pth
