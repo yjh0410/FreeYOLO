@@ -45,7 +45,7 @@ cd <YOLOX_HOME>/deployment/ONNXRuntime
 
 Step2. 
 ```shell
-python3 onnx_inference.py --weight ../../weights/onnx/11/yolo_free_large.onnx -i ../test_image.jp -s 0.3 --img_size 640
+python3 onnx_inference.py --weight ../../weights/onnx/11/yolo_free_large.onnx -i ../test_image.jpg -s 0.3 --img_size 640
 ```
 Notes:
 * --weight: your converted onnx model
