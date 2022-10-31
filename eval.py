@@ -1,6 +1,7 @@
 import argparse
 import os
 
+from copy import deepcopy
 import torch
 
 from evaluator.voc_evaluator import VOCAPIEvaluator
@@ -8,6 +9,7 @@ from evaluator.coco_evaluator import COCOAPIEvaluator
 
 from dataset.transforms import ValTransforms
 from utils.misc import load_weight
+from utils.com_flops_params import FLOPs_and_Params
 
 from config import build_config
 from models import build_model
@@ -112,6 +114,16 @@ if __name__ == '__main__':
     # load trained weight
     model = load_weight(model=model, path_to_ckpt=args.weight)
     model.to(device).eval()
+
+    # compute FLOPs and Params
+    model_copy = deepcopy(model)
+    model_copy.trainable = False
+    model_copy.eval()
+    FLOPs_and_Params(
+        model=model_copy,
+        img_size=args.img_size, 
+        device=device)
+    del model_copy
 
     # transform
     transform = ValTransforms(
