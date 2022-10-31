@@ -110,7 +110,7 @@ def main():
 
     t0 = time.time()
     # post process
-    bboxes, scores, labels = postprocess(output[0])
+    bboxes, scores, labels = postprocess(output)
     bboxes /= ratio
     print("post-process time: {:.1f} ms".format((time.time() - t0)*100))
 
