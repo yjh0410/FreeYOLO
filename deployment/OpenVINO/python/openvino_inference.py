@@ -23,7 +23,7 @@ from utils.vis_tools import visualize
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser("openvino inference sample")
-    parser.add_argument("-m", "--model", type=str, default="../../../weights/openvino/yolo_free_large.xml",
+    parser.add_argument("-m", "--model", type=str, default="../../../weights/onnx/10/yolo_free_large.xml",
                         help="Input your XML model.")
     parser.add_argument("-i", "--image_path", type=str, default='../../test_image.jpg',
                         help="Path to your input image.")
@@ -36,6 +36,8 @@ def parse_args() -> argparse.Namespace:
                             MYRIAD, HDDL or HETERO: is acceptable. The sample will look \
                             for a suitable plugin for device specified. Default value \
                             is CPU.')
+    parser.add_argument("-size", "--img_size", type=int, default=640,
+                        help="Specify an input shape for inference.")
 
     return parser.parse_args()
 
