@@ -126,7 +126,7 @@ def main():
         )
 
     # show
-    cv2.imshow('onnx detection', origin_img)
+    cv2.imshow('openvino detection', origin_img)
     cv2.waitKey(0)
 
     # save results
