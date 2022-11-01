@@ -240,7 +240,7 @@ yolo_config = {
                         448, 480, 512, 544,
                         576, 608, 640],
         'mosaic_prob': 0.5,
-        'mixup_prob': 0.01,
+        'mixup_prob': 0.1,
         'format': 'RGB',
         'pixel_mean': [123.675, 116.28, 103.53],
         'pixel_std': [58.395, 57.12, 57.375],
