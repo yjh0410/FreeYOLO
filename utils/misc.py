@@ -20,32 +20,16 @@ def build_dataset(cfg, args, device):
     trans_config = cfg['transforms']
     print('==============================')
     print('TrainTransforms: {}'.format(trans_config))
-    train_transform = TrainTransforms(trans_config=trans_config,
-                                      img_size=cfg['train_size'],
-                                      format=cfg['format'])
-    val_transform = ValTransforms(img_size=cfg['test_size'],
-                                  format=cfg['format'])
     color_augment = BaseTransforms(
         img_size=cfg['train_size'],
-        pixel_mean=cfg['pixel_mean'],
-        pixel_std=cfg['pixel_std'],
-        format=cfg['format'],
         min_box_size=args.min_box_size
     )
     train_transform = TrainTransforms(
         trans_config=trans_config,
         img_size=cfg['train_size'],
-        format=cfg['format'],
-        pixel_mean=cfg['pixel_mean'],
-        pixel_std=cfg['pixel_std'],
         min_box_size=args.min_box_size
         )
-    val_transform = ValTransforms(
-        img_size=cfg['test_size'],
-        format=cfg['format'],
-        pixel_mean=cfg['pixel_mean'],
-        pixel_std=cfg['pixel_std']
-        )
+    val_transform = ValTransforms(img_size=cfg['test_size'])
         
     # dataset
     if args.dataset == 'voc':
@@ -80,9 +64,11 @@ def build_dataset(cfg, args, device):
             mixup_prob=cfg['mixup_prob']
             )
         # evaluator
-        evaluator = COCOAPIEvaluator(data_dir=data_dir,
-                                     device=device,
-                                     transform=val_transform)
+        evaluator = COCOAPIEvaluator(
+            data_dir=data_dir,
+            device=device,
+            transform=val_transform
+            )
 
     else:
         print('unknow dataset !! Only support voc, coco !!')

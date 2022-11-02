@@ -224,9 +224,6 @@ if __name__ == "__main__":
     from transforms import BaseTransforms, TrainTransforms, ValTransforms
     
     img_size = 640
-    format = 'RGB'
-    pixel_mean = [123.675, 116.28, 103.53]
-    pixel_std = [58.395, 57.12, 57.375]
     trans_config = [{'name': 'DistortTransform',
                      'hue': 0.1,
                      'saturation': 1.5,
@@ -235,21 +232,14 @@ if __name__ == "__main__":
                     {'name': 'JitterCrop', 'jitter_ratio': 0.3},
                     {'name': 'ToTensor'},
                     {'name': 'Resize'},
-                    {'name': 'Normalize'},
                     {'name': 'PadImage'}]
     transform = TrainTransforms(
         trans_config=trans_config,
         img_size=img_size,
-        pixel_mean=pixel_mean,
-        pixel_std=pixel_std,
-        format=format,
         min_box_size=8
         )
     color_augment = BaseTransforms(
         img_size=img_size,
-        pixel_mean=pixel_mean,
-        pixel_std=pixel_std,
-        format=format,
         min_box_size=8
         )
 
@@ -273,14 +263,7 @@ if __name__ == "__main__":
         image, target = dataset.pull_item(i)
         # to numpy
         image = image.permute(1, 2, 0).numpy()
-        # to BGR format
-        if format == 'RGB':
-            # denormalize
-            image = image * pixel_std + pixel_mean
-            image = image[:, :, (2, 1, 0)].astype(np.uint8)
-        elif format == 'BGR':
-            image = image * pixel_std + pixel_mean
-            image = image.astype(np.uint8)
+        image = image.astype(np.uint8)
         image = image.copy()
         img_h, img_w = image.shape[:2]
 

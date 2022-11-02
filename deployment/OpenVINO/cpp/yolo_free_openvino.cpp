@@ -21,9 +21,10 @@ using namespace InferenceEngine;
 #define NMS_THRESH 0.45
 #define BBOX_CONF_THRESH 0.3
 
-static const int INPUT_W = 416;
-static const int INPUT_H = 416;
+static const int INPUT_W = 640;
+static const int INPUT_H = 640;
 static const int NUM_CLASSES = 80; // COCO has 80 classes. Modify this value on your own dataset.
+
 
 cv::Mat static_resize(cv::Mat& img) {
     float r = std::min(INPUT_W / (img.cols*1.0), INPUT_H / (img.rows*1.0));
@@ -31,12 +32,24 @@ cv::Mat static_resize(cv::Mat& img) {
     int unpad_w = r * img.cols;
     int unpad_h = r * img.rows;
     cv::Mat re(unpad_h, unpad_w, CV_8UC3);
-    cv::resize(img, re, re.size());
-    //cv::Mat out(INPUT_W, INPUT_H, CV_8UC3, cv::Scalar(114, 114, 114));
+
+    // resize
+    if(r != 1)
+    {
+        cv::resize(img, re, re.size());
+    }
+    else:
+    {
+        cv::Mat out(INPUT_H, INPUT_W, CV_8UC3, cv::Scalar(114, 114, 114));
+    }
+
+    // padding
     cv::Mat out(INPUT_H, INPUT_W, CV_8UC3, cv::Scalar(114, 114, 114));
     re.copyTo(out(cv::Rect(0, 0, re.cols, re.rows)));
     return out;
+    
 }
+
 
 void blobFromImage(cv::Mat& img, Blob::Ptr& blob){
     int channels = 3;
@@ -186,7 +199,6 @@ static void qsort_descent_inplace(std::vector<Object>& faceobjects, int left, in
         }
     }
 }
-
 
 static void qsort_descent_inplace(std::vector<Object>& objects)
 {

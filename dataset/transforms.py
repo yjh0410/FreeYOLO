@@ -40,7 +40,7 @@ def refine_targets(target, img_size, min_box_size):
 
 
 def mosaic_augment(image_list, target_list, img_size):
-    mosaic_img = np.zeros([img_size*2, img_size*2, image_list[0].shape[2]], dtype=np.uint8)
+    mosaic_img = np.ones([img_size*2, img_size*2, image_list[0].shape[2]], dtype=np.uint8) * 114
     # mosaic center
     yc, xc = [int(random.uniform(-x, 2*img_size + x)) for x in [-img_size // 2, -img_size // 2]]
     # yc = xc = self.img_size
@@ -161,24 +161,10 @@ class Compose(object):
 
 # Convert ndarray to tensor
 class ToTensor(object):
-    def __init__(self, format='RGB'):
-        self.format = format
-
     def __call__(self, image, target=None):
-        # check color format
-        if self.format == 'RGB':
-            # BGR -> RGB
-            image = image[..., (2, 1, 0)]
-            # [H, W, C] -> [C, H, W]
-            image = torch.from_numpy(image).permute(2, 0, 1).contiguous().float()
-        elif self.format == 'BGR':
-            # keep BGR format
-            image = image
-            # [H, W, C] -> [C, H, W]
-            image = torch.from_numpy(image).permute(2, 0, 1).contiguous().float()
-        else:
-            print('Unknown color format !!')
-            exit()
+        # [H, W, C] -> [C, H, W]
+        image = torch.from_numpy(image).permute(2, 0, 1).contiguous().float()
+
         if target is not None:
             target["boxes"] = torch.as_tensor(target["boxes"]).float()
             target["labels"] = torch.as_tensor(target["labels"]).long()
@@ -332,19 +318,6 @@ class RandomHorizontalFlip(object):
         return image, target
 
 
-# Normalize tensor image
-class Normalize(object):
-    def __init__(self, pixel_mean, pixel_std):
-        self.pixel_mean = pixel_mean
-        self.pixel_std = pixel_std
-
-    def __call__(self, image, target=None):
-        # normalize image
-        image = F.normalize(image, mean=self.pixel_mean, std=self.pixel_std)
-
-        return image, target
-
-
 # Resize tensor image
 class Resize(object):
     def __init__(self, img_size=640):
@@ -392,9 +365,9 @@ class PadImage(object):
             else:
                 pad_img_h = self.img_size
                 pad_img_w = self.img_size
-            pad_image = torch.zeros([image.size(0), pad_img_h, pad_img_w]).float()
+            pad_image = torch.ones([image.size(0), pad_img_h, pad_img_w]).float() * 114.
         else:
-            pad_image = torch.zeros([image.size(0), self.img_size, self.img_size]).float()
+            pad_image = torch.ones([image.size(0), self.img_size, self.img_size]).float() * 114.
         pad_image[:, :img_h0, :img_w0] = image
 
         return pad_image, target
@@ -402,23 +375,14 @@ class PadImage(object):
 
 # BaseTransforms
 class BaseTransforms(object):
-    def __init__(self, 
-                 img_size=640, 
-                 pixel_mean=(123.675, 116.28, 103.53), 
-                 pixel_std=(58.395, 57.12, 57.375),
-                 format='RGB',
-                 min_box_size=8):
+    def __init__(self, img_size=640, min_box_size=8):
         self.img_size = img_size
-        self.pixel_mean = pixel_mean
-        self.pixel_std = pixel_std
-        self.format = format
         self.min_box_size = min_box_size
         self.transforms = Compose([
             DistortTransform(),
             RandomHorizontalFlip(),
-            ToTensor(format=format),
+            ToTensor(),
             Resize(img_size=img_size),
-            Normalize(pixel_mean, pixel_std),
             PadImage(img_size=img_size)
         ])
 
@@ -432,18 +396,9 @@ class BaseTransforms(object):
 
 # TrainTransform
 class TrainTransforms(object):
-    def __init__(self, 
-                 trans_config=None,
-                 img_size=640, 
-                 pixel_mean=(123.675, 116.28, 103.53), 
-                 pixel_std=(58.395, 57.12, 57.375),
-                 format='RGB',
-                 min_box_size=8):
+    def __init__(self, trans_config=None, img_size=640, min_box_size=8):
         self.trans_config = trans_config
         self.img_size = img_size
-        self.pixel_mean = pixel_mean
-        self.pixel_std = pixel_std
-        self.format = format
         self.min_box_size = min_box_size
         self.transforms = Compose(self.build_transforms(trans_config))
 
@@ -460,12 +415,9 @@ class TrainTransforms(object):
             elif t['name'] == 'JitterCrop':
                 transform.append(JitterCrop(jitter_ratio=t['jitter_ratio']))
             elif t['name'] == 'ToTensor':
-                transform.append(ToTensor(format=self.format))
+                transform.append(ToTensor())
             elif t['name'] == 'Resize':
                 transform.append(Resize(img_size=self.img_size))
-            elif t['name'] == 'Normalize':
-                transform.append(Normalize(pixel_mean=self.pixel_mean,
-                                           pixel_std=self.pixel_std))
             elif t['name'] == 'PadImage':
                 transform.append(PadImage(img_size=self.img_size))
         
@@ -481,20 +433,11 @@ class TrainTransforms(object):
 
 # ValTransform
 class ValTransforms(object):
-    def __init__(self, 
-                 img_size=640, 
-                 pixel_mean=(123.675, 116.28, 103.53), 
-                 pixel_std=(58.395, 57.12, 57.375),
-                 format='RGB'):
+    def __init__(self, img_size=640):
         self.img_size =img_size
-        self.pixel_mean = pixel_mean
-        self.pixel_std = pixel_std
-        self.format = format
         self.transforms = Compose([
-            ToTensor(format=format),
+            ToTensor(),
             Resize(img_size=img_size),
-            Normalize(pixel_mean=self.pixel_mean,
-                      pixel_std=self.pixel_std),
             PadImage(img_size=img_size, adaptive=True)
         ])
 

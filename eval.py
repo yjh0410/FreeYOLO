@@ -126,12 +126,7 @@ if __name__ == '__main__':
     del model_copy
 
     # transform
-    transform = ValTransforms(
-        img_size=args.img_size,
-        pixel_mean=cfg['pixel_mean'],
-        pixel_std=cfg['pixel_std'],
-        format=cfg['format']
-        )
+    transform = ValTransforms(img_size=args.img_size)
 
     # evaluation
     with torch.no_grad():
