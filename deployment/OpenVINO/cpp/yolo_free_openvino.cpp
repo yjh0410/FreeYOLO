@@ -34,20 +34,13 @@ cv::Mat static_resize(cv::Mat& img) {
     cv::Mat re(unpad_h, unpad_w, CV_8UC3);
 
     // resize
-    if(r != 1)
-    {
-        cv::resize(img, re, re.size());
-    }
-    else:
-    {
-        cv::Mat out(INPUT_H, INPUT_W, CV_8UC3, cv::Scalar(114, 114, 114));
-    }
+    cv::resize(img, re, re.size());
 
     // padding
     cv::Mat out(INPUT_H, INPUT_W, CV_8UC3, cv::Scalar(114, 114, 114));
     re.copyTo(out(cv::Rect(0, 0, re.cols, re.rows)));
+
     return out;
-    
 }
 
 
