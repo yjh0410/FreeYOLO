@@ -5,12 +5,10 @@ import cv2
 
 
 class PreProcessor(object):
-    def __init__(self, img_size, pixel_mean=(123.675, 116.28, 103.53), pixel_std=(58.395, 57.12, 57.375)):
+    def __init__(self, img_size):
         self.img_size = img_size
         self.input_size = [img_size, img_size]
-        self.pixel_mean = pixel_mean
-        self.pixel_std = pixel_std
-
+        
 
     def __call__(self, image, swap=(2, 0, 1)):
         """
@@ -31,13 +29,7 @@ class PreProcessor(object):
         else:
             resized_img = image
 
-        # to RGB
-        resized_img = resized_img[..., (2, 1, 0)]
-
-        # normalize
-        resized_img = (resized_img - self.pixel_mean) / self.pixel_std
-
-        # pad
+        # padding
         padded_img[:resize_size[1], :resize_size[0]] = resized_img
 
         # [H, W, C] -> [C, H, W]
