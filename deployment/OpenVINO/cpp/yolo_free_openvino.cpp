@@ -131,7 +131,7 @@ static void generate_yolox_proposals(std::vector<GridAndStride> grid_strides, co
         for (int class_idx = 0; class_idx < NUM_CLASSES; class_idx++)
         {
             float box_cls_score = feat_ptr[basic_pos + 5 + class_idx];
-            float box_prob = box_objectness * box_cls_score;
+            float box_prob = sqrt(box_objectness * box_cls_score);
             if (box_prob > prob_threshold)
             {
                 Object obj;

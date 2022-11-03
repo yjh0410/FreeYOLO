@@ -68,7 +68,7 @@ class PostProcessor(object):
         reg_preds = predictions[..., :4]
         obj_preds = predictions[..., 4:5]
         cls_preds = predictions[..., 5:]
-        scores = obj_preds * cls_preds
+        scores = np.sqrt(obj_preds * cls_preds)
 
         # scores & labels
         labels = np.argmax(scores, axis=1)                      # [M,]
