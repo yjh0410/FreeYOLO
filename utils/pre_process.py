@@ -36,4 +36,7 @@ class PreProcessor(object):
         padded_img = padded_img.transpose(swap)
         padded_img = np.ascontiguousarray(padded_img, dtype=np.float32)
 
+        cv2.imshow('dd', padded_img.astype(np.uint8))
+        cv2.waitKey(0)
+
         return padded_img, r
