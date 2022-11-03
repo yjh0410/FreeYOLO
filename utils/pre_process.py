@@ -17,9 +17,9 @@ class PreProcessor(object):
             formar: color format
         """
         if len(image.shape) == 3:
-            padded_img = np.zeros((self.input_size[0], self.input_size[1], 3), np.float32)
+            padded_img = np.ones((self.input_size[0], self.input_size[1], 3), np.float32) * 114.
         else:
-            padded_img = np.zeros(self.input_size, np.float32)
+            padded_img = np.ones(self.input_size, np.float32) * 114.
         # resize
         orig_h, orig_w = image.shape[:2]
         r = min(self.input_size[0] / orig_h, self.input_size[1] / orig_w)
