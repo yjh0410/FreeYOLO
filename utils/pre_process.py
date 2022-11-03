@@ -32,11 +32,12 @@ class PreProcessor(object):
         # padding
         padded_img[:resized_img.shape[0], :resized_img.shape[1]] = resized_img
 
+        cv2.imshow('dd', padded_img.astype(np.uint8))
+        cv2.waitKey(0)
+        
         # [H, W, C] -> [C, H, W]
         padded_img = padded_img.transpose(swap)
         padded_img = np.ascontiguousarray(padded_img, dtype=np.float32)
 
-        cv2.imshow('dd', padded_img.astype(np.uint8))
-        cv2.waitKey(0)
 
         return padded_img, r
