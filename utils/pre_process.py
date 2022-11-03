@@ -30,7 +30,7 @@ class PreProcessor(object):
             resized_img = image
 
         # padding
-        padded_img[:resize_size[1], :resize_size[0]] = resized_img
+        padded_img[:resized_img.shape[0], :resized_img.shape[1]] = resized_img
 
         # [H, W, C] -> [C, H, W]
         padded_img = padded_img.transpose(swap)
