@@ -17,7 +17,10 @@ conda activate yolo
 pip install -r requirements.txt 
 ```
 
-We suggest that PyTorch should be higher than 1.9.0 and Torchvision should be higher than 0.10.3. 
+My environment:
+- PyTorch = 1.9.1
+- Torchvision = 0.10.1
+
 At least, please make sure your torch is version 1.x.
 
 # Tricks
