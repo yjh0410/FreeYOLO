@@ -5,7 +5,7 @@ python -m torch.distributed.run --nproc_per_node=2 train.py \
                                                     -dist \
                                                     -d coco \
                                                     --root /mnt/share/ssd2/dataset/ \
-                                                    -v yolof \
+                                                    -v yolo_free_large \
                                                     --ema \
                                                     --fp16 \
                                                     --eval_epoch 10
