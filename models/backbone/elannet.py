@@ -6,7 +6,7 @@ model_urls = {
     "elannet": "https://github.com/yjh0410/image_classification_pytorch/releases/download/weight/elannet.pth",
     "elannet_huge": None,
     "elannet_tiny": "https://github.com/yjh0410/image_classification_pytorch/releases/download/weight/elannet_tiny.pth",
-    "elannet_nano": None
+    "elannet_nano": "https://github.com/yjh0410/image_classification_pytorch/releases/download/weight/elannet_nano.pth"
 }
 
 
@@ -372,7 +372,7 @@ def build_elannet(model_name='elannet', pretrained=False):
 
 if __name__ == '__main__':
     import time
-    model, feats = build_elannet(model_name='elannet_huge', pretrained=False)
+    model, feats = build_elannet(model_name='elannet_nano', pretrained=True)
     x = torch.randn(1, 3, 224, 224)
     t0 = time.time()
     outputs = model(x)
