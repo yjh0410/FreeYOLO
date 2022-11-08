@@ -110,29 +110,18 @@ class SPPBlockCSP(nn.Module):
         return y
 
 
-# SPP block with depthwise conv
-class SPPBlockDW(nn.Module):
-    """
-        Depth-wise Spatial Pyramid Pooling Block
-    """
-    def __init__(self,
-                 in_dim,
-                 out_dim,
-                 expand_ratio=0.5,
-                 pooling_size=[5, 9, 13],
-                 act_type='lrelu',
-                 norm_type='BN',
-                 depthwise=True):
-        super(SPPBlockDW, self).__init__()
-        assert depthwise
-        inter_dim = int(in_dim * expand_ratio)
-        self.m = nn.Sequential(
-            Conv(in_dim, inter_dim, k=1, act_type=act_type, norm_type=norm_type),
-            Conv(inter_dim, inter_dim, k=3, p=1, act_type=act_type, norm_type=norm_type, depthwise=depthwise),
-            SPP(inter_dim, inter_dim, expand_ratio, pooling_size, act_type=act_type, norm_type=norm_type),
-            Conv(inter_dim, inter_dim, k=3, p=1, act_type=act_type, norm_type=norm_type, depthwise=depthwise),
-            Conv(inter_dim, out_dim, k=1, act_type=act_type, norm_type=norm_type)
-        )
-        
+# Spatial Pyramid Pooling - Fast (SPPF) layer for YOLOv5 by Glenn Jocher
+class SPPF(nn.Module):
+    def __init__(self, in_dim, out_dim, k=5):  # equivalent to SPP(k=(5, 9, 13))
+        super().__init__()
+        inter_dim = in_dim // 2  # hidden channels
+        self.cv1 = Conv(in_dim, inter_dim, k=1)
+        self.cv2 = Conv(inter_dim * 4, out_dim, k=1)
+        self.m = nn.MaxPool2d(kernel_size=k, stride=1, padding=k // 2)
+
     def forward(self, x):
-        return self.m(x)
+        x = self.cv1(x)
+        y1 = self.m(x)
+        y2 = self.m(y1)
+
+        return self.cv2(torch.cat((x, y1, y2, self.m(y2)), 1))

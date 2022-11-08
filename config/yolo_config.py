@@ -242,22 +242,22 @@ yolo_config = {
                          {'name': 'Resize'},
                          {'name': 'PadImage'}],
         # model
-        'backbone': 'elannet_nano',
+        'backbone': 'shufflenetv2_1.0x',
         'pretrained': True,
         'stride': [8, 16, 32],  # P3, P4, P5
         'anchor_size': None,
         # neck
-        'neck': 'spp_block_dw',
-        'neck_dim': 128,
+        'neck': 'sppf',
+        'neck_dim': 232,
         'expand_ratio': 0.5,
-        'pooling_size': [5, 9, 13],
+        'pooling_size': 5,
         'neck_act': 'lrelu',
         'neck_norm': 'BN',
         'neck_depthwise': True,
         # fpn
         'fpn': 'pafpn_elan',
         'fpn_size': 'nano',
-        'fpn_dim': [64, 128, 128],
+        'fpn_dim': [116, 232, 232],
         'fpn_norm': 'BN',
         'fpn_act': 'lrelu',
         'fpn_depthwise': True,

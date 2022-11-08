@@ -1,4 +1,4 @@
-from .spp import SPPBlock, SPPBlockCSP, SPPBlockDW
+from .spp import SPPBlock, SPPBlockCSP, SPPF
 from .pafpn import PaFPNCSP, PaFPNELAN
 
 
@@ -52,15 +52,8 @@ def build_neck(cfg, in_dim, out_dim):
             depthwise=cfg['neck_depthwise']
             )
 
-    elif model == 'spp_block_dw':
-        neck = SPPBlockDW(
-            in_dim, out_dim, 
-            expand_ratio=cfg['expand_ratio'], 
-            pooling_size=cfg['pooling_size'],
-            act_type=cfg['neck_act'],
-            norm_type=cfg['neck_norm'],
-            depthwise=cfg['neck_depthwise']
-            )
+    elif model == 'sppf':
+        neck = SPPF(in_dim, out_dim, k=cfg['pooling_size'])
 
 
     return neck
