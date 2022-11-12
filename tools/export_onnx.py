@@ -38,8 +38,6 @@ def make_parser():
     parser.add_argument("-f", "--exp_file", default=None, type=str,
                         help="experiment description file")
     parser.add_argument("-expn", "--experiment-name", type=str, default=None)
-    parser.add_argument("-n", "--name", type=str, default=None,
-                        help="model name")
     parser.add_argument("opts", default=None, nargs=argparse.REMAINDER,
                         help="Modify config options using the command-line")
     parser.add_argument("--decode_in_inference", action="store_true", default=False,

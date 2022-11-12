@@ -22,7 +22,7 @@ Then, you can:
 
 1. Convert a standard FreeYOLO model by:
 ```shell
-python3 export_onnx.py --output-name yolo_free_large.onnx -n yolo_free_large --weight ../weight/coco/yolo_free_large/yolo_free_large.pth --no_decode
+python3 export_onnx.py --output-name yolo_free_large.onnx -v yolo_free_large --weight ../weight/coco/yolo_free_large/yolo_free_large.pth --no_decode
 ```
 
 Notes:
