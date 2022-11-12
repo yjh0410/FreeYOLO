@@ -9,7 +9,7 @@ def build_backbone(cfg, trainable=False):
     # imagenet pretrained
     pretrained = cfg['pretrained'] and trainable
 
-    if cfg['backbone'] in ['elannet', 'elannet_huge', \
+    if cfg['backbone'] in ['elannet_large', 'elannet_huge', \
                            'elannet_tiny', 'elannet_nano']:
         model, feat_dim = build_elannet(
             model_name=cfg['backbone'],

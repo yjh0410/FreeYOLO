@@ -22,7 +22,7 @@ yolo_config = {
                          {'name': 'Resize'},
                          {'name': 'PadImage'}],
         # model
-        'backbone': 'elannet',
+        'backbone': 'elannet_large',
         'pretrained': True,
         'stride': [8, 16, 32],  # P3, P4, P5
         'anchor_size': None,
