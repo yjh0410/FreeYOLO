@@ -9,7 +9,7 @@ Main results on COCO-val:
 |----------------|---------|----------|------------|----------|
 | FreeYOLO-Nano  |  416    |      |        |  |
 | FreeYOLO-Tiny  |  416    |   31.1   |   49.4     | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_tiny.zip) |
-| FreeYOLO-Large |  640    |      |        |  |
+| FreeYOLO-Large |  640    |   47.0   |   67.4     | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_large.zip) |
 | FreeYOLO-Huge  |  640    |      |        |  |
 
 ## Install OpenVINO Toolkit
