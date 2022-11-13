@@ -1,17 +1,18 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 from torch.utils.data import DataLoader, DistributedSampler
 
-import numpy as np
 import os
 import math
 from copy import deepcopy
 
 from evaluator.coco_evaluator import COCOAPIEvaluator
 from evaluator.voc_evaluator import VOCAPIEvaluator
+from evaluator.widerface_evaluator import WiderFaceEvaluator
+
 from dataset.voc import VOCDetection
 from dataset.coco import COCODataset
+from dataset.widerface import WIDERFaceDetection
 from dataset.transforms import BaseTransforms, TrainTransforms, ValTransforms
 
 
@@ -70,8 +71,28 @@ def build_dataset(cfg, args, device):
             transform=val_transform
             )
 
+    elif args.dataset == 'widerface':
+        data_dir = os.path.join(args.root, 'WiderFace')
+        num_classes = 1
+
+        # dataset
+        dataset = WIDERFaceDetection(
+            img_size=cfg['train_size'],
+            data_dir=data_dir,
+            transform=train_transform,
+            color_augment=color_augment,
+            mosaic_prob=cfg['mosaic_prob'],
+            mixup_prob=cfg['mixup_prob']
+            )
+        # evaluator
+        evaluator = WiderFaceEvaluator(
+            data_dir=data_dir,
+            device=device,
+            image_set='val',
+            transform=val_transform)
+
     else:
-        print('unknow dataset !! Only support voc, coco !!')
+        print('unknow dataset !! Only support voc, coco, widerface !!')
         exit(0)
 
     print('==============================')
