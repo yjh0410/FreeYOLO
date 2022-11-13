@@ -390,8 +390,8 @@ class WiderFaceEvaluator():
 
             det = self.detect_face(model, image)  # origin test
             event_path = os.path.join(self.pred_path, event)
-            if not os.path.exists(event_path):
-                os.makedirs(event_path)
+            os.makedirs(event_path, exist_ok=True)
+
             f = open(event_path + '/' + img_id.split(".")[0] + '.txt', 'w')
             self.write_to_txt(f, det , event, img_id)
 
