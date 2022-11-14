@@ -5,7 +5,7 @@ Main results on COCO-val:
 
 | Model          |  Scale  |    AP    |    AP50    |  ONNX(opset=11)  |  ONNX(opset=10)  |
 |----------------|---------|----------|------------|------------------|------------------|
-| FreeYOLO-Nano  |  416    |      |        |  |  |
+| FreeYOLO-Nano  |  416    |   27.1   |   45.5     | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_nano_opset_11.onnx) | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_nano_opset_10.onnx) |
 | FreeYOLO-Tiny  |  416    |   31.1   |   49.4     | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_tiny_opset_11.onnx) | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_tiny_opset_10.onnx) |
 | FreeYOLO-Large |  640    |   47.0   |   67.4     | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_large_opset_11.onnx) | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_large_opset_10.onnx) |
 | FreeYOLO-Huge  |  640    |      |        |  |  |

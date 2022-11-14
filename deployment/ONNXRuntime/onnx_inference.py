@@ -25,7 +25,7 @@ def make_parser():
                         help="Path to your input image.")
     parser.add_argument("-o", "--output_dir", type=str, default='../../det_results/onnx/',
                         help="Path to your output directory.")
-    parser.add_argument("-s", "--score_thr", type=float, default=0.3,
+    parser.add_argument("-s", "--score_thr", type=float, default=0.35,
                         help="Score threshould to filter the result.")
     parser.add_argument("-size", "--img_size", type=int, default=640,
                         help="Specify an input shape for inference.")
