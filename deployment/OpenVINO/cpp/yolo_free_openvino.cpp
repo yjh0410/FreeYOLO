@@ -19,7 +19,7 @@ using namespace InferenceEngine;
 #define file_name_t            std::string
 #define imread_t               cv::imread
 #define NMS_THRESH 0.45
-#define BBOX_CONF_THRESH 0.3
+#define BBOX_CONF_THRESH 0.35
 
 static const int INPUT_W = 416;
 static const int INPUT_H = 416;
@@ -261,10 +261,10 @@ static void decode_outputs(const float* prob, std::vector<Object>& objects, floa
             float y1 = (objects[i].rect.y + objects[i].rect.height) / scale;
 
             // clip
-            x0 = std::max(std::min(x0, (float)(img_w - 1)), 0.f);
-            y0 = std::max(std::min(y0, (float)(img_h - 1)), 0.f);
-            x1 = std::max(std::min(x1, (float)(img_w - 1)), 0.f);
-            y1 = std::max(std::min(y1, (float)(img_h - 1)), 0.f);
+            x0 = std::max(std::min(x0, (float)(img_w)), 0.f);
+            y0 = std::max(std::min(y0, (float)(img_h)), 0.f);
+            x1 = std::max(std::min(x1, (float)(img_w)), 0.f);
+            y1 = std::max(std::min(y1, (float)(img_h)), 0.f);
 
             objects[i].rect.x = x0;
             objects[i].rect.y = y0;
