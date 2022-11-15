@@ -21,8 +21,8 @@ using namespace InferenceEngine;
 #define NMS_THRESH 0.45
 #define BBOX_CONF_THRESH 0.3
 
-static const int INPUT_W = 640;
-static const int INPUT_H = 640;
+static const int INPUT_W = 416;
+static const int INPUT_H = 416;
 static const int NUM_CLASSES = 80; // COCO has 80 classes. Modify this value on your own dataset.
 
 
@@ -82,8 +82,8 @@ struct Object
 
 struct GridAndStride
 {
-    int grid0;
-    int grid1;
+    float grid0;
+    float grid1;
     int stride;
 };
 
@@ -97,7 +97,7 @@ static void generate_grids_and_stride(const int target_w, const int target_h, st
         {
             for (int g0 = 0; g0 < num_grid_w; g0++)
             {
-                grid_strides.push_back((GridAndStride){g0, g1, stride});
+                grid_strides.push_back((GridAndStride){float(g0) + 0.5, float(g1)+ + 0.5, stride});
             }
         }
     }

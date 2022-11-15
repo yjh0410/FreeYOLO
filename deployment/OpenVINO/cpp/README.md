@@ -1,16 +1,16 @@
-# YOLOX-OpenVINO in C++
+# FreeYOLO-OpenVINO in C++
 
 This tutorial includes a C++ demo for OpenVINO, as well as some converted models.
 
 ## Download FreeYOLO OpenVINO model
 Main results on COCO-val:
 
-| Model          |  Scale  |  FLOPs   |  Params  |    AP    |    AP50    |  ONNX  |
-|----------------|---------|----------|----------|----------|------------|----------|
-| FreeYOLO-Nano  |  416    |   1.2 G  |  1.0 M   |      |        |  |
-| FreeYOLO-Tiny  |  416    |   5.9 G  |  6.2 M   |      |        |  |
-| FreeYOLO-Large |  640    |  144.8 G |  44.1 M  |      |        |  |
-| FreeYOLO-Huge  |  640    |  257.8 G |  78.9 M  |      |        |  |
+| Model          |  Scale  |    AP    |    AP50    |  XML  |
+|----------------|---------|----------|------------|----------|
+| FreeYOLO-Nano  |  416    |   27.1   |   45.5     | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_nano.zip) |
+| FreeYOLO-Tiny  |  416    |   31.1   |   49.4     | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_tiny.zip) |
+| FreeYOLO-Large |  640    |   47.0   |   67.4     | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_large.zip) |
+| FreeYOLO-Huge  |  640    |      |        |  |
 
 ## Install OpenVINO Toolkit
 
@@ -91,5 +91,5 @@ make
 ### c++
 
 ```shell
-./yolox_openvino <XML_MODEL_PATH> <IMAGE_PATH> <DEVICE>
+./yolo_free_openvino <XML_MODEL_PATH> <IMAGE_PATH> <DEVICE>
 ```
