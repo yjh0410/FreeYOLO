@@ -413,7 +413,7 @@ static void draw_objects(const cv::Mat& bgr, const std::vector<Object>& objects,
         //if (x + label_size.width > image.cols)
             //x = image.cols - label_size.width;
 
-        cv::rectangle(image, cv::Rect(cv::Point(x0, y0), cv::Rect(cv::Point(x1, y1)),
+        cv::rectangle(image, cv::Rect(cv::Point(x0, y0)), cv::Rect(cv::Point(x1, y1)),
                       txt_bk_color, -1);
 
         cv::putText(image, text, cv::Point(x0, y0 + label_size.height),
