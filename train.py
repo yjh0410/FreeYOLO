@@ -173,7 +173,7 @@ def train():
         model_eval = ema.ema if args.ema else model_without_ddp
         val_one_epoch(
             args=args, model=model_eval, evaluator=evaluator, optimizer=optimizer,
-            epoch=epoch, best_map=best_map, path_to_save=path_to_save)
+            epoch=0, best_map=best_map, path_to_save=path_to_save)
 
     # start to train
     for epoch in range(start_epoch, total_epochs):
