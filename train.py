@@ -32,6 +32,8 @@ def parse_args():
                         help='use tensorboard')
     parser.add_argument('--save_folder', default='weights/', type=str, 
                         help='path to save weight')
+    parser.add_argument('--eval_first', action='store_true', default=False,
+                        help='evaluate model before training.')
     parser.add_argument('--eval_epoch', default=10, type=int, 
                         help='after eval epoch, the model is evaluated on val dataset.')
     parser.add_argument('--fp16', dest="fp16", action="store_true", default=False,
@@ -164,6 +166,16 @@ def train():
     best_map = -1.0
     lr_schedule=True
     total_epochs = cfg['wp_epoch'] + cfg['max_epoch']
+
+    # eval before training
+    if args.eval_first:
+        # to check whether the evaluator can work
+        model_eval = ema.ema if args.ema else model_without_ddp
+        val_one_epoch(
+            args=args, model=model_eval, evaluator=evaluator, optimizer=optimizer,
+            epoch=epoch, best_map=best_map, path_to_save=path_to_save)
+
+    # start to train
     for epoch in range(start_epoch, total_epochs):
         if args.distributed:
             dataloader.batch_sampler.sampler.set_epoch(epoch)
@@ -215,7 +227,7 @@ def train():
                             optimizer=optimizer,
                             scaler=scaler)
         
-        # evaluation
+        # eval
         if (epoch % args.eval_epoch) == 0 or (epoch == total_epochs - 1):
             best_map = val_one_epoch(
                             args=args, 
