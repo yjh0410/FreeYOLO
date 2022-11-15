@@ -188,7 +188,7 @@ if __name__ == '__main__':
         class_indexs = None
         num_classes = 1
         dataset = WIDERFaceDetection(
-            data_dir=data_dir, image_sets='val', transform=None)
+            data_dir=data_dir, image_set='val', transform=None)
 
     else:
         print('unknow dataset !! Only support voc and coco !!')
