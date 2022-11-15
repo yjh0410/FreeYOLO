@@ -357,7 +357,7 @@ const float color_list[80][3] =
     {0.50, 0.5, 0}
 };
 
-static void draw_objects(const cv::Mat& bgr, const std::vector<Object>& objects, const show)
+static void draw_objects(const cv::Mat& bgr, const std::vector<Object>& objects, const bool show)
 {
     static const char* class_names[] = {
         "person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat", "traffic light",
