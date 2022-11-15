@@ -437,7 +437,7 @@ int main(int argc, char* argv[]) {
         const file_name_t input_model {argv[1]};
         const file_name_t input_image_path {argv[2]};
         const std::string device_name {argv[3]};
-        bool show {argv[4]}
+        bool show {argv[4]};
         // -----------------------------------------------------------------------------------------------------
 
         // --------------------------- Step 1. Initialize inference engine core
