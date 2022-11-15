@@ -418,8 +418,10 @@ static void draw_objects(const cv::Mat& bgr, const std::vector<Object>& objects,
     fprintf(stderr, "save vis file\n");
 
     if (show):
+    {
         cv::imshow("image", image);
         cv::waitKey(0);
+    }
 }
 
 
