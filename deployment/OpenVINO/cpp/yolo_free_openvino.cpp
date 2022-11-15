@@ -357,7 +357,7 @@ const float color_list[80][3] =
     {0.50, 0.5, 0}
 };
 
-static void draw_objects(const cv::Mat& bgr, const std::vector<Object>& objects)
+static void draw_objects(const cv::Mat& bgr, const std::vector<Object>& objects, const show)
 {
     static const char* class_names[] = {
         "person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat", "traffic light",
@@ -416,8 +416,10 @@ static void draw_objects(const cv::Mat& bgr, const std::vector<Object>& objects)
 
     cv::imwrite("_demo.jpg" , image);
     fprintf(stderr, "save vis file\n");
-    /* cv::imshow("image", image); */
-    /* cv::waitKey(0); */
+
+    if (show):
+        cv::imshow("image", image);
+        cv::waitKey(0);
 }
 
 
@@ -425,14 +427,15 @@ int main(int argc, char* argv[]) {
     try {
         // ------------------------------ Parsing and validation of input arguments
         // ---------------------------------
-        if (argc != 4) {
-            tcout << "Usage : " << argv[0] << " <path_to_model> <path_to_image> <device_name>" << std::endl;
+        if (argc != 5) {
+            tcout << "Usage : " << argv[0] << " <path_to_model> <path_to_image> <device_name> <show>" << std::endl;
             return EXIT_FAILURE;
         }
 
         const file_name_t input_model {argv[1]};
         const file_name_t input_image_path {argv[2]};
         const std::string device_name {argv[3]};
+        bool show {argv[4]}
         // -----------------------------------------------------------------------------------------------------
 
         // --------------------------- Step 1. Initialize inference engine core
@@ -523,7 +526,7 @@ int main(int argc, char* argv[]) {
         std::vector<Object> objects;
 
         decode_outputs(net_pred, objects, scale, img_w, img_h);
-        draw_objects(image, objects);
+        draw_objects(image, objects, show);
 
             // -----------------------------------------------------------------------------------------------------
         } catch (const std::exception& ex) {
