@@ -73,7 +73,7 @@ source ~/.bashrc
    python3 mo.py --input_model yolox_tiny.onnx --input_shape [1,3,416,416] --data_type FP16
    ```  
 
-   Make sure the input shape is consistent with [those](yolox_openvino.cpp#L24-L25) in cpp file. 
+   Make sure the input shape is consistent with [those](yolo_free_openvino.cpp#L24-L25) in cpp file. 
 
 ## Build 
 
