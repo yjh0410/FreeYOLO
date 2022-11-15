@@ -97,7 +97,7 @@ static void generate_grids_and_stride(const int target_w, const int target_h, st
         {
             for (int g0 = 0; g0 < num_grid_w; g0++)
             {
-                grid_strides.push_back((GridAndStride){(float)g0 + 0.5, (float)g1 + 0.5, stride});
+                grid_strides.push_back((GridAndStride){(float)g0 + 0.5f, (float)g1 + 0.5f, stride});
             }
         }
     }
