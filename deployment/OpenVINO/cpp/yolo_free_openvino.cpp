@@ -111,8 +111,8 @@ static void generate_yolox_proposals(std::vector<GridAndStride> grid_strides, co
 
     for (int anchor_idx = 0; anchor_idx < num_anchors; anchor_idx++)
     {
-        const int grid0 = grid_strides[anchor_idx].grid0;
-        const int grid1 = grid_strides[anchor_idx].grid1;
+        const float grid0 = grid_strides[anchor_idx].grid0;
+        const float grid1 = grid_strides[anchor_idx].grid1;
         const int stride = grid_strides[anchor_idx].stride;
 
 	const int basic_pos = anchor_idx * (NUM_CLASSES + 5);
@@ -124,12 +124,8 @@ static void generate_yolox_proposals(std::vector<GridAndStride> grid_strides, co
         float y_center = (feat_ptr[basic_pos + 1] + grid1) * stride;
         float w = exp(feat_ptr[basic_pos + 2]) * stride;
         float h = exp(feat_ptr[basic_pos + 3]) * stride;
-
-        // xywh -> xyxy
         float x0 = x_center - w * 0.5f;
         float y0 = y_center - h * 0.5f;
-        float x1 = x_center + w * 0.5f;
-        float y1 = y_center + h * 0.5f;
 
         float box_objectness = feat_ptr[basic_pos + 4];
         for (int class_idx = 0; class_idx < NUM_CLASSES; class_idx++)
@@ -139,10 +135,10 @@ static void generate_yolox_proposals(std::vector<GridAndStride> grid_strides, co
             if (box_prob > prob_threshold)
             {
                 Object obj;
-                obj.rect.x0 = x0;
-                obj.rect.y0 = y0;
-                obj.rect.x1 = x1;
-                obj.rect.y1 = y1;
+                obj.rect.x = x0;
+                obj.rect.y = y0;
+                obj.rect.width = w;
+                obj.rect.height = h;
                 obj.label = class_idx;
                 obj.prob = box_prob;
 
@@ -259,10 +255,10 @@ static void decode_outputs(const float* prob, std::vector<Object>& objects, floa
             objects[i] = proposals[picked[i]];
 
             // adjust offset to original unpadded
-            float x0 = (objects[i].rect.x0) / scale;
-            float y0 = (objects[i].rect.y0) / scale;
-            float x1 = (objects[i].rect.x1) / scale;
-            float y1 = (objects[i].rect.y1) / scale;
+            float x0 = (objects[i].rect.x) / scale;
+            float y0 = (objects[i].rect.y) / scale;
+            float x1 = (objects[i].rect.x + objects[i].rect.width) / scale;
+            float y1 = (objects[i].rect.y + objects[i].rect.height) / scale;
 
             // clip
             x0 = std::max(std::min(x0, (float)(img_w)), 0.f);
@@ -270,10 +266,10 @@ static void decode_outputs(const float* prob, std::vector<Object>& objects, floa
             x1 = std::max(std::min(x1, (float)(img_w)), 0.f);
             y1 = std::max(std::min(y1, (float)(img_h)), 0.f);
 
-            objects[i].rect.x0 = x0;
-            objects[i].rect.y0 = y0;
-            objects[i].rect.x1 = x1;
-            objects[i].rect.y1 = y1;
+            objects[i].rect.x = x0;
+            objects[i].rect.y = y0;
+            objects[i].rect.width = x1 - x0;
+            objects[i].rect.height = y1 - y0;
         }
 }
 
@@ -403,20 +399,18 @@ static void draw_objects(const cv::Mat& bgr, const std::vector<Object>& objects,
 
         cv::Scalar txt_bk_color = color * 0.7 * 255;
 
-        int x0 = obj.rect.x0;
-        int y0 = obj.rect.y0;
-        int x1 = obj.rect.x1;
-        int y1 = obj.rect.y1;
+        int x = obj.rect.x;
+        int y = obj.rect.y + 1;
         //int y = obj.rect.y - label_size.height - baseLine;
-        if (y0 > image.rows)
-            y0 = image.rows;
+        if (y > image.rows)
+            y = image.rows;
         //if (x + label_size.width > image.cols)
             //x = image.cols - label_size.width;
 
-        cv::rectangle(image, cv::Rect(cv::Point(x0, y0)), cv::Rect(cv::Point(x1, y1)),
+        cv::rectangle(image, cv::Rect(cv::Point(x, y), cv::Size(label_size.width, label_size.height + baseLine)),
                       txt_bk_color, -1);
 
-        cv::putText(image, text, cv::Point(x0, y0 + label_size.height),
+        cv::putText(image, text, cv::Point(x, y + label_size.height),
                     cv::FONT_HERSHEY_SIMPLEX, 0.4, txt_color, 1);
     }
 
