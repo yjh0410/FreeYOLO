@@ -333,7 +333,7 @@ class WiderFaceEvaluator():
         
         # inference
         outputs = model(x)
-        bboxes, scores, cls_inds = outputs
+        bboxes, scores, labels = outputs
 
         # rescale
         bboxes *= max(orig_h, orig_w)
