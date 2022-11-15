@@ -8,4 +8,5 @@ python train.py \
         --fp16 \
         --eval_epoch 10 \
         --eval_first \
-        # --resume weights/coco/yolo_free_large/yolo_free_large_47.1.pth
+        --coco_pretrained weights/coco/yolo_free_tiny/yolo_free_tiny_31.1.pth \
+        # --resume weights/coco/yolo_free_large/yolo_free_large_47.1.pth \
