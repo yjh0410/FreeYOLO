@@ -269,7 +269,7 @@ if __name__ == "__main__":
         img_size=img_size,
         data_dir='D:\\python_work\\object-detection\\dataset\\VOCdevkit',
         transform=train_transform,
-        mosaic_prob=0.,
+        mosaic_prob=1.0,
         mixup_prob=0.15,
         trans_config=trans_config
         )

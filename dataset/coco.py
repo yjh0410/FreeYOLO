@@ -266,7 +266,7 @@ if __name__ == "__main__":
         data_dir='/mnt/share/ssd2/dataset/COCO',
         image_set='train2017',
         transform=train_transform,
-        mosaic_prob=0.,
+        mosaic_prob=1.0,
         mixup_prob=0.15,
         trans_config=trans_config
         )
