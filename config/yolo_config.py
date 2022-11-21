@@ -9,17 +9,18 @@ yolo_config = {
         'random_size': [320, 352, 384, 416,
                         448, 480, 512, 544,
                         576, 608, 640],
-        'mosaic_prob': 0.5,
-        'mixup_prob': 0.1,
+        'mosaic_prob': 1.0,
+        'mixup_prob': 0.05,
         'format': 'RGB',
-        'transforms': [{'name': 'DistortTransform',
-                         'hue': 0.1,
-                         'saturation': 1.5,
-                         'exposure': 1.5},
-                         {'name': 'RandomHorizontalFlip'},
-                         {'name': 'ToTensor'},
-                         {'name': 'Resize'},
-                         {'name': 'PadImage'}],
+        'trans_config': {'degrees': 0.0,
+                          'translate': 0.1,
+                          'scale': 0.5,
+                          'shear': 0.0,
+                          'perspective': 0.0,
+                          'hsv_h': 0.015,
+                          'hsv_s': 0.7,
+                          'hsv_v': 0.4
+                          },
         # model
         'backbone': 'shufflenetv2_1.0x',
         'pretrained': True,
@@ -59,7 +60,7 @@ yolo_config = {
         'loss_cls_weight': 1.0,
         'loss_reg_weight': 5.0,
         # training configuration
-        'max_epoch': 250,
+        'max_epoch': 300,
         'no_aug_epoch': 15,
         'batch_size': 16,    # 1 GPU
         'accumulate': 1,
@@ -82,22 +83,22 @@ yolo_config = {
         'random_size': [320, 352, 384, 416,
                         448, 480, 512, 544,
                         576, 608, 640],
-        'mosaic_prob': 0.5,
-        'mixup_prob': 0.1,
+        'mosaic_prob': 1.0,
+        'mixup_prob': 0.05,
         'format': 'RGB',
-        'transforms': [{'name': 'DistortTransform',
-                         'hue': 0.1,
-                         'saturation': 1.5,
-                         'exposure': 1.5},
-                         {'name': 'RandomHorizontalFlip'},
-                         {'name': 'ToTensor'},
-                         {'name': 'Resize'},
-                         {'name': 'PadImage'}],
+        'trans_config': {'degrees': 0.0,
+                          'translate': 0.1,
+                          'scale': 0.5,
+                          'shear': 0.0,
+                          'perspective': 0.0,
+                          'hsv_h': 0.015,
+                          'hsv_s': 0.7,
+                          'hsv_v': 0.4
+                          },
         # model
         'backbone': 'elannet_tiny',
         'pretrained': True,
         'stride': [8, 16, 32],  # P3, P4, P5
-        'anchor_size': None,
         # neck
         'neck': 'spp_block_csp',
         'neck_dim': 256,
@@ -132,7 +133,7 @@ yolo_config = {
         'loss_cls_weight': 1.0,
         'loss_reg_weight': 5.0,
         # training configuration
-        'max_epoch': 250,
+        'max_epoch': 300,
         'no_aug_epoch': 15,
         'batch_size': 16,    # 1 GPU
         'accumulate': 1,
@@ -156,22 +157,22 @@ yolo_config = {
                         448, 480, 512, 544,
                         576, 608, 640, 672,
                         704, 736, 768, 800],
-        'mosaic_prob': 0.5,
-        'mixup_prob': 0.5,
+        'mosaic_prob': 1.0,
+        'mixup_prob': 0.15,
         'format': 'RGB',
-        'transforms': [{'name': 'DistortTransform',
-                         'hue': 0.1,
-                         'saturation': 1.5,
-                         'exposure': 1.5},
-                         {'name': 'RandomHorizontalFlip'},
-                         {'name': 'ToTensor'},
-                         {'name': 'Resize'},
-                         {'name': 'PadImage'}],
+        'trans_config': {'degrees': 0.0,
+                          'translate': 0.2,
+                          'scale': 0.9,
+                          'shear': 0.0,
+                          'perspective': 0.0,
+                          'hsv_h': 0.015,
+                          'hsv_s': 0.7,
+                          'hsv_v': 0.4
+                          },
         # model
         'backbone': 'elannet_large',
         'pretrained': True,
         'stride': [8, 16, 32],  # P3, P4, P5
-        'anchor_size': None,
         # neck
         'neck': 'spp_block_csp',
         'neck_dim': 512,
@@ -182,7 +183,7 @@ yolo_config = {
         'neck_depthwise': False,
         # fpn
         'fpn': 'pafpn_elan',
-        'fpn_size': 'large', # 'large', 'tiny'
+        'fpn_size': 'large', # 'tiny', 'large', 'huge
         'fpn_dim': [512, 1024, 512],
         'fpn_norm': 'BN',
         'fpn_act': 'silu',
@@ -206,7 +207,7 @@ yolo_config = {
         'loss_cls_weight': 1.0,
         'loss_reg_weight': 5.0,
         # training configuration
-        'max_epoch': 250,
+        'max_epoch': 300,
         'no_aug_epoch': 15,
         'batch_size': 16,    # 1 GPU
         'accumulate': 1,
@@ -230,22 +231,22 @@ yolo_config = {
                         448, 480, 512, 544,
                         576, 608, 640, 672,
                         704, 736, 768, 800],
-        'mosaic_prob': 0.5,
-        'mixup_prob': 0.5,
+        'mosaic_prob': 1.0,
+        'mixup_prob': 0.15,
         'format': 'RGB',
-        'transforms': [{'name': 'DistortTransform',
-                         'hue': 0.1,
-                         'saturation': 1.5,
-                         'exposure': 1.5},
-                         {'name': 'RandomHorizontalFlip'},
-                         {'name': 'ToTensor'},
-                         {'name': 'Resize'},
-                         {'name': 'PadImage'}],
+        'trans_config': {'degrees': 0.0,
+                          'translate': 0.2,
+                          'scale': 0.9,
+                          'shear': 0.0,
+                          'perspective': 0.0,
+                          'hsv_h': 0.015,
+                          'hsv_s': 0.7,
+                          'hsv_v': 0.4
+                          },
         # model
         'backbone': 'elannet_huge',
         'pretrained': True,
         'stride': [8, 16, 32],  # P3, P4, P5
-        'anchor_size': None,
         # neck
         'neck': 'spp_block_csp',
         'neck_dim': 640,
@@ -256,14 +257,14 @@ yolo_config = {
         'neck_depthwise': False,
         # fpn
         'fpn': 'pafpn_elan',
-        'fpn_size': 'huge', # 'tiny', 'large', 'huge'
+        'fpn_size': 'huge', # 'tiny', 'large', 'huge
         'fpn_dim': [640, 1280, 640],
         'fpn_norm': 'BN',
         'fpn_act': 'silu',
         'fpn_depthwise': False,
         # head
         'head': 'decoupled_head',
-        'head_dim': 320,
+        'head_dim': 256,
         'head_norm': 'BN',
         'head_act': 'silu',
         'num_cls_head': 2,

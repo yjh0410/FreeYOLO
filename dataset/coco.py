@@ -12,9 +12,9 @@ except:
     print("It seems that the COCOAPI is not installed.")
 
 try:
-    from .transforms import mosaic_augment, mixup_augment
+    from .transforms import mosaic_x4_augment, mosaic_x9_augment, mixup_augment
 except:
-    from transforms import mosaic_augment, mixup_augment
+    from transforms import mosaic_x4_augment, mosaic_x9_augment, mixup_augment
 
 
 coco_class_labels = ('background',
@@ -47,9 +47,9 @@ class COCODataset(Dataset):
                  data_dir=None, 
                  image_set='train2017',
                  transform=None,
-                 color_augment=None,
                  mosaic_prob=0.,
-                 mixup_prob=0.):
+                 mixup_prob=0.0,
+                 trans_config=None):
         """
         COCO dataset initialization. Annotation data are read into memory by COCO API.
         Args:
@@ -72,9 +72,9 @@ class COCODataset(Dataset):
         self.class_ids = sorted(self.coco.getCatIds())
         # augmentation
         self.transform = transform
-        self.color_augment = color_augment
         self.mosaic_prob = mosaic_prob
         self.mixup_prob = mixup_prob
+        self.trans_config = trans_config
         if self.mosaic_prob > 0.:
             print('use Mosaic Augmentation ...')
         if self.mixup_prob > 0.:
@@ -135,23 +135,36 @@ class COCODataset(Dataset):
         return image, target
 
 
-    def load_mosaic(self, index):
-        # load a mosaic image
-        ids_list_ = self.ids[:index] + self.ids[index+1:]
-        # random sample other indexs
-        id1 = self.ids[index]
-        id2, id3, id4 = random.sample(ids_list_, 3)
-        ids = [id1, id2, id3, id4]
+    def load_mosaic(self, index, load_4x=True):
+        if load_4x:
+            # load 4x mosaic image
+            ids_list_ = self.ids[:index] + self.ids[index+1:]
+            # random sample other indexs
+            id1 = self.ids[index]
+            id2, id3, id4 = random.sample(ids_list_, 3)
+            ids = [id1, id2, id3, id4]
+
+        else:
+            # load 9x mosaic image
+            ids_list_ = self.ids[:index] + self.ids[index+1:]
+            # random sample other indexs
+            id1 = self.ids[index]
+            id2_9 = random.sample(ids_list_, 8)
+            ids = [id1] + id2_9
 
         image_list = []
         target_list = []
-        # load image and target
         for id_ in ids:
             img_i, target_i = self.load_image_target(id_)
             image_list.append(img_i)
             target_list.append(target_i)
 
-        image, target = mosaic_augment(image_list, target_list, self.img_size)
+        if load_4x:
+            image, target = mosaic_x4_augment(
+                image_list, target_list, self.img_size, self.trans_config)
+        else:
+            image, target = mosaic_x9_augment(
+                image_list, target_list, self.img_size, self.trans_config)
 
         return image, target
 
@@ -159,25 +172,26 @@ class COCODataset(Dataset):
     def pull_item(self, index):
         # load a mosaic image
         if random.random() < self.mosaic_prob:
-            image, target = self.load_mosaic(index)
-
+            if random.random() < 0.8:
+                load_4x = True
+                image, target = self.load_mosaic(index, load_4x)
+            else:
+                load_4x = False 
+                image, target = self.load_mosaic(index, load_4x)
             # MixUp
             if random.random() < self.mixup_prob:
                 new_index = np.random.randint(0, len(self.ids))
-                new_image, new_target = self.load_mosaic(new_index)
+                new_image, new_target = self.load_mosaic(new_index, load_4x)
 
                 image, target = mixup_augment(image, target, new_image, new_target)
-
-            # augment
-            image, target = self.color_augment(image, target)
             
         # load an image and target
         else:
             img_id = self.ids[index]
             image, target = self.load_image_target(img_id)
 
-            # augment
-            image, target = self.transform(image, target)
+        # augment
+        image, target = self.transform(image, target)
 
         return image, target
 
@@ -221,36 +235,37 @@ class COCODataset(Dataset):
 
 
 if __name__ == "__main__":
-    from transforms import BaseTransforms, TrainTransforms, ValTransforms
+    from transforms import TrainTransforms, ValTransforms
     
     img_size = 640
-    trans_config = [{'name': 'DistortTransform',
-                     'hue': 0.1,
-                     'saturation': 1.5,
-                     'exposure': 1.5},
-                    {'name': 'RandomHorizontalFlip'},
-                    {'name': 'JitterCrop', 'jitter_ratio': 0.3},
-                    {'name': 'ToTensor'},
-                    {'name': 'Resize'},
-                    {'name': 'PadImage'}]
-    transform = TrainTransforms(
+    trans_config = {
+        'degrees': 0.0,
+        'translate': 0.2,
+        'scale': 0.9,
+        'shear': 0.0,
+        'perspective': 0.0,
+        'hsv_h': 0.015,
+        'hsv_s': 0.7,
+        'hsv_v': 0.4
+    }
+    train_transform = TrainTransforms(
         trans_config=trans_config,
         img_size=img_size,
         min_box_size=8
         )
-    color_augment = BaseTransforms(
+
+    val_transform = ValTransforms(
         img_size=img_size,
-        min_box_size=8
         )
 
     dataset = COCODataset(
         img_size=img_size,
         data_dir='/mnt/share/ssd2/dataset/COCO',
         image_set='train2017',
-        transform=transform,
-        color_augment=color_augment,
-        mosaic_prob=0.5,
-        mixup_prob=0.5
+        transform=train_transform,
+        mosaic_prob=1.0,
+        mixup_prob=0.15,
+        trans_config=trans_config
         )
     
     np.random.seed(0)

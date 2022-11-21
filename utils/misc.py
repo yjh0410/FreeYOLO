@@ -11,20 +11,15 @@ from evaluator.voc_evaluator import VOCAPIEvaluator
 
 from dataset.voc import VOCDetection
 from dataset.coco import COCODataset
-from dataset.transforms import BaseTransforms, TrainTransforms, ValTransforms
+from dataset.transforms import TrainTransforms, ValTransforms
 
 
 def build_dataset(cfg, args, device):
     # transform
-    trans_config = cfg['transforms']
     print('==============================')
-    print('TrainTransforms: {}'.format(trans_config))
-    color_augment = BaseTransforms(
-        img_size=cfg['train_size'],
-        min_box_size=args.min_box_size
-    )
+    print('TrainTransforms: {}'.format(cfg['trans_config']))
     train_transform = TrainTransforms(
-        trans_config=trans_config,
+        trans_config=cfg['trans_config'],
         img_size=cfg['train_size'],
         min_box_size=args.min_box_size
         )
@@ -40,14 +35,15 @@ def build_dataset(cfg, args, device):
             img_size=cfg['train_size'],
             data_dir=data_dir,
             transform=train_transform,
-            color_augment=color_augment,
             mosaic_prob=cfg['mosaic_prob'],
-            mixup_prob=cfg['mixup_prob']
+            mixup_prob=cfg['mixup_prob'],
+            trans_config=cfg['trans_config']
             )
         # evaluator
-        evaluator = VOCAPIEvaluator(data_dir=data_dir,
-                                    device=device,
-                                    transform=val_transform)
+        evaluator = VOCAPIEvaluator(
+            data_dir=data_dir,
+            device=device,
+            transform=val_transform)
 
     elif args.dataset == 'coco':
         data_dir = os.path.join(args.root, 'COCO')
@@ -58,9 +54,8 @@ def build_dataset(cfg, args, device):
             data_dir=data_dir,
             image_set='train2017',
             transform=train_transform,
-            color_augment=color_augment,
-            mosaic_prob=cfg['mosaic_prob'],
-            mixup_prob=cfg['mixup_prob']
+            mixup_prob=cfg['mixup_prob'],
+            trans_config=cfg['trans_config']
             )
         # evaluator
         evaluator = COCOAPIEvaluator(
