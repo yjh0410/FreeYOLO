@@ -423,7 +423,7 @@ class ValTransforms(object):
         self.img_size =img_size
 
 
-    def __call__(self, image, target=None):
+    def __call__(self, image, target=None, mosaic=False):
         # resize
         img_h0, img_w0 = image.shape[:2]
 

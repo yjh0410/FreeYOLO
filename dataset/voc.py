@@ -183,7 +183,9 @@ class VOCDetection(data.Dataset):
 
     def pull_item(self, index):
         # load a mosaic image
+        mosaic = False
         if random.random() < self.mosaic_prob:
+            mosaic = True
             if random.random() < 0.8:
                 image, target = self.load_mosaic(index, True)
             else:
@@ -205,7 +207,7 @@ class VOCDetection(data.Dataset):
             image, target = self.load_image_target(img_id)
 
         # augment
-        image, target = self.transform(image, target)
+        image, target = self.transform(image, target, mosaic)
 
         return image, target
 
@@ -266,8 +268,8 @@ if __name__ == "__main__":
     dataset = VOCDetection(
         img_size=img_size,
         data_dir='D:\\python_work\\object-detection\\dataset\\VOCdevkit',
-        transform=val_transform,
-        mosaic_prob=1.0,
+        transform=train_transform,
+        mosaic_prob=0.,
         mixup_prob=0.15,
         trans_config=trans_config
         )

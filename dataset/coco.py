@@ -171,6 +171,7 @@ class COCODataset(Dataset):
         
     def pull_item(self, index):
         # load a mosaic image
+        mosaic = False
         if random.random() < self.mosaic_prob:
             if random.random() < 0.8:
                 image, target = self.load_mosaic(index, True)
@@ -193,7 +194,7 @@ class COCODataset(Dataset):
             image, target = self.load_image_target(img_id)
 
         # augment
-        image, target = self.transform(image, target)
+        image, target = self.transform(image, target, mosaic)
 
         return image, target
 
@@ -265,7 +266,7 @@ if __name__ == "__main__":
         data_dir='/mnt/share/ssd2/dataset/COCO',
         image_set='train2017',
         transform=train_transform,
-        mosaic_prob=1.0,
+        mosaic_prob=0.,
         mixup_prob=0.15,
         trans_config=trans_config
         )
