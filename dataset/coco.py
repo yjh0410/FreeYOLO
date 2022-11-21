@@ -173,6 +173,7 @@ class COCODataset(Dataset):
         # load a mosaic image
         mosaic = False
         if random.random() < self.mosaic_prob:
+            mosaic = True
             if random.random() < 0.8:
                 image, target = self.load_mosaic(index, True)
             else:
