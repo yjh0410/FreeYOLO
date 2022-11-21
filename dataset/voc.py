@@ -185,15 +185,17 @@ class VOCDetection(data.Dataset):
         # load a mosaic image
         if random.random() < self.mosaic_prob:
             if random.random() < 0.8:
-                load_4x = True
-                image, target = self.load_mosaic(index, load_4x)
+                image, target = self.load_mosaic(index, True)
             else:
-                load_4x = False 
-                image, target = self.load_mosaic(index, load_4x)
+                image, target = self.load_mosaic(index, False)
             # MixUp
             if random.random() < self.mixup_prob:
-                new_index = np.random.randint(0, len(self.ids))
-                new_image, new_target = self.load_mosaic(new_index, load_4x)
+                if random.random() < 0.8:
+                    new_index = np.random.randint(0, len(self.ids))
+                    new_image, new_target = self.load_mosaic(new_index, True)
+                else:
+                    new_index = np.random.randint(0, len(self.ids))
+                    new_image, new_target = self.load_mosaic(new_index, False)
 
                 image, target = mixup_augment(image, target, new_image, new_target)
 

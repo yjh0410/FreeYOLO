@@ -223,6 +223,7 @@ def mosaic_x9_augment(image_list, target_list, img_size, affine_params=None):
     assert len(image_list) == 9
 
     s = img_size
+    mosaic_border = [-img_size//2, -img_size//2]
     mosaic_bboxes = []
     mosaic_labels = []
     for i in range(9):
@@ -287,12 +288,18 @@ def mosaic_x9_augment(image_list, target_list, img_size, affine_params=None):
     if len(mosaic_bboxes) == 0:
         mosaic_bboxes = np.array([]).reshape(-1, 4)
         mosaic_labels = np.array([]).reshape(-1)
-    
+
     mosaic_bboxes = np.concatenate(mosaic_bboxes)
     mosaic_labels = np.concatenate(mosaic_labels)
 
+    # Offset
+    yc, xc = [int(random.uniform(0, s)) for _ in mosaic_border]  # mosaic center x, y
+    mosaic_img = mosaic_img[yc:yc + 2 * s, xc:xc + 2 * s]
+    mosaic_bboxes[..., [0, 2]] -= xc
+    mosaic_bboxes[..., [1, 3]] -= yc
+
     # clip
-    mosaic_bboxes = mosaic_bboxes.clip(0, img_size * 3)
+    mosaic_bboxes = mosaic_bboxes.clip(0, img_size * 2)
 
     # random perspective
     mosaic_targets = np.concatenate([mosaic_labels[..., None], mosaic_bboxes], axis=-1)
@@ -304,7 +311,7 @@ def mosaic_x9_augment(image_list, target_list, img_size, affine_params=None):
         scale=affine_params['scale'],
         shear=affine_params['shear'],
         perspective=affine_params['perspective'],
-        border=[-img_size//2, -img_size//2]
+        border=mosaic_border
         )
 
     # target
