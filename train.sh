@@ -1,7 +1,7 @@
 # Train FreeYOLO
 python train.py \
         --cuda \
-        -d widerface \
+        -d coco \
         --root /mnt/share/ssd2/dataset/ \
         -v yolo_free_large \
         --ema \
