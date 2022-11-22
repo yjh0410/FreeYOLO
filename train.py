@@ -169,7 +169,7 @@ def train():
     total_epochs = cfg['wp_epoch'] + cfg['max_epoch']
 
     # eval before training
-    if args.eval_first:
+    if args.eval_first and distributed_utils.is_main_process():
         # to check whether the evaluator can work
         model_eval = ema.ema if args.ema else model_without_ddp
         val_one_epoch(
