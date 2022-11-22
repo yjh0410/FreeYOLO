@@ -396,6 +396,14 @@ class TrainTransforms(object):
                     sgain=self.trans_config['hsv_s'], 
                     vgain=self.trans_config['hsv_v'])
 
+        # random flip
+        if random.random() < 0.5:
+            w = img.shape[1]
+            img = np.fliplr(img).copy()
+            boxes = target['boxes'].copy()
+            boxes[..., [0, 2]] = w - boxes[..., [2, 0]]
+            target["boxes"] = boxes
+
         # refine target
         target = refine_targets(target, self.img_size, self.min_box_size)
 
