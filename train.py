@@ -157,7 +157,8 @@ def train():
     warmup_scheduler = build_warmup(cfg=cfg, base_lr=base_lr, wp_iter=wp_iter)
 
     # EMA
-    if args.ema:
+    if args.ema and distributed_utils.get_rank() in [-1, 0]:
+        print('Build ModelEMA ...')
         ema = ModelEMA(model, updates=start_epoch * len(dataloader))
     else:
         ema = None
