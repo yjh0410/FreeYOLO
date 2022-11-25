@@ -8,6 +8,8 @@ import torch
 
 from dataset.voc import VOC_CLASSES, VOCDetection
 from dataset.coco import coco_class_index, coco_class_labels, COCODataset
+from dataset.widerface import WIDERFace_CLASSES, WIDERFaceDetection
+from dataset.crowdhuman import CrowdHuman_CLASSES, CrowdHumanDetection
 from dataset.transforms import ValTransforms
 
 from utils.misc import load_weight
@@ -180,6 +182,26 @@ if __name__ == '__main__':
         dataset = COCODataset(data_dir=data_dir,
                               image_set='val2017',
                               transform=None)
+
+    elif args.dataset == 'widerface':
+        data_dir = os.path.join(args.root, 'WiderFace')
+        class_names = WIDERFace_CLASSES
+        class_indexs = None
+        num_classes = 1
+        dataset = WIDERFaceDetection(
+                data_dir=data_dir,
+                image_set='val',
+                transform=None)
+
+    elif args.dataset == 'crowdhuman':
+        data_dir = os.path.join(args.root, 'CrowdHuman')
+        class_names = CrowdHuman_CLASSES
+        class_indexs = None
+        num_classes = 1
+        dataset = CrowdHumanDetection(
+                data_dir=data_dir,
+                image_set='val',
+                transform=None)
 
     else:
         print('unknow dataset !! Only support voc and coco !!')
