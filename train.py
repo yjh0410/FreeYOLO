@@ -34,11 +34,21 @@ def parse_args():
                         help='path to save weight')
     parser.add_argument('--eval_first', action='store_true', default=False,
                         help='evaluate model before training.')
-    parser.add_argument('--eval_epoch', default=10, type=int, 
-                        help='after eval epoch, the model is evaluated on val dataset.')
     parser.add_argument('--fp16', dest="fp16", action="store_true", default=False,
                         help="Adopting mix precision training.")
-
+    
+    # Batchsize
+    parser.add_argument('-bs', '--batch_size', default=16, type=int, 
+                        help='batch size on a single GPU.')
+    
+    # Epoch
+    parser.add_argument('--max_epoch', default=300, type=int, 
+                        help='max epoch.')
+    parser.add_argument('--wp_epoch', default=1, type=int, 
+                        help='warmup epoch.')
+    parser.add_argument('--eval_epoch', default=10, type=int, 
+                        help='after eval epoch, the model is evaluated on val dataset.')
+    
     # model
     parser.add_argument('-v', '--version', default='yolo_free_large', type=str,
                         help='build yolo')
@@ -109,7 +119,7 @@ def train():
     dataset, evaluator, num_classes = build_dataset(cfg, args, device)
 
     # dataloader
-    dataloader = build_dataloader(args, dataset, cfg['batch_size'], CollateFunc())
+    dataloader = build_dataloader(args, dataset, args.batch_size, CollateFunc())
 
     # build model
     model, criterion = build_model(
@@ -148,12 +158,12 @@ def train():
         dist.barrier()
 
     # optimizer
-    base_lr = cfg['base_lr'] * cfg['batch_size'] * cfg['accumulate'] * distributed_utils.get_world_size()
+    base_lr = cfg['base_lr'] * args.batch_size * cfg['accumulate'] * distributed_utils.get_world_size()
     min_lr = base_lr * cfg['min_lr_ratio']
     optimizer, start_epoch = build_optimizer(cfg, model_without_ddp, base_lr, args.resume)
     
     # warmup scheduler
-    wp_iter = len(dataloader) * cfg['wp_epoch']
+    wp_iter = len(dataloader) * args.wp_epoch
     warmup_scheduler = build_warmup(cfg=cfg, base_lr=base_lr, wp_iter=wp_iter)
 
     # EMA
@@ -166,7 +176,7 @@ def train():
     # start training loop
     best_map = -1.0
     lr_schedule=True
-    total_epochs = cfg['wp_epoch'] + cfg['max_epoch']
+    total_epochs = args.wp_epoch + args.max_epoch
 
     # eval before training
     if args.eval_first and distributed_utils.is_main_process():
@@ -182,7 +192,7 @@ def train():
             dataloader.batch_sampler.sampler.set_epoch(epoch)
 
         # train one epoch
-        if epoch < cfg['wp_epoch']:
+        if epoch < args.wp_epoch:
             # warmup training loop
             train_with_warmup(epoch=epoch,
                               total_epochs=total_epochs,
@@ -198,12 +208,12 @@ def train():
                               scaler=scaler)
 
         else:
-            if epoch == cfg['wp_epoch']:
+            if epoch == args.wp_epoch:
                 print('Warmup is Over !!!')
                 warmup_scheduler.set_lr(optimizer, base_lr)
                 
             # use cos lr decay
-            T_max = total_epochs - cfg['no_aug_epoch']
+            T_max = total_epochs - args.no_aug_epoch
             if epoch > T_max:
                 print('Cosine annealing is over !!')
                 lr_schedule = False

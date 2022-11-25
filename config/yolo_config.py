@@ -60,10 +60,8 @@ yolo_config = {
         'loss_cls_weight': 1.0,
         'loss_reg_weight': 5.0,
         # training configuration
-        'max_epoch': 300,
-        'no_aug_epoch': 15,
-        'batch_size': 16,    # 1 GPU
         'accumulate': 1,
+        'no_aug_epoch': 15,
         'base_lr': 0.01 / 64.,
         'min_lr_ratio': 0.05,
         # optimizer
@@ -133,10 +131,8 @@ yolo_config = {
         'loss_cls_weight': 1.0,
         'loss_reg_weight': 5.0,
         # training configuration
-        'max_epoch': 300,
-        'no_aug_epoch': 15,
-        'batch_size': 16,    # 1 GPU
         'accumulate': 1,
+        'no_aug_epoch': 15,
         'base_lr': 0.01 / 64.,
         'min_lr_ratio': 0.05,
         # optimizer
@@ -207,10 +203,8 @@ yolo_config = {
         'loss_cls_weight': 1.0,
         'loss_reg_weight': 5.0,
         # training configuration
-        'max_epoch': 300,
-        'no_aug_epoch': 15,
-        'batch_size': 16,    # 1 GPU
         'accumulate': 1,
+        'no_aug_epoch': 15,
         'base_lr': 0.01 / 64.,
         'min_lr_ratio': 0.05,
         # optimizer
@@ -281,10 +275,8 @@ yolo_config = {
         'loss_cls_weight': 1.0,
         'loss_reg_weight': 5.0,
         # training configuration
-        'max_epoch': 300,
-        'no_aug_epoch': 15,
-        'batch_size': 16,    # 1 GPU
         'accumulate': 1,
+        'no_aug_epoch': 15,
         'base_lr': 0.01 / 64.,
         'min_lr_ratio': 0.05,
         # optimizer
