@@ -109,28 +109,26 @@ class COCODataset(Dataset):
         height, width, channels = image.shape
         
         #load a target
-        labels = []
-        bboxes = []
-        for anno in annotations:
-            if 'bbox' in anno and anno['area'] > 0:   
-                xmin = np.max((0, anno['bbox'][0]))
-                ymin = np.max((0, anno['bbox'][1]))
-                xmax = np.min((width - 1, xmin + np.max((0, anno['bbox'][2] - 1))))
-                ymax = np.min((height - 1, ymin + np.max((0, anno['bbox'][3] - 1))))
+        anno = []
+        for label in annotations:
+            if 'bbox' in label and label['area'] > 0:   
+                xmin = np.max((0, label['bbox'][0]))
+                ymin = np.max((0, label['bbox'][1]))
+                xmax = np.min((width - 1, xmin + np.max((0, label['bbox'][2] - 1))))
+                ymax = np.min((height - 1, ymin + np.max((0, label['bbox'][3] - 1))))
                 if xmax > xmin and ymax > ymin:
-                    cls_ind = anno['category_id']
-                    cls_ind = self.class_ids.index(cls_ind)
+                    label_ind = label['category_id']
+                    cls_id = self.class_ids.index(label_ind)
 
-                    labels.append(cls_ind)
-                    bboxes.append(bboxes)
+                    anno.append([xmin, ymin, xmax, ymax, cls_id])  # [xmin, ymin, xmax, ymax, label_ind]
+            # else:
+            #     print('No bbox !!!')
 
         # guard against no boxes via resizing
-        labels = np.array(labels).reshape(-1)
-        bboxes = np.array(bboxes).reshape(-1, 4)
-        
+        anno = np.array(anno).reshape(-1, 5)
         target = {
-            "boxes": bboxes,
-            "labels": labels,
+            "boxes": anno[:, :4],
+            "labels": anno[:, 4],
             "orig_size": [height, width]
         }
         
@@ -231,10 +229,10 @@ class COCODataset(Dataset):
                 ymax = ymin + label['bbox'][3]
                 
                 if label['area'] > 0 and xmax >= xmin and ymax >= ymin:
-                    cls_ind = label['category_id']
-                    cls_id = self.class_ids.index(cls_ind)
+                    label_ind = label['category_id']
+                    cls_id = self.class_ids.index(label_ind)
 
-                    anno.append([xmin, ymin, xmax, ymax, cls_id])  # [xmin, ymin, xmax, ymax, cls_ind]
+                    anno.append([xmin, ymin, xmax, ymax, cls_id])  # [xmin, ymin, xmax, ymax, label_ind]
             else:
                 print('No bbox !!')
         return anno
