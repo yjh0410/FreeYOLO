@@ -4,7 +4,7 @@ python -m torch.distributed.run --nproc_per_node=2 train.py \
                                                     --cuda \
                                                     -dist \
                                                     -d coco \
-                                                    --root /data/datasets/ \
+                                                    --root /mnt/share/ssd2/dataset/ \
                                                     -v yolo_free_large \
                                                     --ema \
                                                     --fp16 \
