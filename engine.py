@@ -90,7 +90,7 @@ def train_with_warmup(epoch,
             optimizer.zero_grad()
 
             # ema
-            if args.ema:
+            if ema:
                 ema.update(model)
 
         # display
@@ -171,7 +171,7 @@ def train_one_epoch(epoch,
             optimizer.zero_grad()
 
             # ema
-            if args.ema:
+            if ema:
                 ema.update(model)
 
         # display
