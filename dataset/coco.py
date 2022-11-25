@@ -75,10 +75,11 @@ class COCODataset(Dataset):
         self.mosaic_prob = mosaic_prob
         self.mixup_prob = mixup_prob
         self.trans_config = trans_config
-        if self.mosaic_prob > 0.:
-            print('use Mosaic Augmentation: {}'.format(self.mosaic_prob))
-        if self.mixup_prob > 0.:
-            print('use Mixup Augmentation: {}'.format(self.mixup_prob))
+        print('==============================')
+        print('use Mosaic Augmentation: {}'.format(self.mosaic_prob))
+        print('use Mixup Augmentation: {}'.format(self.mixup_prob))
+        print('==============================')
+
 
 
     def __len__(self):
