@@ -49,8 +49,7 @@ class COCODataset(Dataset):
                  transform=None,
                  mosaic_prob=0.,
                  mixup_prob=0.0,
-                 trans_config=None,
-                 load_mask=False):
+                 trans_config=None):
         """
         COCO dataset initialization. Annotation data are read into memory by COCO API.
         Args:
@@ -71,8 +70,6 @@ class COCODataset(Dataset):
         self.coco = COCO(os.path.join(self.data_dir, 'annotations', self.json_file))
         self.ids = self.coco.getImgIds()
         self.class_ids = sorted(self.coco.getCatIds())
-        self.load_mask = load_mask
-
         # augmentation
         self.transform = transform
         self.mosaic_prob = mosaic_prob
@@ -112,36 +109,26 @@ class COCODataset(Dataset):
         height, width, channels = image.shape
         
         #load a target
-        labels = []
-        bboxes = []
-        segments = []
-        for anno in annotations:
-            # load bbox
-            if 'bbox' in anno and anno['area'] > 0:   
-                xmin = np.max((0, anno['bbox'][0]))
-                ymin = np.max((0, anno['bbox'][1]))
-                xmax = np.min((width - 1, xmin + np.max((0, anno['bbox'][2] - 1))))
-                ymax = np.min((height - 1, ymin + np.max((0, anno['bbox'][3] - 1))))
+        anno = []
+        for label in annotations:
+            if 'bbox' in label and label['area'] > 0:   
+                xmin = np.max((0, label['bbox'][0]))
+                ymin = np.max((0, label['bbox'][1]))
+                xmax = np.min((width - 1, xmin + np.max((0, label['bbox'][2] - 1))))
+                ymax = np.min((height - 1, ymin + np.max((0, label['bbox'][3] - 1))))
                 if xmax > xmin and ymax > ymin:
-                    cls_ind = anno['category_id']
-                    cls_id = self.class_ids.index(cls_ind)
+                    label_ind = label['category_id']
+                    cls_id = self.class_ids.index(label_ind)
 
-                    bboxes.append([xmin, ymin, xmax, ymax])
-                    labels.append([cls_id])
+                    anno.append([xmin, ymin, xmax, ymax, cls_id])  # [xmin, ymin, xmax, ymax, label_ind]
+            # else:
+            #     print('No bbox !!!')
 
-            # load mask
-            if self.load_mask and 'segmentation' in anno:
-                segs = label['segmentation']
-                for seg in segs:
-                    pass
-                
         # guard against no boxes via resizing
-        bboxes = np.array(bboxes).reshape(-1, 4)
-        labels = np.array(labels).reshape(-1)
+        anno = np.array(anno).reshape(-1, 5)
         target = {
-            "boxes": bboxes,
-            "labels": labels,
-            "segments": segments,
+            "boxes": anno[:, :4],
+            "labels": anno[:, 4],
             "orig_size": [height, width]
         }
         
