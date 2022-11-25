@@ -118,7 +118,7 @@ class COCODataset(Dataset):
                 xmax = np.min((width - 1, xmin + np.max((0, anno['bbox'][2] - 1))))
                 ymax = np.min((height - 1, ymin + np.max((0, anno['bbox'][3] - 1))))
                 if xmax > xmin and ymax > ymin:
-                    label_ind = label['category_id']
+                    label_ind = anno['category_id']
                     cls_ind = self.class_ids.index(label_ind)
 
                     labels.append(cls_ind)
