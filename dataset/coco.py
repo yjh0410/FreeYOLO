@@ -138,7 +138,6 @@ class COCODataset(Dataset):
         # guard against no boxes via resizing
         bboxes = np.array(bboxes).reshape(-1, 4)
         labels = np.array(labels).reshape(-1)
-        anno = np.array(anno).reshape(-1, 5)
         target = {
             "boxes": bboxes,
             "labels": labels,
