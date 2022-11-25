@@ -8,9 +8,11 @@ from copy import deepcopy
 
 from evaluator.coco_evaluator import COCOAPIEvaluator
 from evaluator.voc_evaluator import VOCAPIEvaluator
+from evaluator.widerface_evaluator import WiderFaceEvaluator
 
 from dataset.voc import VOCDetection
 from dataset.coco import COCODataset
+from dataset.widerface import WIDERFaceDetection
 from dataset.transforms import TrainTransforms, ValTransforms
 
 
@@ -54,6 +56,7 @@ def build_dataset(cfg, args, device):
             data_dir=data_dir,
             image_set='train2017',
             transform=train_transform,
+            mosaic_prob=cfg['mosaic_prob'],
             mixup_prob=cfg['mixup_prob'],
             trans_config=cfg['trans_config']
             )
@@ -64,6 +67,27 @@ def build_dataset(cfg, args, device):
             transform=val_transform
             )
 
+    elif args.dataset == 'widerface':
+        data_dir = os.path.join(args.root, 'WiderFace')
+        num_classes = 1
+
+        # dataset
+        dataset = WIDERFaceDetection(
+            img_size=cfg['train_size'],
+            data_dir=data_dir,
+            transform=train_transform,
+            transform=train_transform,
+            mosaic_prob=cfg['mosaic_prob'],
+            mixup_prob=cfg['mixup_prob'],
+            trans_config=cfg['trans_config']
+            )
+        # evaluator
+        evaluator = WiderFaceEvaluator(
+            data_dir=data_dir,
+            device=device,
+            image_set='val',
+            transform=val_transform)
+    
     else:
         print('unknow dataset !! Only support voc, coco, widerface !!')
         exit(0)

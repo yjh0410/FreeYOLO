@@ -3,7 +3,7 @@ python train.py \
         --cuda \
         -d coco \
         --root /mnt/share/ssd2/dataset/ \
-        -v yolo_free_large \
+        -v yolo_free_nano \
         --ema \
         --fp16 \
         --eval_epoch 10 \

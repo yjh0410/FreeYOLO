@@ -1,15 +1,15 @@
-"""VOC Dataset Classes
-Original author: Francisco Massa
-https://github.com/fmassa/vision/blob/voc_dataset/torchvision/datasets/voc.py
-Updated by: Ellis Brown, Max deGroot
+from __future__ import division , print_function
+"""WIDER Face Dataset Classes
+author: swordli
 """
-import os.path as osp
-import torch
-import torch.utils.data as data
 import cv2
-import numpy as np
 import random
-import xml.etree.ElementTree as ET
+import numpy as np
+import scipy.io
+import os.path as osp
+import torch.utils.data as data
+import matplotlib.pyplot as plt
+plt.switch_backend('agg')
 
 try:
     from .transforms import  mosaic_x4_augment, mosaic_x9_augment, mixup_augment
@@ -17,66 +17,15 @@ except:
     from transforms import mosaic_x4_augment, mosaic_x9_augment, mixup_augment
 
 
-VOC_CLASSES = (  # always index 0
-    'aeroplane', 'bicycle', 'bird', 'boat',
-    'bottle', 'bus', 'car', 'cat', 'chair',
-    'cow', 'diningtable', 'dog', 'horse',
-    'motorbike', 'person', 'pottedplant',
-    'sheep', 'sofa', 'train', 'tvmonitor')
+WIDERFace_CLASSES = ['face']  # always index 0
 
 
-class VOCAnnotationTransform(object):
-    """Transforms a VOC annotation into a Tensor of bbox coords and label index
-    Initilized with a dictionary lookup of classnames to indexes
-    Arguments:
-        class_to_ind (dict, optional): dictionary lookup of classnames -> indexes
-            (default: alphabetic indexing of VOC's 20 classes)
-        keep_difficult (bool, optional): keep difficult instances or not
-            (default: False)
-        height (int): height
-        width (int): width
-    """
-
-    def __init__(self, class_to_ind=None, keep_difficult=False):
-        self.class_to_ind = class_to_ind or dict(
-            zip(VOC_CLASSES, range(len(VOC_CLASSES))))
-        self.keep_difficult = keep_difficult
-
-    def __call__(self, target):
-        """
-        Arguments:
-            target (annotation) : the target annotation to be made usable
-                will be an ET.Element
-        Returns:
-            a list containing lists of bounding boxes  [bbox coords, class name]
-        """
-        res = []
-        for obj in target.iter('object'):
-            difficult = int(obj.find('difficult').text) == 1
-            if not self.keep_difficult and difficult:
-                continue
-            name = obj.find('name').text.lower().strip()
-            bbox = obj.find('bndbox')
-
-            pts = ['xmin', 'ymin', 'xmax', 'ymax']
-            bndbox = []
-            for i, pt in enumerate(pts):
-                cur_pt = int(bbox.find(pt).text) - 1
-                # scale height or width
-                cur_pt = cur_pt if i % 2 == 0 else cur_pt
-                bndbox.append(cur_pt)
-            label_idx = self.class_to_ind[name]
-            bndbox.append(label_idx)
-            res += [bndbox]  # [x1, y1, x2, y2, label_ind]
-
-        return res  # [[x1, y1, x2, y2, label_ind], ... ]
-
-
-class VOCDetection(data.Dataset):
-    """VOC Detection Dataset Object
+class WIDERFaceDetection(data.Dataset):
+    """WIDERFace Detection Dataset Object   
+    http://mmlab.ie.cuhk.edu.hk/projects/WIDERFace/
     input is image, target is annotation
     Arguments:
-        root (string): filepath to VOCdevkit folder.
+        root (string): filepath to WIDERFace folder.
         image_set (string): imageset to use (eg. 'train', 'val', 'test')
         transform (callable, optional): transformation to perform on the
             input image
@@ -84,28 +33,22 @@ class VOCDetection(data.Dataset):
             target `annotation`
             (eg: take in caption string, return tensor of word indices)
         dataset_name (string, optional): which dataset to load
-            (default: 'VOC2007')
+            (default: 'WIDERFace')
     """
 
     def __init__(self, 
-                 img_size=640,
                  data_dir=None,
-                 image_sets=[('2007', 'trainval'), ('2012', 'trainval')],
+                 img_size=640,
+                 image_set='train',
                  transform=None, 
                  mosaic_prob=0.0,
                  mixup_prob=0.0,
                  trans_config=None):
-        self.root = data_dir
+        self.data_dir = data_dir
         self.img_size = img_size
-        self.image_set = image_sets
-        self.target_transform = VOCAnnotationTransform()
-        self._annopath = osp.join('%s', 'Annotations', '%s.xml')
-        self._imgpath = osp.join('%s', 'JPEGImages', '%s.jpg')
-        self.ids = list()
-        for (year, name) in image_sets:
-            rootpath = osp.join(self.root, 'VOC' + year)
-            for line in open(osp.join(rootpath, 'ImageSets', 'Main', name + '.txt')):
-                self.ids.append((rootpath, line.strip()))
+        self.image_set = image_set
+        self.transform = transform
+
         # augmentation
         self.transform = transform
         self.mosaic_prob = mosaic_prob
@@ -116,28 +59,98 @@ class VOCDetection(data.Dataset):
         if self.mixup_prob > 0.:
             print('use Mixup Augmentation: {}'.format(self.mixup_prob))
 
+        self.img_ids = list()
+        self.label_ids = list()
+        self.event_ids = list()
+
+        if self.image_set == 'train':
+            path_to_label = osp.join ( self.data_dir , 'wider_face_split' ) 
+            path_to_image = osp.join ( self.data_dir , 'WIDER_train/images' )
+            fname = "wider_face_train.mat"
+
+        if self.image_set == 'val':
+            path_to_label = osp.join ( self.data_dir , 'wider_face_split' ) 
+            path_to_image = osp.join ( self.data_dir , 'WIDER_val/images' )
+            fname = "wider_face_val.mat"
+
+        if self.image_set == 'test':
+            path_to_label = osp.join ( self.data_dir , 'wider_face_split' ) 
+            path_to_image = osp.join ( self.data_dir , 'WIDER_test/images' )
+            fname = "wider_face_test.mat"
+
+        self.path_to_label = path_to_label
+        self.path_to_image = path_to_image
+        self.fname = fname
+        self.f = scipy.io.loadmat(osp.join(self.path_to_label, self.fname))
+        self.event_list = self.f.get('event_list')
+        self.file_list = self.f.get('file_list')
+        self.face_bbx_list = self.f.get('face_bbx_list')
+ 
+        self._load_widerface()
+
+
+    def _load_widerface(self):
+
+        error_bbox = 0 
+        train_bbox = 0
+        for event_idx, event in enumerate(self.event_list):
+            directory = event[0][0]
+            for im_idx, im in enumerate(self.file_list[event_idx][0]):
+                im_name = im[0][0]
+
+                if self.image_set in [ 'test' , 'val']:
+                    self.img_ids.append( osp.join(self.path_to_image, directory,  im_name + '.jpg') )
+                    self.event_ids.append( directory )
+                    self.label_ids.append([])
+                    continue
+
+                face_bbx = self.face_bbx_list[event_idx][0][im_idx][0]
+                bboxes = []
+                for i in range(face_bbx.shape[0]):
+                    # filter bbox
+                    if face_bbx[i][2] < 2 or face_bbx[i][3] < 2 or face_bbx[i][0] < 0 or face_bbx[i][1] < 0:
+                        error_bbox +=1
+                        #print (face_bbx[i])
+                        continue 
+                    train_bbox += 1 
+                    xmin = float(face_bbx[i][0])
+                    ymin = float(face_bbx[i][1])
+                    xmax = float(face_bbx[i][2]) + xmin -1 	
+                    ymax = float(face_bbx[i][3]) + ymin -1
+                    bboxes.append([xmin, ymin, xmax, ymax, 0])
+
+                if ( len(bboxes)==0 ):  #  filter bbox will make bbox none
+                    continue
+                self.img_ids.append( osp.join(self.path_to_image, directory,  im_name + '.jpg') )
+                self.event_ids.append( directory )
+                self.label_ids.append( bboxes )
+                #yield DATA(os.path.join(self.path_to_image, directory,  im_name + '.jpg'), bboxes)
+        print("Error bbox number to filter : %d,  bbox number: %d"  %(error_bbox , train_bbox))
+        
 
     def __getitem__(self, index):
         image, target = self.pull_item(index)
+        
         return image, target
 
 
     def __len__(self):
-        return len(self.ids)
+        return len(self.img_ids)
 
 
-    def load_image_target(self, img_id):
-        # load an image
-        image = cv2.imread(self._imgpath % img_id)
+    def load_image_target(self, index):
+        # load a target
+        anno = self.label_ids[index]
+        # load a image
+        image = cv2.imread(self.img_ids[index])
         height, width, channels = image.shape
 
-        # laod an annotation
-        anno = ET.parse(self._annopath % img_id).getroot()
-        if self.target_transform is not None:
-            anno = self.target_transform(anno)
+        # check target
+        if len(anno) == 0:
+            anno = np.zeros([1, 5])
+        else:
+            anno = np.array(anno)
 
-        # guard against no boxes via resizing
-        anno = np.array(anno).reshape(-1, 5)
         target = {
             "boxes": anno[:, :4],
             "labels": anno[:, 4],
@@ -149,23 +162,23 @@ class VOCDetection(data.Dataset):
 
     def load_mosaic(self, index, load_4x=True):
         if load_4x:
-            # load 4x mosaic image
-            ids_list_ = self.ids[:index] + self.ids[index+1:]
+            new_ids = np.arange(len(self.img_ids)).tolist()
+            new_ids = new_ids[:index] + new_ids[index+1:]
             # random sample other indexs
-            id1 = self.ids[index]
-            id2, id3, id4 = random.sample(ids_list_, 3)
+            id1 = index
+            id2, id3, id4 = random.sample(new_ids, 3)
             ids = [id1, id2, id3, id4]
-
         else:
-            # load 9x mosaic image
-            ids_list_ = self.ids[:index] + self.ids[index+1:]
+            new_ids = np.arange(len(self.img_ids)).tolist()
+            new_ids = new_ids[:index] + new_ids[index+1:]
             # random sample other indexs
-            id1 = self.ids[index]
-            id2_9 = random.sample(ids_list_, 8)
+            id1 = index
+            id2_9 = random.sample(new_ids, 8)
             ids = [id1] + id2_9
 
         image_list = []
         target_list = []
+        # load image and target
         for id_ in ids:
             img_i, target_i = self.load_image_target(id_)
             image_list.append(img_i)
@@ -193,18 +206,17 @@ class VOCDetection(data.Dataset):
             # MixUp
             if random.random() < self.mixup_prob:
                 if random.random() < 0.8:
-                    new_index = np.random.randint(0, len(self.ids))
+                    new_index = np.random.randint(0, len(self.img_ids))
                     new_image, new_target = self.load_mosaic(new_index, True)
                 else:
-                    new_index = np.random.randint(0, len(self.ids))
+                    new_index = np.random.randint(0, len(self.img_ids))
                     new_image, new_target = self.load_mosaic(new_index, False)
 
                 image, target = mixup_augment(image, target, new_image, new_target)
 
         # load an image and target
         else:
-            img_id = self.ids[index]
-            image, target = self.load_image_target(img_id)
+            image, target = self.load_image_target(index)
 
         # augment
         image, target = self.transform(image, target, mosaic)
@@ -221,8 +233,11 @@ class VOCDetection(data.Dataset):
         Return:
             PIL img
         '''
-        img_id = self.ids[index]
-        return cv2.imread(self._imgpath % img_id, cv2.IMREAD_COLOR), img_id
+        return cv2.imread(self.img_ids[index], cv2.IMREAD_COLOR), self.img_ids[index]
+
+
+    def pull_event(self, index):
+        return self.event_ids[index]
 
 
     def pull_anno(self, index):
@@ -235,10 +250,10 @@ class VOCDetection(data.Dataset):
             list:  [img_id, [(label, bbox coords),...]]
                 eg: ('001718', [('dog', (96, 13, 438, 332))])
         '''
-        img_id = self.ids[index]
-        anno = ET.parse(self._annopath % img_id).getroot()
-        gt = self.target_transform(anno, 1, 1)
-        return img_id[1], gt
+        img_id = self.img_ids[index]
+        anno = self.label_ids[index]
+
+        return img_id.split("/")[-1], anno
 
 
 if __name__ == "__main__":
@@ -265,9 +280,10 @@ if __name__ == "__main__":
         img_size=img_size,
         )
 
-    dataset = VOCDetection(
+    dataset = WIDERFaceDetection(
         img_size=img_size,
-        data_dir='D:\\python_work\\object-detection\\dataset\\VOCdevkit',
+        data_dir='D:\\python_work\\object-detection\\dataset\\WiderFace',
+        image_set='train',
         transform=train_transform,
         mosaic_prob=0.5,
         mixup_prob=0.15,
@@ -296,7 +312,7 @@ if __name__ == "__main__":
             cls_id = int(label)
             color = class_colors[cls_id]
             # class name
-            label = VOC_CLASSES[cls_id]
+            label = WIDERFace_CLASSES[cls_id]
             image = cv2.rectangle(image, (int(x1), int(y1)), (int(x2), int(y2)), (0,0,255), 2)
             # put the test on the bbox
             cv2.putText(image, label, (int(x1), int(y1 - 5)), 0, 0.5, color, 1, lineType=cv2.LINE_AA)
