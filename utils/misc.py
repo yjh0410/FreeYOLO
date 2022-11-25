@@ -13,6 +13,7 @@ from evaluator.widerface_evaluator import WiderFaceEvaluator
 from dataset.voc import VOCDetection
 from dataset.coco import COCODataset
 from dataset.widerface import WIDERFaceDetection
+from dataset.crowdhuman import CrowdHumanDetection
 from dataset.transforms import TrainTransforms, ValTransforms
 
 
@@ -86,7 +87,25 @@ def build_dataset(cfg, args, device):
             device=device,
             image_set='val',
             transform=val_transform)
-    
+
+    elif args.dataset == 'crowdhuman':
+        data_dir = os.path.join(args.root, 'CrowdHuman')
+        num_classes = 1
+
+        # dataset
+        dataset = CrowdHumanDetection(
+            data_dir=data_dir,
+            img_size=cfg['train_size'],
+            image_set='train',
+            transform=train_transform,
+            mosaic_prob=cfg['mosaic_prob'],
+            mixup_prob=cfg['mixup_prob'],
+            trans_config=cfg['trans_config'],
+            ignore_label=-1
+            )
+        # evaluator
+        evaluator = None
+
     else:
         print('unknow dataset !! Only support voc, coco, widerface !!')
         exit(0)
