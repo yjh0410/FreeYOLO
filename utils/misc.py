@@ -76,7 +76,6 @@ def build_dataset(cfg, args, device):
             img_size=cfg['train_size'],
             data_dir=data_dir,
             transform=train_transform,
-            transform=train_transform,
             mosaic_prob=cfg['mosaic_prob'],
             mixup_prob=cfg['mixup_prob'],
             trans_config=cfg['trans_config']
