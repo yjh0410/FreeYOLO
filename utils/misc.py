@@ -9,11 +9,14 @@ from copy import deepcopy
 from evaluator.coco_evaluator import COCOAPIEvaluator
 from evaluator.voc_evaluator import VOCAPIEvaluator
 from evaluator.widerface_evaluator import WiderFaceEvaluator
+from evaluator.crowdhuman_evaluator import CrowdHumanEvaluator
+from evaluator.mot_evaluator import MOTEvaluator
 
 from dataset.voc import VOCDetection
 from dataset.coco import COCODataset
 from dataset.widerface import WIDERFaceDetection
-from dataset.crowdhuman import CrowdHumanDetection
+from dataset.crowdhuman import CrowdHumanDataset
+from dataset.mot17 import MOT17Dataset
 from dataset.transforms import TrainTransforms, ValTransforms
 
 
@@ -93,15 +96,60 @@ def build_dataset(cfg, args, device):
         num_classes = 1
 
         # dataset
-        dataset = CrowdHumanDetection(
+        dataset = CrowdHumanDataset(
             data_dir=data_dir,
             img_size=cfg['train_size'],
             image_set='train',
             transform=train_transform,
             mosaic_prob=cfg['mosaic_prob'],
             mixup_prob=cfg['mixup_prob'],
-            trans_config=cfg['trans_config'],
-            ignore_label=-1
+            trans_config=cfg['trans_config']
+            )
+        # evaluator
+        evaluator = CrowdHumanEvaluator(
+            data_dir=data_dir,
+            device=device,
+            image_set='val',
+            transform=val_transform
+        )
+
+    elif args.dataset == 'mot17_half':
+        data_dir = os.path.join(args.root, 'MOT17')
+        num_classes = 1
+
+        # dataset
+        dataset = MOT17Dataset(
+            data_dir=data_dir,
+            img_size=cfg['train_size'],
+            image_set='train',
+            json_file='train_half.json',
+            transform=train_transform,
+            mosaic_prob=cfg['mosaic_prob'],
+            mixup_prob=cfg['mixup_prob'],
+            trans_config=cfg['trans_config']
+            )
+        # evaluator
+        evaluator = MOTEvaluator(
+            data_dir=data_dir,
+            device=device,
+            dataset='mot17',
+            transform=val_transform
+            )
+
+    elif args.dataset == 'mot17':
+        data_dir = os.path.join(args.root, 'MOT17')
+        num_classes = 1
+
+        # dataset
+        dataset = MOT17Dataset(
+            data_dir=data_dir,
+            img_size=cfg['train_size'],
+            image_set='train',
+            json_file='train.json',
+            transform=train_transform,
+            mosaic_prob=cfg['mosaic_prob'],
+            mixup_prob=cfg['mixup_prob'],
+            trans_config=cfg['trans_config']
             )
         # evaluator
         evaluator = None

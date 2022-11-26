@@ -44,6 +44,19 @@ At least, please make sure your torch is version 1.x.
 
 # Experiments
 ## COCO
+- Download COCO.
+```Shell
+cd <FreeYOLO_HOME>
+cd dataset/scripts/
+sh COCO2017.sh
+```
+
+- Check COCO
+```Shell
+cd <FreeYOLO_HOME>
+cd dataset/
+python coco.py
+```
 
 Main results on COCO-val:
 
@@ -56,6 +69,57 @@ Main results on COCO-val:
 
 New AP results and weight files are coming ...
 
+## CrowdHuman
+- Download [CrowdHuman](https://www.crowdhuman.org/).
+```
+CrowdHuman
+|_ CrowdHuman_train01.zip
+|_ CrowdHuman_train02.zip
+|_ CrowdHuman_train03.zip
+|_ CrowdHuman_val.zip
+|_ annotation_train.odgt
+|_ annotation_val.odgt
+```
+
+- Prepare CrowdHuman
+```
+CrowdHuman
+|_ CrowdHuman_train
+|  |_ Images
+|     |_ 273271,1a0d6000b9e1f5b7.jpg
+|     |_ ...
+|_ CrowdHuman_val
+|  |_ Images
+|     |_ 273271,1b9330008da38cd6.jpg
+|     |_ ...
+|_ annotation_train.odgt
+|_ annotation_val.odgt
+```
+
+- Convert CrowdHuman to COCO format.
+```Shell
+cd <FreeYOLO_HOME>
+cd tools/
+python convert_crowdhuman_to_coco.py
+```
+
+- Check CrowdHuman
+```Shell
+cd <FreeYOLO_HOME>
+cd dataset/
+python crowdhuman.py
+```
+
+Main results on CrowdHuman-val:
+
+| Model          |  Scale  |    AP    |    AP50    |  Weight  |
+|----------------|---------|----------|------------|----------|
+| FreeYOLO-Nano  |  416    |      |        |  |
+| FreeYOLO-Tiny  |  416    |      |        |  |
+| FreeYOLO-Large |  640    |      |        |  |
+| FreeYOLO-Huge  |  640    |      |        |  |
+
+-
 # Train
 ## Single GPU
 ```Shell

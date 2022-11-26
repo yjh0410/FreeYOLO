@@ -9,7 +9,7 @@ import torch
 from dataset.voc import VOC_CLASSES, VOCDetection
 from dataset.coco import coco_class_index, coco_class_labels, COCODataset
 from dataset.widerface import WIDERFace_CLASSES, WIDERFaceDetection
-from dataset.crowdhuman import CrowdHuman_CLASSES, CrowdHumanDetection
+from dataset.crowdhuman import crowd_class_labels, CrowdHumanDataset
 from dataset.transforms import ValTransforms
 
 from utils.misc import load_weight
@@ -195,10 +195,10 @@ if __name__ == '__main__':
 
     elif args.dataset == 'crowdhuman':
         data_dir = os.path.join(args.root, 'CrowdHuman')
-        class_names = CrowdHuman_CLASSES
+        class_names = crowd_class_labels
         class_indexs = None
         num_classes = 1
-        dataset = CrowdHumanDetection(
+        dataset = CrowdHumanDataset(
                 data_dir=data_dir,
                 image_set='val',
                 transform=None)

@@ -21,14 +21,15 @@ crowd_class_labels = ('person',)
 
 
 
-class CrowdHumanDataset(Dataset):
+class MOT17Dataset(Dataset):
     """
-    CrowdHuman dataset class.
+    MOT17 dataset class.
     """
     def __init__(self, 
                  img_size=640,
                  data_dir=None, 
                  image_set='train',
+                 json_file='train_half.json',
                  transform=None,
                  mosaic_prob=0.0,
                  mixup_prob=0.0,
@@ -43,7 +44,7 @@ class CrowdHumanDataset(Dataset):
         """
         self.img_size = img_size
         self.image_set = image_set
-        self.json_file = '{}.json'.format(image_set)
+        self.json_file = json_file
         self.data_dir = data_dir
         self.coco = COCO(os.path.join(self.data_dir, 'annotations', self.json_file))
         self.ids = self.coco.getImgIds()
@@ -76,7 +77,7 @@ class CrowdHumanDataset(Dataset):
 
         # load an image
         img_file = os.path.join(
-                self.data_dir, 'CrowdHuman_{}'.format(self.image_set), 'Images', im_ann["file_name"])
+                self.data_dir, self.image_set, im_ann["file_name"])
         image = cv2.imread(img_file)
         
         assert image is not None
@@ -177,7 +178,7 @@ class CrowdHumanDataset(Dataset):
         id_ = self.ids[index]
         im_ann = self.coco.loadImgs(id_)[0] 
         img_file = os.path.join(
-                self.data_dir, 'CrowdHuman_{}'.format(self.image_set), 'Images', im_ann["file_name"])
+                self.data_dir, self.image_set, im_ann["file_name"])
         image = cv2.imread(img_file)
 
         return image, id_
@@ -231,10 +232,11 @@ if __name__ == "__main__":
         img_size=img_size,
         )
 
-    dataset = CrowdHumanDataset(
+    dataset = MOT17Dataset(
         img_size=img_size,
-        data_dir='D:\\python_work\\object-detection\\dataset\\CrowdHuman\\',
-        image_set='val',
+        data_dir='D:\\python_work\\object-detection\\dataset\\MOT17\\',
+        image_set='train',
+        json_file='val_half.json',
         transform=train_transform,
         mosaic_prob=0.5,
         mixup_prob=0.15,
