@@ -54,8 +54,14 @@ sh COCO2017.sh
 - Check COCO
 ```Shell
 cd <FreeYOLO_HOME>
-cd dataset/
-python coco.py
+python dataset/coco.py
+```
+
+- Train on COCO
+
+For example:
+```Shell
+python train.py --cuda -d coco -v yolo_free_nano -bs 16 --max_epoch 300 --wp_epoch 1 --eval_epoch 10 --fp16 --ema --root path/to/COCO
 ```
 
 Main results on COCO-val:
@@ -99,15 +105,19 @@ CrowdHuman
 - Convert CrowdHuman to COCO format.
 ```Shell
 cd <FreeYOLO_HOME>
-cd tools/
-python convert_crowdhuman_to_coco.py
+python tools/convert_crowdhuman_to_coco.py --root path/to/CrowdHuman
 ```
 
 - Check CrowdHuman
 ```Shell
 cd <FreeYOLO_HOME>
-cd dataset/
-python crowdhuman.py
+python dataset/crowdhuman.py
+```
+
+- Train on CrowdHuman
+For example:
+```Shell
+python train.py --cuda -d crowdhuman -v yolo_free_nano -bs 16 --max_epoch 80 --wp_epoch 1 --eval_epoch 10 --fp16 --ema --root path/to/CrowdHuman --coco_pretrained path/to/coco/yolo_free_nano_ckpt
 ```
 
 Main results on CrowdHuman-val:
@@ -118,6 +128,116 @@ Main results on CrowdHuman-val:
 | FreeYOLO-Tiny  |  416    |      |        |  |
 | FreeYOLO-Large |  640    |      |        |  |
 | FreeYOLO-Huge  |  640    |      |        |  |
+
+## MOT17
+- Download [MOT17](https://motchallenge.net/), then you will get a ```MOT17.zip` file.
+
+- Prepare MOT17
+```
+MOT17
+|_ train
+|  |_ MOT17-02-DPM
+|     |_ det
+|     |_ gt
+|     |_ img1
+|     |_ ...
+|  ...
+|_ test
+|  |_ MOT17-01-DPM
+|     |_ det
+|     |_ img1
+|     |_ ...
+|  ...
+```
+
+- Convert MOT17 to COCO format.
+```Shell
+cd <FreeYOLO_HOME>
+python tools/convert_mot17_to_coco.py --root path/to/MOT17
+```
+
+- Check MOT17
+```Shell
+cd <FreeYOLO_HOME>
+python dataset/mot17.py
+```
+
+- Train on MOT17 half
+
+For example:
+```Shell
+python train.py --cuda -d mot17_half -v yolo_free_nano -bs 16 --max_epoch 80 --wp_epoch 1 --eval_epoch 10 --fp16 --ema --root path/to/MOT17 --coco_pretrained path/to/coco/yolo_free_nano_ckpt
+```
+
+Main results on MOT17 val-half (trained on MOT17 train-half):
+
+| Model          |  Scale  |    AP    |    AP50    |  Weight  |
+|----------------|---------|----------|------------|----------|
+| FreeYOLO-Nano  |  416    |      |        |  |
+| FreeYOLO-Tiny  |  416    |      |        |  |
+| FreeYOLO-Large |  640    |      |        |  |
+| FreeYOLO-Huge  |  640    |      |        |  |
+
+- Train on MOT17
+
+For example:
+```Shell
+python train.py --cuda -d mot17 -v yolo_free_nano -bs 16 --max_epoch 80 --wp_epoch 1 --fp16 --ema --root path/to/MOT17 --coco_pretrained path/to/coco/yolo_free_nano_ckpt
+```
+
+Pretrained weights on MOT17 train split (fully train, not train-half):
+[FreeYOLO-Nano]()
+[FreeYOLO-Tiny]()
+[FreeYOLO-Large]()
+[FreeYOLO-Huge]()
+
+
+## MOT20
+- Download [MOT20](https://motchallenge.net/), then you will get a ```MOT20.zip` file.
+
+- Prepare MOT20
+Similar to MOT17
+
+- Convert MOT20 to COCO format.
+```Shell
+cd <FreeYOLO_HOME>
+python tools/convert_mot20_to_coco.py --root path/to/MOT20
+```
+
+- Check MOT20
+```Shell
+cd <FreeYOLO_HOME>
+python dataset/mot20.py
+```
+
+- Train on MOT20 half
+
+For example:
+```Shell
+python train.py --cuda -d mot20_half -v yolo_free_nano -bs 16 --max_epoch 80 --wp_epoch 1 --eval_epoch 10 --fp16 --ema --root path/to/MOT20 --coco_pretrained path/to/coco/yolo_free_nano_ckpt
+```
+
+Main results on MOT20 val-half (trained on MOT20 train-half):
+
+| Model          |  Scale  |    AP    |    AP50    |  Weight  |
+|----------------|---------|----------|------------|----------|
+| FreeYOLO-Nano  |  416    |      |        |  |
+| FreeYOLO-Tiny  |  416    |      |        |  |
+| FreeYOLO-Large |  640    |      |        |  |
+| FreeYOLO-Huge  |  640    |      |        |  |
+
+- Train on MOT20
+
+For example:
+```Shell
+python train.py --cuda -d mot20 -v yolo_free_nano -bs 16 --max_epoch 80 --wp_epoch 1 -- eval_epoch 10 --fp16 --ema --root path/to/MOT20 --coco_pretrained path/to/coco/yolo_free_nano_ckpt
+```
+
+Pretrained weights on MOT20 train split (fully train, not train-half):
+[FreeYOLO-Nano]()
+[FreeYOLO-Tiny]()
+[FreeYOLO-Large]()
+[FreeYOLO-Huge]()
 
 -
 # Train

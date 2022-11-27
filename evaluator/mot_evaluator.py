@@ -2,6 +2,7 @@ import json
 import tempfile
 import torch
 from dataset.mot17 import MOT17Dataset
+from dataset.mot20 import MOT20Dataset
 
 try:
     from pycocotools.cocoeval import COCOeval
@@ -28,7 +29,18 @@ class MOTEvaluator():
                 IoU threshold of non-max supression ranging from 0 to 1.
         """
         if dataset == 'mot17':
+            print('MOT17 Evaluator ...')
             self.dataset = MOT17Dataset(
+                data_dir=data_dir,
+                image_set='train',
+                json_file='val_half.json',
+                transform=None,
+                mosaic_prob=0.,
+                mixup_prob=0.
+                )
+        elif dataset == 'mot20':
+            print('MOT20 Evaluator ...')
+            self.dataset = MOT20Dataset(
                 data_dir=data_dir,
                 image_set='train',
                 json_file='val_half.json',

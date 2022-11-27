@@ -17,6 +17,7 @@ from dataset.coco import COCODataset
 from dataset.widerface import WIDERFaceDetection
 from dataset.crowdhuman import CrowdHumanDataset
 from dataset.mot17 import MOT17Dataset
+from dataset.mot20 import MOT20Dataset
 from dataset.transforms import TrainTransforms, ValTransforms
 
 
@@ -154,8 +155,49 @@ def build_dataset(cfg, args, device):
         # evaluator
         evaluator = None
 
+    elif args.dataset == 'mot20_half':
+        data_dir = os.path.join(args.root, 'MOT20')
+        num_classes = 1
+
+        # dataset
+        dataset = MOT20Dataset(
+            data_dir=data_dir,
+            img_size=cfg['train_size'],
+            image_set='train',
+            json_file='train_half.json',
+            transform=train_transform,
+            mosaic_prob=cfg['mosaic_prob'],
+            mixup_prob=cfg['mixup_prob'],
+            trans_config=cfg['trans_config']
+            )
+        # evaluator
+        evaluator = MOTEvaluator(
+            data_dir=data_dir,
+            device=device,
+            dataset='mot20',
+            transform=val_transform
+            )
+
+    elif args.dataset == 'mot20':
+        data_dir = os.path.join(args.root, 'MOT20')
+        num_classes = 1
+
+        # dataset
+        dataset = MOT20Dataset(
+            data_dir=data_dir,
+            img_size=cfg['train_size'],
+            image_set='train',
+            json_file='train.json',
+            transform=train_transform,
+            mosaic_prob=cfg['mosaic_prob'],
+            mixup_prob=cfg['mixup_prob'],
+            trans_config=cfg['trans_config']
+            )
+        # evaluator
+        evaluator = None
+
     else:
-        print('unknow dataset !! Only support voc, coco, widerface !!')
+        print('unknow dataset !!')
         exit(0)
 
     print('==============================')
