@@ -28,7 +28,7 @@ if __name__ == '__main__':
     args = parse_args()
 
     DATA_PATH = args.root
-    OUT_PATH = DATA_PATH, 'annotations/'
+    OUT_PATH = DATA_PATH + 'annotations/'
     SPLITS = ['val', 'train']
     DEBUG = False
 
