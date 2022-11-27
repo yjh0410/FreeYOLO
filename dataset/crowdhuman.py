@@ -233,7 +233,7 @@ if __name__ == "__main__":
 
     dataset = CrowdHumanDataset(
         img_size=img_size,
-        data_dir='D:\\python_work\\object-detection\\dataset\\CrowdHuman\\',
+        data_dir='/mnt/share/ssd2/dataset/CrowdHuman/',
         image_set='val',
         transform=train_transform,
         mosaic_prob=0.5,
