@@ -234,7 +234,7 @@ if __name__ == "__main__":
 
     dataset = MOT17Dataset(
         img_size=img_size,
-        data_dir='D:\\python_work\\object-detection\\dataset\\MOT17\\',
+        data_dir='/mnt/share/ssd2/dataset/MOT17/',
         image_set='train',
         json_file='val_half.json',
         transform=train_transform,
