@@ -2,12 +2,19 @@ import os
 import numpy as np
 import json
 from PIL import Image
+import argparse
 
-# pllease change DATA_PATH according your path to crowdhuman
-DATA_PATH = 'D:\\python_work\\object-detection\\dataset\\CrowdHuman\\'
-OUT_PATH = DATA_PATH + 'annotations/'
-SPLITS = ['val', 'train']
-DEBUG = False
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description='FreeYOLO')
+
+    # dataset
+    parser.add_argument('--root', default='/mnt/share/ssd2/dataset/CrowdHuman/',
+                        help='data root')
+
+    return parser.parse_args()
+
 
 def load_func(fpath):
     print('fpath', fpath)
@@ -18,6 +25,13 @@ def load_func(fpath):
     return records
 
 if __name__ == '__main__':
+    args = parse_args()
+
+    DATA_PATH = args.root
+    OUT_PATH = os.path.join(DATA_PATH, 'annotations')
+    SPLITS = ['val', 'train']
+    DEBUG = False
+
     if not os.path.exists(OUT_PATH):
         os.mkdir(OUT_PATH)
     for split in SPLITS:
