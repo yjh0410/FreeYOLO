@@ -186,9 +186,13 @@ python train.py --cuda -d mot17 -v yolo_free_nano -bs 16 --max_epoch 80 --wp_epo
 ```
 
 Pretrained weights on MOT17 train split (fully train, not train-half):
+
 [FreeYOLO-Nano]()
+
 [FreeYOLO-Tiny]()
+
 [FreeYOLO-Large]()
+
 [FreeYOLO-Huge]()
 
 
@@ -234,9 +238,13 @@ python train.py --cuda -d mot20 -v yolo_free_nano -bs 16 --max_epoch 80 --wp_epo
 ```
 
 Pretrained weights on MOT20 train split (fully train, not train-half):
+
 [FreeYOLO-Nano]()
+
 [FreeYOLO-Tiny]()
+
 [FreeYOLO-Large]()
+
 [FreeYOLO-Huge]()
 
 -
