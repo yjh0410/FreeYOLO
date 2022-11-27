@@ -2,18 +2,29 @@ import os
 import numpy as np
 import json
 import cv2
+import argparse
 
 
-# Use the same script for MOT16
-DATA_PATH = 'D:\\python_work\\object-detection\\dataset\\MOT20\\'
-OUT_PATH = os.path.join(DATA_PATH, 'annotations')
-SPLITS = ['train_half', 'val_half', 'train', 'test']  # --> split training data to train_half and val_half.
-HALF_VIDEO = True
-CREATE_SPLITTED_ANN = True
-CREATE_SPLITTED_DET = True
+def parse_args():
+    parser = argparse.ArgumentParser(description='FreeYOLO')
+
+    # dataset
+    parser.add_argument('--root', default='/mnt/share/ssd2/dataset/MOT20/',
+                        help='data root')
+
+    return parser.parse_args()
 
 
 if __name__ == '__main__':
+    args = parse_args()
+    
+    # Use the same script for MOT16
+    DATA_PATH = args.root
+    OUT_PATH = os.path.join(DATA_PATH, 'annotations')
+    SPLITS = ['train_half', 'val_half', 'train', 'test']  # --> split training data to train_half and val_half.
+    HALF_VIDEO = True
+    CREATE_SPLITTED_ANN = True
+    CREATE_SPLITTED_DET = True
 
     if not os.path.exists(OUT_PATH):
         os.makedirs(OUT_PATH)
