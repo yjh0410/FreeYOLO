@@ -247,7 +247,6 @@ Pretrained weights on MOT20 train split (fully train, not train-half):
 
 [FreeYOLO-Huge]()
 
--
 # Train
 ## Single GPU
 ```Shell
