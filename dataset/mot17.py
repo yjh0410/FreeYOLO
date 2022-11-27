@@ -55,6 +55,8 @@ class MOT17Dataset(Dataset):
         self.mixup_prob = mixup_prob
         self.trans_config = trans_config
         print('==============================')
+        print('Image Set: {}'.format(image_set))
+        print('Json file: {}'.format(json_file))
         print('use Mosaic Augmentation: {}'.format(self.mosaic_prob))
         print('use Mixup Augmentation: {}'.format(self.mixup_prob))
         print('==============================')
