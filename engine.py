@@ -159,7 +159,7 @@ def train_one_epoch(epoch,
             print('loss is NAN !!')
             continue
 
-        losses = losses / args.accumulate
+        # losses = losses / args.accumulate
 
         # backward
         scaler.scale(losses).backward()

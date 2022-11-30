@@ -62,13 +62,13 @@ if __name__ == '__main__':
 
     ort_inputs = {session.get_inputs()[0].name: x[None, :, :, :]}
     output = session.run(None, ort_inputs)
-    print("inference time: {:.1f} ms".format((time.time() - t0)*100))
+    print("inference time: {:.1f} ms".format((time.time() - t0)*1000))
 
     t0 = time.time()
     # post process
     bboxes, scores, labels = postprocess(output[0])
     bboxes /= ratio
-    print("post-process time: {:.1f} ms".format((time.time() - t0)*100))
+    print("post-process time: {:.1f} ms".format((time.time() - t0)*1000))
 
     # visualize detection
     origin_img = visualize(

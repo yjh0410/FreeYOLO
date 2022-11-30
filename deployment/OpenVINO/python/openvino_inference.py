@@ -103,7 +103,7 @@ def main():
     log.info('Starting inference in synchronous mode')
     t0 = time.time()
     output = exec_net.infer(inputs={input_blob: x})
-    print("inference time: {:.1f} ms".format((time.time() - t0)*100))
+    print("inference time: {:.1f} ms".format((time.time() - t0)*1000))
 
     # ---------------------------Step 8. Process output--------------------------------------------------------------------
     output = output[out_blob]
@@ -112,7 +112,7 @@ def main():
     # post process
     bboxes, scores, labels = postprocess(output)
     bboxes /= ratio
-    print("post-process time: {:.1f} ms".format((time.time() - t0)*100))
+    print("post-process time: {:.1f} ms".format((time.time() - t0)*1000))
 
     # ---------------------------Step 9. Visualization--------------------------------------------------------------------
     # visualize detection
