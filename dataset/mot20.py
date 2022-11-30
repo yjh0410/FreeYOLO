@@ -71,10 +71,10 @@ class MOT20Dataset(Dataset):
         return image, target
 
 
-    def load_image_target(self, index):
-        im_ann = self.coco.loadImgs(index)[0] 
+    def load_image_target(self, img_id):
+        im_ann = self.coco.loadImgs(img_id)[0] 
 
-        anno_ids = self.coco.getAnnIds(imgIds=[int(index)], iscrowd=0)
+        anno_ids = self.coco.getAnnIds(imgIds=[int(img_id)], iscrowd=0)
         annotations = self.coco.loadAnns(anno_ids)
 
         # load an image
