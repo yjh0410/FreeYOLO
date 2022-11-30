@@ -85,9 +85,7 @@ def train_with_warmup(epoch,
 
         # Optimize
         if ni % args.accumulate == 0:
-            scaler.unscale_(optimizer)  # unscale gradients
-            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=10.0)  # clip gradients
-            scaler.step(optimizer)  # optimizer.step
+            scaler.step(optimizer)
             scaler.update()
             optimizer.zero_grad()
 
@@ -168,9 +166,7 @@ def train_one_epoch(epoch,
 
         # Optimize
         if ni % args.accumulate == 0:
-            scaler.unscale_(optimizer)  # unscale gradients
-            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=10.0)  # clip gradients
-            scaler.step(optimizer)  # optimizer.step
+            scaler.step(optimizer)
             scaler.update()
             optimizer.zero_grad()
 
