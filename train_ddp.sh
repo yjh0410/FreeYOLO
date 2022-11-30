@@ -4,8 +4,8 @@ python -m torch.distributed.run --nproc_per_node=4 train.py \
                                                     --cuda \
                                                     -dist \
                                                     -d coco \
-                                                    --root /mnt/share/ssd2/dataset/ \
-                                                    -v yolo_free_large \
+                                                    --root /data/datasets/ \
+                                                    -v yolo_free_tiny \
                                                     -bs 16 \
                                                     --max_epoch 300 \
                                                     --wp_epoch 1 \
