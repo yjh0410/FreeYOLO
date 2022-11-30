@@ -61,7 +61,7 @@ python dataset/coco.py
 
 For example:
 ```Shell
-python train.py --cuda -d coco -v yolo_free_nano -bs 16 --max_epoch 300 --wp_epoch 1 --eval_epoch 10 --fp16 --ema --root path/to/COCO
+python train.py --cuda -d coco -v yolo_free_nano -bs 16 -accu 4 --max_epoch 300 --wp_epoch 1 --eval_epoch 10 --fp16 --ema --root path/to/COCO
 ```
 
 Main results on COCO-val:
@@ -117,7 +117,7 @@ python dataset/crowdhuman.py
 - Train on CrowdHuman
 For example:
 ```Shell
-python train.py --cuda -d crowdhuman -v yolo_free_nano -bs 16 --max_epoch 80 --wp_epoch 1 --eval_epoch 10 --fp16 --ema --root path/to/CrowdHuman --coco_pretrained path/to/coco/yolo_free_nano_ckpt
+python train.py --cuda -d crowdhuman -v yolo_free_nano -bs 16 -accu 4 --max_epoch 80 --wp_epoch 1 --eval_epoch 10 --fp16 --ema --root path/to/CrowdHuman --coco_pretrained path/to/coco/yolo_free_nano_ckpt
 ```
 
 Main results on CrowdHuman-val:
@@ -166,7 +166,7 @@ python dataset/mot17.py
 
 For example:
 ```Shell
-python train.py --cuda -d mot17_half -v yolo_free_nano -bs 16 --max_epoch 80 --wp_epoch 1 --eval_epoch 10 --fp16 --ema --root path/to/MOT17 --coco_pretrained path/to/coco/yolo_free_nano_ckpt
+python train.py --cuda -d mot17_half -v yolo_free_nano -bs 16 -accu 4 --max_epoch 80 --wp_epoch 1 --eval_epoch 10 --fp16 --ema --root path/to/MOT17 --coco_pretrained path/to/coco/yolo_free_nano_ckpt
 ```
 
 Main results on MOT17 val-half (trained on MOT17 train-half):
@@ -182,7 +182,7 @@ Main results on MOT17 val-half (trained on MOT17 train-half):
 
 For example:
 ```Shell
-python train.py --cuda -d mot17 -v yolo_free_nano -bs 16 --max_epoch 80 --wp_epoch 1 --fp16 --ema --root path/to/MOT17 --coco_pretrained path/to/coco/yolo_free_nano_ckpt
+python train.py --cuda -d mot17 -v yolo_free_nano -bs 16 -accu 4 --max_epoch 80 --wp_epoch 1 --fp16 --ema --root path/to/MOT17 --coco_pretrained path/to/coco/yolo_free_nano_ckpt
 ```
 
 Pretrained weights on MOT17 train split (fully train, not train-half):
