@@ -216,7 +216,7 @@ def train():
                 warmup_scheduler.set_lr(optimizer, base_lr)
                 
             # use cos lr decay
-            T_max = total_epochs - args.no_aug_epoch
+            T_max = total_epochs - cfg['no_aug_epoch']
             if epoch > T_max:
                 print('Cosine annealing is over !!')
                 lr_schedule = False

@@ -78,7 +78,7 @@ def train_with_warmup(epoch,
             print('loss is NAN !!')
             continue
 
-        losses = losses / args.accumulate
+        # losses = losses / args.accumulate
 
         # backward
         scaler.scale(losses).backward()
