@@ -17,7 +17,7 @@ except:
     from transforms import mosaic_x4_augment, mosaic_x9_augment, mixup_augment
 
 
-crowd_class_labels = ('person',)
+mot_class_labels = ('person',)
 
 
 
