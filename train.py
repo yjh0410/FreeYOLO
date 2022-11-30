@@ -40,7 +40,9 @@ def parse_args():
     # Batchsize
     parser.add_argument('-bs', '--batch_size', default=16, type=int, 
                         help='batch size on a single GPU.')
-    
+    parser.add_argument('-accu', '--accumulate', default=1, type=int, 
+                        help='gradient accumulate.')
+
     # Epoch
     parser.add_argument('--max_epoch', default=300, type=int, 
                         help='max epoch.')
@@ -158,7 +160,8 @@ def train():
         dist.barrier()
 
     # optimizer
-    base_lr = cfg['base_lr'] * args.batch_size * cfg['accumulate'] * distributed_utils.get_world_size()
+    world_size = distributed_utils.get_world_size()
+    base_lr = cfg['base_lr'] * args.batch_size * args.accumulate * world_size
     min_lr = base_lr * cfg['min_lr_ratio']
     optimizer, start_epoch = build_optimizer(cfg, model_without_ddp, base_lr, args.resume)
     
