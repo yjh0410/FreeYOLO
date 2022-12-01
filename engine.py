@@ -105,7 +105,11 @@ def train_with_warmup(epoch,
             log += '[lr: {:.6f}]'.format(cur_lr[0])
             # loss infor
             for k in loss_dict_reduced.keys():
-                log += '[{}: {:.2f}]'.format(k, loss_dict[k])
+                if k == 'losses' and args.distributed:
+                    world_size = distributed_utils.get_world_size()
+                    log += '[{}: {:.2f}]'.format(k, loss_dict[k] / world_size)
+                else:
+                    log += '[{}: {:.2f}]'.format(k, loss_dict[k])
 
             # other infor
             log += '[time: {:.2f}]'.format(t1 - t0)
@@ -188,7 +192,11 @@ def train_one_epoch(epoch,
             log += '[lr: {:.6f}]'.format(cur_lr[0])
             # loss infor
             for k in loss_dict_reduced.keys():
-                log += '[{}: {:.2f}]'.format(k, loss_dict[k])
+                if k == 'losses' and args.distributed:
+                    world_size = distributed_utils.get_world_size()
+                    log += '[{}: {:.2f}]'.format(k, loss_dict[k] / world_size)
+                else:
+                    log += '[{}: {:.2f}]'.format(k, loss_dict[k])
 
             # other infor
             log += '[time: {:.2f}]'.format(t1 - t0)
