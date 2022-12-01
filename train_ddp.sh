@@ -12,5 +12,6 @@ python -m torch.distributed.run --nproc_per_node=4 train.py \
                                                     --wp_epoch 1 \
                                                     --eval_epoch 10 \
                                                     --num_workers 4 \
+                                                    --eval_first \
                                                     --ema \
                                                     --fp16 \
