@@ -7,6 +7,7 @@ python -m torch.distributed.run --nproc_per_node=4 train.py \
                                                     --root /data/datasets/ \
                                                     -v yolo_free_tiny \
                                                     -bs 16 \
+                                                    -accu 1 \
                                                     --max_epoch 300 \
                                                     --wp_epoch 1 \
                                                     --eval_epoch 10 \

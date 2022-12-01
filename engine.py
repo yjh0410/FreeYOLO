@@ -78,7 +78,9 @@ def train_with_warmup(epoch,
             print('loss is NAN !!')
             continue
 
-        # losses = losses / args.accumulate
+        if args.distributed:
+            # gradient averaged between devices in DDP mode
+            losses *= distributed_utils.get_world_size()
 
         # backward
         scaler.scale(losses).backward()
@@ -159,7 +161,9 @@ def train_one_epoch(epoch,
             print('loss is NAN !!')
             continue
 
-        # losses = losses / args.accumulate
+        if args.distributed:
+            # gradient averaged between devices in DDP mode
+            losses *= distributed_utils.get_world_size()
 
         # backward
         scaler.scale(losses).backward()
