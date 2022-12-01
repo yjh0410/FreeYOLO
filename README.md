@@ -68,8 +68,8 @@ Main results on COCO-val:
 
 | Model          |  Scale  | FPS<sup><br>2080ti |  FLOPs   |  Params  |    AP    |    AP50    |  Weight  |
 |----------------|---------|--------------------|----------|----------|----------|------------|----------|
-| FreeYOLO-Nano  |  416    |                    |   1.9 G  |  2.0 M   |   27.1   |   45.5     | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_nano_27.1.pth) |
-| FreeYOLO-Tiny  |  416    |                    |   5.9 G  |  6.2 M   |   31.1   |   49.4     | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_tiny_31.1.pth) |
+| FreeYOLO-Nano  |  640    |                    |   4.6 G  |  2.0 M   |   27.1   |   45.5     | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_nano_27.1.pth) |
+| FreeYOLO-Tiny  |  640    |                    |   13.9 G  |  6.2 M   |   31.1   |   49.4     | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_tiny_31.1.pth) |
 | FreeYOLO-Large |  640    |  58                |  144.8 G |  44.1 M  |   47.0   |   67.4     | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_large_47.0.pth) |
 | FreeYOLO-Huge  |  640    |                    |  257.8 G |  78.9 M  |      |        |  |
 
@@ -124,8 +124,8 @@ Main results on CrowdHuman-val:
 
 | Model          |  Scale  |    AP    |    AP50    |  Weight  |
 |----------------|---------|----------|------------|----------|
-| FreeYOLO-Nano  |  416    |      |        |  |
-| FreeYOLO-Tiny  |  416    |      |        |  |
+| FreeYOLO-Nano  |  640    |      |        |  |
+| FreeYOLO-Tiny  |  640    |      |        |  |
 | FreeYOLO-Large |  640    |      |        |  |
 | FreeYOLO-Huge  |  640    |      |        |  |
 
@@ -173,8 +173,8 @@ Main results on MOT17 val-half (trained on MOT17 train-half):
 
 | Model          |  Scale  |    AP    |    AP50    |  Weight  |
 |----------------|---------|----------|------------|----------|
-| FreeYOLO-Nano  |  416    |      |        |  |
-| FreeYOLO-Tiny  |  416    |      |        |  |
+| FreeYOLO-Nano  |  640    |      |        |  |
+| FreeYOLO-Tiny  |  640    |      |        |  |
 | FreeYOLO-Large |  640    |      |        |  |
 | FreeYOLO-Huge  |  640    |      |        |  |
 
@@ -225,8 +225,8 @@ Main results on MOT20 val-half (trained on MOT20 train-half):
 
 | Model          |  Scale  |    AP    |    AP50    |  Weight  |
 |----------------|---------|----------|------------|----------|
-| FreeYOLO-Nano  |  416    |      |        |  |
-| FreeYOLO-Tiny  |  416    |      |        |  |
+| FreeYOLO-Nano  |  640    |      |        |  |
+| FreeYOLO-Tiny  |  640    |      |        |  |
 | FreeYOLO-Large |  640    |      |        |  |
 | FreeYOLO-Huge  |  640    |      |        |  |
 
