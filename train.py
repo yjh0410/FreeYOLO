@@ -184,7 +184,7 @@ def train():
     # eval before training
     if args.eval_first and distributed_utils.is_main_process():
         # to check whether the evaluator can work
-        model_eval = ema.ema if args.ema else model_without_ddp
+        model_eval = ema.ema if ema else model_without_ddp
         val_one_epoch(
             args=args, model=model_eval, evaluator=evaluator, optimizer=optimizer,
             epoch=0, best_map=best_map, path_to_save=path_to_save)
@@ -245,7 +245,7 @@ def train():
         if (epoch % args.eval_epoch) == 0 or (epoch == total_epochs - 1):
             best_map = val_one_epoch(
                             args=args, 
-                            model=ema.ema if args.ema else model_without_ddp, 
+                            model=ema.ema if ema else model_without_ddp, 
                             evaluator=evaluator,
                             optimizer=optimizer,
                             epoch=epoch,
