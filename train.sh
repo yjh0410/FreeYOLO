@@ -3,7 +3,7 @@ python train.py \
         --cuda \
         -d voc \
         --root /mnt/share/ssd2/dataset/ \
-        -v yolo_free_nano \
+        -v yolo_free_tiny \
         -bs 32 \
         -accu 2 \
         --max_epoch 300 \
