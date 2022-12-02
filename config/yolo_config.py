@@ -255,7 +255,7 @@ yolo_config = {
         'fpn_depthwise': False,
         # head
         'head': 'decoupled_head',
-        'head_dim': 256,
+        'head_dim': 320,
         'head_norm': 'BN',
         'head_act': 'silu',
         'num_cls_head': 2,
