@@ -189,9 +189,9 @@ def mosaic_x4_augment(image_list, target_list, img_size, affine_params=None):
     if len(mosaic_bboxes) == 0:
         mosaic_bboxes = np.array([]).reshape(-1, 4)
         mosaic_labels = np.array([]).reshape(-1)
-    
-    mosaic_bboxes = np.concatenate(mosaic_bboxes)
-    mosaic_labels = np.concatenate(mosaic_labels)
+    else:
+        mosaic_bboxes = np.concatenate(mosaic_bboxes)
+        mosaic_labels = np.concatenate(mosaic_labels)
 
     # clip
     mosaic_bboxes = mosaic_bboxes.clip(0, img_size * 2)
@@ -288,9 +288,9 @@ def mosaic_x9_augment(image_list, target_list, img_size, affine_params=None):
     if len(mosaic_bboxes) == 0:
         mosaic_bboxes = np.array([]).reshape(-1, 4)
         mosaic_labels = np.array([]).reshape(-1)
-
-    mosaic_bboxes = np.concatenate(mosaic_bboxes)
-    mosaic_labels = np.concatenate(mosaic_labels)
+    else:
+        mosaic_bboxes = np.concatenate(mosaic_bboxes)
+        mosaic_labels = np.concatenate(mosaic_labels)
 
     # Offset
     yc, xc = [int(random.uniform(0, s)) for _ in mosaic_border]  # mosaic center x, y

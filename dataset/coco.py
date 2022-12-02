@@ -268,8 +268,8 @@ if __name__ == "__main__":
 
     dataset = COCODataset(
         img_size=img_size,
-        data_dir='/mnt/share/ssd2/dataset/COCO',
-        image_set='train2017',
+        data_dir='D:\\python_work\\object-detection\\dataset\\COCO',
+        image_set='val2017',
         transform=train_transform,
         mosaic_prob=0.5,
         mixup_prob=0.15,
