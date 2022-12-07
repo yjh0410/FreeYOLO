@@ -5,7 +5,7 @@ yolo_config = {
     'yolo_free_nano': {
         # input
         'train_size': 640,
-        'test_size': 416,
+        'test_size': 640,
         'random_size': [320, 352, 384, 416,
                         448, 480, 512, 544,
                         576, 608, 640],
@@ -76,7 +76,7 @@ yolo_config = {
     'yolo_free_tiny': {
         # input
         'train_size': 640,
-        'test_size': 416,
+        'test_size': 640,
         'random_size': [320, 352, 384, 416,
                         448, 480, 512, 544,
                         576, 608, 640],

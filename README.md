@@ -69,7 +69,7 @@ Main results on COCO-val:
 | Model          |  Scale  | FPS<sup><br>2080ti |  FLOPs   |  Params  |    AP    |    AP50    |  Weight  |
 |----------------|---------|--------------------|----------|----------|----------|------------|----------|
 | FreeYOLO-Nano  |  640    |                    |   4.6 G  |  2.0 M   |      |        | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_nano_27.1.pth) |
-| FreeYOLO-Tiny  |  640    |                    |   13.9 G |  6.2 M   |   34.4   |        | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_tiny_34.4.pth) |
+| FreeYOLO-Tiny  |  640    |                    |   13.9 G |  6.2 M   |   34.4   |    53.9    | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_tiny_34.4.pth) |
 | FreeYOLO-Large |  640    |                    |  144.8 G |  44.1 M  |      |        | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_large_47.0.pth) |
 | FreeYOLO-Huge  |  640    |                    |  257.8 G |  78.9 M  |      |        |  |
 
