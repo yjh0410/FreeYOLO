@@ -6,12 +6,18 @@ import numpy as np
 from copy import deepcopy
 import torch
 
+# load dataset & labelmap
 from dataset.voc import VOC_CLASSES, VOCDetection
 from dataset.coco import coco_class_index, coco_class_labels, COCODataset
 from dataset.widerface import WIDERFace_CLASSES, WIDERFaceDetection
 from dataset.crowdhuman import crowd_class_labels, CrowdHumanDataset
+from dataset.mot17 import mot_class_labels, MOT17Dataset
+from dataset.mot20 import mot_class_labels, MOT20Dataset
+
+# load transform
 from dataset.transforms import ValTransforms
 
+# load some utils
 from utils.misc import load_weight
 from utils.com_flops_params import FLOPs_and_Params
 from utils import fuse_conv_bn
@@ -201,6 +207,50 @@ if __name__ == '__main__':
         dataset = CrowdHumanDataset(
                 data_dir=data_dir,
                 image_set='val',
+                transform=None)
+
+    elif args.dataset == 'mot17_half':
+        data_dir = os.path.join(args.root, 'MOT17')
+        class_names = mot_class_labels
+        class_indexs = None
+        num_classes = 1
+        dataset = MOT17Dataset(
+                data_dir=data_dir,
+                image_set='train',
+                json_file='val_half.json',
+                transform=None)
+
+    elif args.dataset == 'mot17_test':
+        data_dir = os.path.join(args.root, 'MOT17')
+        class_names = mot_class_labels
+        class_indexs = None
+        num_classes = 1
+        dataset = MOT17Dataset(
+                data_dir=data_dir,
+                image_set='test',
+                json_file='test.json',
+                transform=None)
+
+    elif args.dataset == 'mot20_half':
+        data_dir = os.path.join(args.root, 'MOT20')
+        class_names = mot_class_labels
+        class_indexs = None
+        num_classes = 1
+        dataset = MOT20Dataset(
+                data_dir=data_dir,
+                image_set='train',
+                json_file='val_half.json',
+                transform=None)
+
+    elif args.dataset == 'mot20_test':
+        data_dir = os.path.join(args.root, 'MOT20')
+        class_names = mot_class_labels
+        class_indexs = None
+        num_classes = 1
+        dataset = MOT20Dataset(
+                data_dir=data_dir,
+                image_set='test',
+                json_file='test.json',
                 transform=None)
 
     else:

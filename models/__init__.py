@@ -11,9 +11,7 @@ def build_model(args,
                 cfg,
                 device, 
                 num_classes=80, 
-                trainable=False, 
-                coco_pretrained=None,
-                resume=None):
+                trainable=False):
     print('==============================')
     print('Build {} ...'.format(args.version.upper()))
     
@@ -31,10 +29,10 @@ def build_model(args,
         no_decode=args.no_decode
         )
 
-    # Load COCO pretrained weight
-    if coco_pretrained is not None:
+    # Load pretrained weight
+    if args.pretrained is not None:
         print('Loading COCO pretrained weight ...')
-        checkpoint = torch.load(coco_pretrained, map_location='cpu')
+        checkpoint = torch.load(args.pretrained, map_location='cpu')
         # checkpoint state dict
         checkpoint_state_dict = checkpoint.pop("model")
         # model state dict
@@ -54,9 +52,9 @@ def build_model(args,
         model.load_state_dict(checkpoint_state_dict, strict=False)
 
     # keep training
-    if resume is not None:
-        print('keep training: ', resume)
-        checkpoint = torch.load(resume, map_location='cpu')
+    if args.resume is not None:
+        print('keep training: ', args.resume)
+        checkpoint = torch.load(args.resume, map_location='cpu')
         # checkpoint state dict
         checkpoint_state_dict = checkpoint.pop("model")
         model.load_state_dict(checkpoint_state_dict)

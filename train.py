@@ -56,8 +56,8 @@ def parse_args():
                         help='build yolo')
     parser.add_argument('--topk', default=1000, type=int,
                         help='topk candidates for evaluation')
-    parser.add_argument('-p', '--coco_pretrained', default=None, type=str,
-                        help='coco pretrained weight')
+    parser.add_argument('-p', '--pretrained', default=None, type=str,
+                        help='load pretrained weight')
     parser.add_argument('-r', '--resume', default=None, type=str,
                         help='keep training')
     parser.add_argument("--no_decode", action="store_true", default=False,
@@ -130,8 +130,6 @@ def train():
         device=device,
         num_classes=num_classes,
         trainable=True,
-        coco_pretrained=args.coco_pretrained,
-        resume=args.resume
         )
     model = model.to(device).train()
 
