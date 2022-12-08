@@ -243,6 +243,7 @@ class COCODataset(Dataset):
 
 
 if __name__ == "__main__":
+    import time
     from transforms import TrainTransforms, ValTransforms
     
     img_size = 640
@@ -283,7 +284,10 @@ if __name__ == "__main__":
     print('Data length: ', len(dataset))
 
     for i in range(1000):
+        t0 = time.time()
         image, target = dataset.pull_item(i)
+        print('load data time: {:6f}'.format((time.time() - t0)*1000))
+        
         # to numpy
         image = image.permute(1, 2, 0).numpy()
         image = image.astype(np.uint8)
