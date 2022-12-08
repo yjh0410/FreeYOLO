@@ -29,35 +29,36 @@ def build_model(args,
         no_decode=args.no_decode
         )
 
-    # Load pretrained weight
-    if args.pretrained is not None:
-        print('Loading COCO pretrained weight ...')
-        checkpoint = torch.load(args.pretrained, map_location='cpu')
-        # checkpoint state dict
-        checkpoint_state_dict = checkpoint.pop("model")
-        # model state dict
-        model_state_dict = model.state_dict()
-        # check
-        for k in list(checkpoint_state_dict.keys()):
-            if k in model_state_dict:
-                shape_model = tuple(model_state_dict[k].shape)
-                shape_checkpoint = tuple(checkpoint_state_dict[k].shape)
-                if shape_model != shape_checkpoint:
+    if trainable:
+        # Load pretrained weight
+        if args.pretrained is not None:
+            print('Loading COCO pretrained weight ...')
+            checkpoint = torch.load(args.pretrained, map_location='cpu')
+            # checkpoint state dict
+            checkpoint_state_dict = checkpoint.pop("model")
+            # model state dict
+            model_state_dict = model.state_dict()
+            # check
+            for k in list(checkpoint_state_dict.keys()):
+                if k in model_state_dict:
+                    shape_model = tuple(model_state_dict[k].shape)
+                    shape_checkpoint = tuple(checkpoint_state_dict[k].shape)
+                    if shape_model != shape_checkpoint:
+                        checkpoint_state_dict.pop(k)
+                        print(k)
+                else:
                     checkpoint_state_dict.pop(k)
                     print(k)
-            else:
-                checkpoint_state_dict.pop(k)
-                print(k)
 
-        model.load_state_dict(checkpoint_state_dict, strict=False)
+            model.load_state_dict(checkpoint_state_dict, strict=False)
 
-    # keep training
-    if args.resume is not None:
-        print('keep training: ', args.resume)
-        checkpoint = torch.load(args.resume, map_location='cpu')
-        # checkpoint state dict
-        checkpoint_state_dict = checkpoint.pop("model")
-        model.load_state_dict(checkpoint_state_dict)
+        # keep training
+        if args.resume is not None:
+            print('keep training: ', args.resume)
+            checkpoint = torch.load(args.resume, map_location='cpu')
+            # checkpoint state dict
+            checkpoint_state_dict = checkpoint.pop("model")
+            model.load_state_dict(checkpoint_state_dict)
 
     if trainable:
         # build criterion for training
