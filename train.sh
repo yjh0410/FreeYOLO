@@ -11,5 +11,5 @@ python train.py \
         --eval_epoch 10 \
         --ema \
         --fp16 \
-        # --coco_pretrained weights/coco/yolo_free_large/yolo_free_large_47.1.pth \
+        # --pretrained weights/coco/yolo_free_large/yolo_free_large_47.1.pth \
         # --resume weights/coco/yolo_free_large/yolo_free_large_47.1.pth \
