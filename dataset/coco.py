@@ -1,6 +1,7 @@
 import os
 import random
 import numpy as np
+import time
 
 import torch
 from torch.utils.data import Dataset
@@ -175,6 +176,7 @@ class COCODataset(Dataset):
         
     def pull_item(self, index):
         # load a mosaic image
+        t0 = time.time()
         mosaic = False
         if random.random() < self.mosaic_prob:
             mosaic = True
@@ -198,8 +200,11 @@ class COCODataset(Dataset):
             img_id = self.ids[index]
             image, target = self.load_image_target(img_id)
 
+        print((time.time() - t0) * 1000)
         # augment
+        t1 = time.time()
         image, target = self.transform(image, target, mosaic)
+        print((time.time() - t1) * 1000)
 
         return image, target
 
@@ -272,7 +277,7 @@ if __name__ == "__main__":
         data_dir='D:\\python_work\\object-detection\\dataset\\COCO',
         image_set='val2017',
         transform=train_transform,
-        mosaic_prob=0.5,
+        mosaic_prob=1.0,
         mixup_prob=0.15,
         trans_config=trans_config
         )

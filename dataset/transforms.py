@@ -4,6 +4,7 @@ import math
 import numpy as np
 import torch
 import torchvision.transforms.functional as F
+import time
 
 
 def refine_targets(target, img_size, min_box_size):
@@ -371,13 +372,15 @@ class TrainTransforms(object):
         # rescale bboxes
         if target is not None:
             img_h, img_w = img.shape[:2]
+
+        if not mosaic:
             # rescale bbox
             boxes_ = target["boxes"].copy()
             boxes_[:, [0, 2]] = boxes_[:, [0, 2]] / img_w0 * img_w
             boxes_[:, [1, 3]] = boxes_[:, [1, 3]] / img_h0 * img_h
             target["boxes"] = boxes_
 
-        if not mosaic:
+            # spatial augment
             target_ = np.concatenate(
                 (target['labels'][..., None], target['boxes']), axis=-1)
             img, target_ = random_perspective(
@@ -406,7 +409,6 @@ class TrainTransforms(object):
 
         # refine target
         target = refine_targets(target, self.img_size, self.min_box_size)
-
         # to tensor
         img_tensor = torch.from_numpy(img).permute(2, 0, 1).contiguous().float()
 
