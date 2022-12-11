@@ -5,6 +5,7 @@ python train.py \
         --root /mnt/share/ssd2/dataset/ \
         -v yolo_free_tiny \
         -bs 16 \
+        -accu 4 \
         -lr 0.01 \
         -mlr 0.05 \
         --max_epoch 300 \

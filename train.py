@@ -47,7 +47,6 @@ def parse_args():
     parser.add_argument('-mlr', '--min_lr_ratio', default=0.05, type=float, 
                         help='base lr.')
 
-
     # Epoch
     parser.add_argument('--max_epoch', default=300, type=int, 
                         help='max epoch.')
@@ -165,7 +164,7 @@ def train():
     # batch size
     world_size = distributed_utils.get_world_size()
     single_gpu_bs = args.batch_size
-    accumulate = 64 // single_gpu_bs
+    accumulate = args.accumulate
     total_bs = single_gpu_bs * accumulate * world_size
 
     # learning rate
