@@ -7,7 +7,7 @@ Main results on COCO-val:
 
 | Model          |  Scale  |    AP    |    AP50    |  XML  |
 |----------------|---------|----------|------------|----------|
-| FreeYOLO-Nano  |  640    |      |        | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_nano_openvino.zip) |
+| FreeYOLO-Nano  |  640    |   30.5   |   50.3     | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_nano_openvino.zip) |
 | FreeYOLO-Tiny  |  640    |   34.4   |   53.9     | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_tiny_openvino.zip) |
 | FreeYOLO-Large |  640    |      |        | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_large_openvino.zip) |
 | FreeYOLO-Huge  |  640    |      |        |  |
