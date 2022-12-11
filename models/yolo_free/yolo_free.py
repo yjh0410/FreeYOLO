@@ -52,7 +52,8 @@ class FreeYOLO(nn.Module):
         self.obj_preds = nn.ModuleList(
                             [nn.Conv2d(head_dim, 1, kernel_size=1) 
                               for _ in range(len(cfg['stride']))
-                              ]) 
+                              ])
+        print(num_classes)
         self.cls_preds = nn.ModuleList(
                             [nn.Conv2d(head_dim, self.num_classes, kernel_size=1) 
                               for _ in range(len(cfg['stride']))
