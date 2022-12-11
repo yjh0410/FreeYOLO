@@ -41,7 +41,8 @@ def train_with_warmup(epoch,
                       dataloader, 
                       optimizer, 
                       warmup_scheduler,
-                      scaler):
+                      scaler,
+                      accumulate):
     epoch_size = len(dataloader)
     img_size = cfg['train_size']
     t0 = time.time()
@@ -86,7 +87,7 @@ def train_with_warmup(epoch,
         scaler.scale(losses).backward()
 
         # Optimize
-        if ni % args.accumulate == 0:
+        if ni % accumulate == 0:
             scaler.step(optimizer)
             scaler.update()
             optimizer.zero_grad()
@@ -131,7 +132,8 @@ def train_one_epoch(epoch,
                     cfg, 
                     dataloader, 
                     optimizer,
-                    scaler):
+                    scaler,
+                    accumulate):
     epoch_size = len(dataloader)
     img_size = cfg["train_size"]
     t0 = time.time()
@@ -173,7 +175,7 @@ def train_one_epoch(epoch,
         scaler.scale(losses).backward()
 
         # Optimize
-        if ni % args.accumulate == 0:
+        if ni % accumulate == 0:
             scaler.step(optimizer)
             scaler.update()
             optimizer.zero_grad()

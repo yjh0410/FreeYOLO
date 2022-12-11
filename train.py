@@ -42,6 +42,11 @@ def parse_args():
                         help='batch size on a single GPU.')
     parser.add_argument('-accu', '--accumulate', default=1, type=int, 
                         help='gradient accumulate.')
+    parser.add_argument('-lr', '--base_lr', default=0.01, type=float, 
+                        help='base lr.')
+    parser.add_argument('-mlr', '--min_lr_ratio', default=0.05, type=float, 
+                        help='base lr.')
+
 
     # Epoch
     parser.add_argument('--max_epoch', default=300, type=int, 
@@ -157,10 +162,17 @@ def train():
         # wait for all processes to synchronize
         dist.barrier()
 
-    # optimizer
+    # batch size
     world_size = distributed_utils.get_world_size()
-    base_lr = cfg['base_lr'] * args.batch_size * args.accumulate * world_size
-    min_lr = base_lr * cfg['min_lr_ratio']
+    single_gpu_bs = args.batch_size
+    accumulate = 64 // single_gpu_bs
+    total_bs = single_gpu_bs * accumulate * world_size
+
+    # learning rate
+    base_lr = args.base_lr * (total_bs / 64)
+    min_lr = base_lr * args.min_lr_ratio
+
+    # optimizer
     optimizer, start_epoch = build_optimizer(cfg, model_without_ddp, base_lr, args.resume)
     
     # warmup scheduler
@@ -206,7 +218,8 @@ def train():
                               dataloader=dataloader, 
                               optimizer=optimizer, 
                               warmup_scheduler=warmup_scheduler,
-                              scaler=scaler)
+                              scaler=scaler,
+                              accumulate=accumulate)
 
         else:
             if epoch == args.wp_epoch:
@@ -237,7 +250,8 @@ def train():
                             cfg=cfg, 
                             dataloader=dataloader, 
                             optimizer=optimizer,
-                            scaler=scaler)
+                            scaler=scaler,
+                            accumulate=accumulate)
         
         # eval
         if (epoch % args.eval_epoch) == 0 or (epoch == total_epochs - 1):
