@@ -155,7 +155,7 @@ def test(args,
                             class_indexs=class_indexs,
                             dataset_name=dataset_name)
         if show:
-            cv2.imshow('detection', img_processed)
+            cv2.imshow('detection', img_processed, fx=0.5, fy=0.5)
             cv2.waitKey(0)
         # save result
         cv2.imwrite(os.path.join(save_path, str(index).zfill(6) +'.jpg'), img_processed)
