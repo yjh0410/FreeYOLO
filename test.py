@@ -40,6 +40,8 @@ def parse_args():
                         help='Dir to save results')
     parser.add_argument('-vs', '--visual_threshold', default=0.35, type=float,
                         help='Final confidence threshold')
+    parser.add_argument('-ws', '--window_scale', default=1.0, type=float,
+                        help='resize window of cv2 for visualization.')
 
     # model
     parser.add_argument('-v', '--version', default='yolo_free_large', type=str,
@@ -155,7 +157,11 @@ def test(args,
                             class_indexs=class_indexs,
                             dataset_name=dataset_name)
         if show:
-            cv2.imshow('detection', img_processed, fx=0.5, fy=0.5)
+            h, w = img_processed.shape[:2]
+            sh, sw = int(w*args.window_scale), int(h*args.window_scale)
+            cv2.namedWindow('detection', 0)
+            cv2.resizeWindow('detection', sw, sh)
+            cv2.imshow('detection', img_processed)
             cv2.waitKey(0)
         # save result
         cv2.imwrite(os.path.join(save_path, str(index).zfill(6) +'.jpg'), img_processed)
