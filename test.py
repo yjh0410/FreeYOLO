@@ -6,19 +6,11 @@ import numpy as np
 from copy import deepcopy
 import torch
 
-# load dataset & labelmap
-from dataset.voc import VOC_CLASSES, VOCDetection
-from dataset.coco import coco_class_index, coco_class_labels, COCODataset
-from dataset.widerface import WIDERFace_CLASSES, WIDERFaceDetection
-from dataset.crowdhuman import crowd_class_labels, CrowdHumanDataset
-from dataset.mot17 import mot_class_labels, MOT17Dataset
-from dataset.mot20 import mot_class_labels, MOT20Dataset
-
 # load transform
 from dataset.transforms import ValTransforms
 
 # load some utils
-from utils.misc import load_weight
+from utils.misc import build_dataset, load_weight
 from utils.com_flops_params import FLOPs_and_Params
 from utils import fuse_conv_bn
 
@@ -60,6 +52,8 @@ def parse_args():
                         help='data root')
     parser.add_argument('-d', '--dataset', default='coco',
                         help='coco, voc.')
+    parser.add_argument('--min_box_size', default=8.0, type=float,
+                        help='min size of target bounding box.')
 
     return parser.parse_args()
 
@@ -158,7 +152,7 @@ def test(args,
                             dataset_name=dataset_name)
         if show:
             h, w = img_processed.shape[:2]
-            sh, sw = int(w*args.window_scale), int(h*args.window_scale)
+            sw, sh = int(w*args.window_scale), int(h*args.window_scale)
             cv2.namedWindow('detection', 0)
             cv2.resizeWindow('detection', sw, sh)
             cv2.imshow('detection', img_processed)
@@ -176,100 +170,17 @@ if __name__ == '__main__':
     else:
         device = torch.device("cpu")
 
+    # config
+    cfg = build_config(args)
+
     # dataset
-    if args.dataset == 'voc':
-        data_dir = os.path.join(args.root, 'VOCdevkit')
-        class_names = VOC_CLASSES
-        class_indexs = None
-        num_classes = 20
-        dataset = VOCDetection(data_dir=data_dir,
-                               image_sets=[('2007', 'test')],
-                               transform=None)
-
-    elif args.dataset == 'coco':
-        data_dir = os.path.join(args.root, 'COCO')
-        class_names = coco_class_labels
-        class_indexs = coco_class_index
-        num_classes = 80
-        dataset = COCODataset(data_dir=data_dir,
-                              image_set='val2017',
-                              transform=None)
-
-    elif args.dataset == 'widerface':
-        data_dir = os.path.join(args.root, 'WiderFace')
-        class_names = WIDERFace_CLASSES
-        class_indexs = None
-        num_classes = 1
-        dataset = WIDERFaceDetection(
-                data_dir=data_dir,
-                image_set='val',
-                transform=None)
-
-    elif args.dataset == 'crowdhuman':
-        data_dir = os.path.join(args.root, 'CrowdHuman')
-        class_names = crowd_class_labels
-        class_indexs = None
-        num_classes = 1
-        dataset = CrowdHumanDataset(
-                data_dir=data_dir,
-                image_set='val',
-                transform=None)
-
-    elif args.dataset == 'mot17_half':
-        data_dir = os.path.join(args.root, 'MOT17')
-        class_names = mot_class_labels
-        class_indexs = None
-        num_classes = 1
-        dataset = MOT17Dataset(
-                data_dir=data_dir,
-                image_set='train',
-                json_file='val_half.json',
-                transform=None)
-
-    elif args.dataset == 'mot17_test':
-        data_dir = os.path.join(args.root, 'MOT17')
-        class_names = mot_class_labels
-        class_indexs = None
-        num_classes = 1
-        dataset = MOT17Dataset(
-                data_dir=data_dir,
-                image_set='test',
-                json_file='test.json',
-                transform=None)
-
-    elif args.dataset == 'mot20_half':
-        data_dir = os.path.join(args.root, 'MOT20')
-        class_names = mot_class_labels
-        class_indexs = None
-        num_classes = 1
-        dataset = MOT20Dataset(
-                data_dir=data_dir,
-                image_set='train',
-                json_file='val_half.json',
-                transform=None)
-
-    elif args.dataset == 'mot20_test':
-        data_dir = os.path.join(args.root, 'MOT20')
-        class_names = mot_class_labels
-        class_indexs = None
-        num_classes = 1
-        dataset = MOT20Dataset(
-                data_dir=data_dir,
-                image_set='test',
-                json_file='test.json',
-                transform=None)
-
-    else:
-        print('unknow dataset !! Only support voc and coco !!')
-        exit(0)
+    dataset, dataset_info, _ = build_dataset(cfg, args, device, is_train=False)
+    num_classes, class_names, class_indexs = dataset_info
 
     np.random.seed(0)
     class_colors = [(np.random.randint(255),
                      np.random.randint(255),
                      np.random.randint(255)) for _ in range(num_classes)]
-
-    # config
-    cfg = build_config(args)
 
     # build model
     model = build_model(args=args, 
@@ -295,7 +206,7 @@ if __name__ == '__main__':
     # fuse conv bn
     if args.fuse_conv_bn:
         print('fuse conv and bn ...')
-        model = fuse_conv_bn(model)
+        model = fuse_conv_bn.fuse_conv_bn(model)
 
     # transform
     transform = ValTransforms(img_size=args.img_size)

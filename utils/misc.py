@@ -12,16 +12,16 @@ from evaluator.widerface_evaluator import WiderFaceEvaluator
 from evaluator.crowdhuman_evaluator import CrowdHumanEvaluator
 from evaluator.mot_evaluator import MOTEvaluator
 
-from dataset.voc import VOCDetection
-from dataset.coco import COCODataset
-from dataset.widerface import WIDERFaceDetection
-from dataset.crowdhuman import CrowdHumanDataset
-from dataset.mot17 import MOT17Dataset
-from dataset.mot20 import MOT20Dataset
+from dataset.voc import VOCDetection, VOC_CLASSES
+from dataset.coco import COCODataset, coco_class_index, coco_class_labels
+from dataset.widerface import WIDERFaceDetection, WIDERFace_CLASSES
+from dataset.crowdhuman import CrowdHumanDataset, crowd_class_labels
+from dataset.mot17 import MOT17Dataset, mot_class_labels
+from dataset.mot20 import MOT20Dataset, mot_class_labels
 from dataset.transforms import TrainTransforms, ValTransforms
 
 
-def build_dataset(cfg, args, device):
+def build_dataset(cfg, args, device, is_train=False):
     # transform
     print('==============================')
     print('TrainTransforms: {}'.format(cfg['trans_config']))
@@ -31,115 +31,151 @@ def build_dataset(cfg, args, device):
         min_box_size=args.min_box_size
         )
     val_transform = ValTransforms(img_size=cfg['test_size'])
-        
+    
+    # dataset params
+    transform = train_transform if is_train else None
+    mosaic_prob=cfg['mosaic_prob'] if is_train else 0.0
+    mixup_prob=cfg['mixup_prob']  if is_train else 0.0
+    trans_config=cfg['trans_config'] if is_train else None
+
     # dataset
     if args.dataset == 'voc':
         data_dir = os.path.join(args.root, 'VOCdevkit')
         num_classes = 20
+        class_names = VOC_CLASSES
+        class_indexs = None
 
         # dataset
         dataset = VOCDetection(
             img_size=cfg['train_size'],
             data_dir=data_dir,
-            transform=train_transform,
-            mosaic_prob=cfg['mosaic_prob'],
-            mixup_prob=cfg['mixup_prob'],
-            trans_config=cfg['trans_config']
+            image_sets=[('2007', 'trainval'), ('2012', 'trainval')] if is_train else [('2007', 'test')],
+            transform=transform,
+            mosaic_prob=mosaic_prob,
+            mixup_prob=mixup_prob,
+            trans_config=trans_config
             )
         # evaluator
-        evaluator = VOCAPIEvaluator(
-            data_dir=data_dir,
-            device=device,
-            transform=val_transform)
+        if is_train:
+            evaluator = VOCAPIEvaluator(
+                data_dir=data_dir,
+                device=device,
+                transform=val_transform)
+        else:
+            evaluator = None
 
     elif args.dataset == 'coco':
         data_dir = os.path.join(args.root, 'COCO')
         num_classes = 80
+        class_names = coco_class_labels
+        class_indexs = coco_class_index
+
         # dataset
         dataset = COCODataset(
             img_size=cfg['train_size'],
             data_dir=data_dir,
-            image_set='train2017',
-            transform=train_transform,
-            mosaic_prob=cfg['mosaic_prob'],
-            mixup_prob=cfg['mixup_prob'],
-            trans_config=cfg['trans_config']
+            image_set='train2017' if is_train else 'val2017',
+            transform=transform,
+            mosaic_prob=mosaic_prob,
+            mixup_prob=mixup_prob,
+            trans_config=trans_config
             )
         # evaluator
-        evaluator = COCOAPIEvaluator(
-            data_dir=data_dir,
-            device=device,
-            transform=val_transform
-            )
+        if is_train:
+            evaluator = COCOAPIEvaluator(
+                data_dir=data_dir,
+                device=device,
+                transform=val_transform
+                )
+        else:
+            evaluator = None
 
     elif args.dataset == 'widerface':
         data_dir = os.path.join(args.root, 'WiderFace')
         num_classes = 1
+        class_names = WIDERFace_CLASSES
+        class_indexs = None
 
         # dataset
         dataset = WIDERFaceDetection(
             img_size=cfg['train_size'],
             data_dir=data_dir,
-            transform=train_transform,
-            mosaic_prob=cfg['mosaic_prob'],
-            mixup_prob=cfg['mixup_prob'],
-            trans_config=cfg['trans_config']
+            image_set='train' if is_train else 'val',
+            transform=transform,
+            mosaic_prob=mosaic_prob,
+            mixup_prob=mixup_prob,
+            trans_config=trans_config
             )
         # evaluator
-        evaluator = WiderFaceEvaluator(
-            data_dir=data_dir,
-            device=device,
-            image_set='val',
-            transform=val_transform)
+        if is_train:
+            evaluator = WiderFaceEvaluator(
+                data_dir=data_dir,
+                device=device,
+                image_set='val',
+                transform=val_transform)
+        else:
+            evaluator = None
 
     elif args.dataset == 'crowdhuman':
         data_dir = os.path.join(args.root, 'CrowdHuman')
         num_classes = 1
+        class_names = crowd_class_labels
+        class_indexs = None
 
         # dataset
         dataset = CrowdHumanDataset(
             data_dir=data_dir,
             img_size=cfg['train_size'],
-            image_set='train',
-            transform=train_transform,
-            mosaic_prob=cfg['mosaic_prob'],
-            mixup_prob=cfg['mixup_prob'],
-            trans_config=cfg['trans_config']
+            image_set='train' if is_train else 'val',
+            transform=transform,
+            mosaic_prob=mosaic_prob,
+            mixup_prob=mixup_prob,
+            trans_config=trans_config
             )
         # evaluator
-        evaluator = CrowdHumanEvaluator(
-            data_dir=data_dir,
-            device=device,
-            image_set='val',
-            transform=val_transform
-        )
+        if is_train:
+            evaluator = CrowdHumanEvaluator(
+                data_dir=data_dir,
+                device=device,
+                image_set='val',
+                transform=val_transform
+            )
+        else:
+            evaluator = None
 
     elif args.dataset == 'mot17_half':
         data_dir = os.path.join(args.root, 'MOT17')
         num_classes = 1
+        class_names = mot_class_labels
+        class_indexs = None
 
         # dataset
         dataset = MOT17Dataset(
             data_dir=data_dir,
             img_size=cfg['train_size'],
             image_set='train',
-            json_file='train_half.json',
-            transform=train_transform,
-            mosaic_prob=cfg['mosaic_prob'],
-            mixup_prob=cfg['mixup_prob'],
-            trans_config=cfg['trans_config']
+            json_file='train_half.json' if is_train else 'val_half.json',
+            transform=transform,
+            mosaic_prob=mosaic_prob,
+            mixup_prob=mixup_prob,
+            trans_config=trans_config
             )
         # evaluator
-        evaluator = MOTEvaluator(
-            data_dir=data_dir,
-            device=device,
-            dataset='mot17',
-            transform=val_transform
-            )
+        if is_train:
+            evaluator = MOTEvaluator(
+                data_dir=data_dir,
+                device=device,
+                dataset='mot17',
+                transform=val_transform
+                )
+        else:
+            evaluator = None
 
     elif args.dataset == 'mot17':
         data_dir = os.path.join(args.root, 'MOT17')
         num_classes = 1
+        class_names = mot_class_labels
+        class_indexs = None
 
         # dataset
         dataset = MOT17Dataset(
@@ -147,40 +183,62 @@ def build_dataset(cfg, args, device):
             img_size=cfg['train_size'],
             image_set='train',
             json_file='train.json',
-            transform=train_transform,
-            mosaic_prob=cfg['mosaic_prob'],
-            mixup_prob=cfg['mixup_prob'],
-            trans_config=cfg['trans_config']
+            transform=transform,
+            mosaic_prob=mosaic_prob,
+            mixup_prob=mixup_prob,
+            trans_config=trans_config
             )
+        # evaluator
+        evaluator = None
+
+    elif args.dataset == 'mot17_test':
+        data_dir = os.path.join(args.root, 'MOT17')
+        num_classes = 1
+        class_names = mot_class_labels
+        class_indexs = None
+
+        # dataset
+        dataset = MOT17Dataset(
+                data_dir=data_dir,
+                image_set='test',
+                json_file='test.json',
+                transform=None)
         # evaluator
         evaluator = None
 
     elif args.dataset == 'mot20_half':
         data_dir = os.path.join(args.root, 'MOT20')
         num_classes = 1
+        class_names = mot_class_labels
+        class_indexs = None
 
         # dataset
         dataset = MOT20Dataset(
             data_dir=data_dir,
             img_size=cfg['train_size'],
             image_set='train',
-            json_file='train_half.json',
-            transform=train_transform,
-            mosaic_prob=cfg['mosaic_prob'],
-            mixup_prob=cfg['mixup_prob'],
-            trans_config=cfg['trans_config']
+            json_file='train_half.json' if is_train else 'val_half.json',
+            transform=transform,
+            mosaic_prob=mosaic_prob,
+            mixup_prob=mixup_prob,
+            trans_config=trans_config
             )
         # evaluator
-        evaluator = MOTEvaluator(
-            data_dir=data_dir,
-            device=device,
-            dataset='mot20',
-            transform=val_transform
-            )
+        if is_train:
+            evaluator = MOTEvaluator(
+                data_dir=data_dir,
+                device=device,
+                dataset='mot20',
+                transform=val_transform
+                )
+        else:
+            evaluator = None
 
     elif args.dataset == 'mot20':
         data_dir = os.path.join(args.root, 'MOT20')
         num_classes = 1
+        class_names = mot_class_labels
+        class_indexs = None
 
         # dataset
         dataset = MOT20Dataset(
@@ -188,11 +246,26 @@ def build_dataset(cfg, args, device):
             img_size=cfg['train_size'],
             image_set='train',
             json_file='train.json',
-            transform=train_transform,
-            mosaic_prob=cfg['mosaic_prob'],
-            mixup_prob=cfg['mixup_prob'],
-            trans_config=cfg['trans_config']
+            transform=transform,
+            mosaic_prob=mosaic_prob,
+            mixup_prob=mixup_prob,
+            trans_config=trans_config
             )
+        # evaluator
+        evaluator = None
+
+    elif args.dataset == 'mot20_test':
+        data_dir = os.path.join(args.root, 'MOT20')
+        num_classes = 1
+        class_names = mot_class_labels
+        class_indexs = None
+
+        # dataset
+        dataset = MOT20Dataset(
+                data_dir=data_dir,
+                image_set='test',
+                json_file='test.json',
+                transform=None)
         # evaluator
         evaluator = None
 
@@ -201,10 +274,10 @@ def build_dataset(cfg, args, device):
         exit(0)
 
     print('==============================')
-    print('Training model on:', args.dataset)
-    print('The dataset size:', len(dataset))
+    print('Dataset name: {}'.format(args.dataset))
+    print('Dataset size: {}'.format(len(dataset)))
 
-    return dataset, evaluator, num_classes
+    return dataset, (num_classes, class_names, class_indexs), evaluator
 
 
 def build_dataloader(args, dataset, batch_size, collate_fn=None):

@@ -129,7 +129,7 @@ if __name__ == '__main__':
     # fuse conv bn
     if args.fuse_conv_bn:
         print('fuse conv and bn ...')
-        model = fuse_conv_bn(model)
+        model = fuse_conv_bn.fuse_conv_bn(model)
 
     # transform
     transform = ValTransforms(img_size=args.img_size)

@@ -122,7 +122,8 @@ def train():
     cfg = build_config(args)
 
     # dataset and evaluator
-    dataset, evaluator, num_classes = build_dataset(cfg, args, device)
+    dataset, dataset_info, evaluator = build_dataset(cfg, args, device, is_train=True)
+    num_classes = dataset_info[0]
 
     # dataloader
     dataloader = build_dataloader(args, dataset, args.batch_size, CollateFunc())
