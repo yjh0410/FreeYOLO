@@ -125,7 +125,7 @@ Main results on CrowdHuman-val:
 | Model          |  Scale  |    AP    |    AP50    |  Weight  |
 |----------------|---------|----------|------------|----------|
 | FreeYOLO-Nano  |  640    |   31.3   |   67.2     | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_nano_ch_31.3.pth) |
-| FreeYOLO-Tiny  |  640    |      |        |  |
+| FreeYOLO-Tiny  |  640    |   34.7   |   70.4     | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_tiny_ch_34.7.pth) |
 | FreeYOLO-Large |  640    |      |        |  |
 | FreeYOLO-Huge  |  640    |      |        |  |
 
