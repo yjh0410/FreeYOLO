@@ -183,6 +183,7 @@ def image_eval(pred, gt, ignore, iou_thresh):
     _gt[:, 3] = _gt[:, 3] + _gt[:, 1]
 
     overlaps = bbox_overlaps(_pred[:, :4], _gt)
+    print(overlaps)
 
     for h in range(_pred.shape[0]):
 
@@ -274,7 +275,6 @@ def evaluation(pred_path, gt_path, iou_thresh=0.5):
                 pred_info = pred_list[str(img_list[j][0][0])]
 
                 gt_boxes = gt_bbx_list[j][0].astype('float')
-                print(gt_boxes)
                 keep_index = sub_gt_list[j][0]
                 count_face += len(keep_index)
 
