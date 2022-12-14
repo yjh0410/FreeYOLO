@@ -342,7 +342,7 @@ class WiderFaceEvaluator():
         if len(scores) == 0:
             det = np.zeros([1, 5], dtype=np.float32)
         else:
-            det = np.concatenate([bboxes, scores[..., None]], axis=0)
+            det = np.concatenate([bboxes, scores[..., None]], axis=1)
 
         return det
 
