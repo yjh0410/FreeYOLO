@@ -343,6 +343,7 @@ class WiderFaceEvaluator():
         scores_ = []
         for i, box in enumerate(bboxes):
             x1, y1, x2, y2 = box
+            print(x1, y1, x2, y2)
             score = scores[i]
             if score > 0.01:
                 boxes_.append([x1, y1, x2, y2])
