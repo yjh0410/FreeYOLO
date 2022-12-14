@@ -252,6 +252,7 @@ def evaluation(pred_path, gt_path, iou_thresh=0.5):
     event_num = len(event_list)
     thresh_num = 1000
     settings = ['easy', 'medium', 'hard']
+    settings = ['easy']
     setting_gts = [easy_gt_list, medium_gt_list, hard_gt_list]
     aps = []
     for setting_id in range(3):
@@ -282,6 +283,7 @@ def evaluation(pred_path, gt_path, iou_thresh=0.5):
                 ignore = np.zeros(gt_boxes.shape[0])
                 if len(keep_index) != 0:
                     ignore[keep_index-1] = 1
+                print(pred_info)
                 pred_recall, proposal_list = image_eval(pred_info, gt_boxes, ignore, iou_thresh)
 
                 _img_pr_info = img_pr_info(thresh_num, pred_info, proposal_list, pred_recall)
