@@ -121,8 +121,16 @@ if __name__ == '__main__':
         print('eval on coco-test-dev ...')
         num_classes = 80
         data_dir = os.path.join(args.root, 'COCO')
+    elif args.dataset == 'widerface':
+        print('eval on widerface ...')
+        num_classes = 1
+        data_dir = os.path.join(args.root, 'WiderFace')
+    elif args.dataset == 'crowdhuman':
+        print('eval on crowdhuman ...')
+        num_classes = 1
+        data_dir = os.path.join(args.root, 'CrowdHuman')
     else:
-        print('unknow dataset !! we only support voc, coco-val, coco-test !!!')
+        print('unknow dataset !!')
         exit(0)
 
     # config
@@ -160,3 +168,7 @@ if __name__ == '__main__':
             coco_test(model, data_dir, device, transform, test=False)
         elif args.dataset == 'coco-test':
             coco_test(model, data_dir, device, transform, test=True)
+        elif args.dataset == 'widerface':
+            widerface_test(model, data_dir, device, transform)
+        elif args.dataset == 'crowdhuman':
+            crowdhuman_test(model, data_dir, device, transform)
