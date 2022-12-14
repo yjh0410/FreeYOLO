@@ -99,7 +99,7 @@ class WIDERFaceDetection(data.Dataset):
             for im_idx, im in enumerate(self.file_list[event_idx][0]):
                 im_name = im[0][0]
 
-                if self.image_set in [ 'test' , 'val']:
+                if self.image_set in [ 'test']:
                     self.img_ids.append( osp.join(self.path_to_image, directory,  im_name + '.jpg') )
                     self.event_ids.append( directory )
                     self.label_ids.append([])
@@ -157,6 +157,7 @@ class WIDERFaceDetection(data.Dataset):
             "labels": anno[:, 4],
             "orig_size": [height, width]
         }
+        print(target)
         
         return image, target
 
@@ -265,7 +266,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='FreeYOLO-Seg')
 
     # opt
-    parser.add_argument('--root', default='D:\\python_work\\object-detection\\dataset\\COCO',
+    parser.add_argument('--root', default='D:\\python_work\\object-detection\\dataset\\WiderFace',
                         help='data root')
 
     args = parser.parse_args()
@@ -294,7 +295,7 @@ if __name__ == "__main__":
     dataset = WIDERFaceDetection(
         img_size=img_size,
         data_dir=args.root,
-        image_set='train',
+        image_set='val',
         transform=train_transform,
         mosaic_prob=0.5,
         mixup_prob=0.15,
