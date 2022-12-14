@@ -75,6 +75,33 @@ Main results on COCO-val:
 
 New AP results and weight files are coming ...
 
+## WiderFace
+- Download [WiderFace](http://shuoyang1213.me/WIDERFACE/).
+
+- Prepare WiderFace
+```
+WiderFace
+|_ WIDER_train
+|  |_ images
+|     |_ 0--Parade
+|     |_ ...
+|_ WIDER_tval
+|  |_ images
+|     |_ 0--Parade
+|     |_ ...
+|_ wider_face_split
+|_ eval_tools
+```
+
+Main results on WiderFace-val:
+
+| Model          |  Scale  |   Easy   |  Medium  |  Hard  |  Weight  |
+|----------------|---------|----------|----------|--------|----------|
+| FreeYOLO-Nano  |  640    |      |      |    |  |
+| FreeYOLO-Tiny  |  640    |      |      |    |  |
+| FreeYOLO-Large |  640    |      |      |    |  |
+| FreeYOLO-Huge  |  640    |      |      |    |  |
+
 ## CrowdHuman
 - Download [CrowdHuman](https://www.crowdhuman.org/).
 ```
