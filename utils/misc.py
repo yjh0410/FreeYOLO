@@ -36,11 +36,16 @@ def build_dataset(cfg, args, device, is_train=False):
     transform = train_transform if is_train else None
     trans_config=cfg['trans_config'] if is_train else None
 
-    if args.no_mosaic:
-        mosaic_prob=0.0
-        mixup_prob=0.0
+    # mosaic prob.
+    if args.mosaic is not None:
+        mosaic_prob=args.mosaic if is_train else 0.0
     else:
         mosaic_prob=cfg['mosaic_prob'] if is_train else 0.0
+
+    # mixup prob.
+    if args.mixup is not None:
+        mixup_prob=args.mixup if is_train else 0.0
+    else:
         mixup_prob=cfg['mixup_prob']  if is_train else 0.0
 
     # dataset

@@ -107,7 +107,7 @@ python dataset/widerface.py
 - Train on WiderFace
 For example:
 ```Shell
-python train.py --cuda -d widerface -v yolo_free_nano -bs 16 -accu 4 --max_epoch 100 --wp_epoch 1 --eval_epoch 10 --fp16 --ema --root path/to/WiderFace --pretrained path/to/coco/yolo_free_nano_ckpt
+python train.py --cuda -d widerface -v yolo_free_nano -bs 16 -accu 4 --max_epoch 100 --wp_epoch 1 --eval_epoch 10 --fp16 --ema --root path/to/WiderFace --pretrained path/to/coco/yolo_free_nano_ckpt --mosaic 0.5, --mixup 0.0
 ```
 
 Main results on WiderFace-val:
