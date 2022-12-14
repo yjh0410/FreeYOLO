@@ -9,10 +9,12 @@ from copy import deepcopy
 from evaluator.coco_evaluator import COCOAPIEvaluator
 from evaluator.voc_evaluator import VOCAPIEvaluator
 from evaluator.crowdhuman_evaluator import CrowdHumanEvaluator
+from evaluator.widerface_evaluator import WiderFaceEvaluator
 from evaluator.mot_evaluator import MOTEvaluator
 
 from dataset.voc import VOCDetection, VOC_CLASSES
 from dataset.coco import COCODataset, coco_class_index, coco_class_labels
+from dataset.widerface import WiderFaceDataset, widerface_class_labels
 from dataset.crowdhuman import CrowdHumanDataset, crowd_class_labels
 from dataset.mot17 import MOT17Dataset, mot_class_labels
 from dataset.mot20 import MOT20Dataset, mot_class_labels
@@ -85,6 +87,33 @@ def build_dataset(cfg, args, device, is_train=False):
                 device=device,
                 transform=val_transform
                 )
+        else:
+            evaluator = None
+
+    elif args.dataset == 'widerface':
+        data_dir = os.path.join(args.root, 'WiderFace')
+        num_classes = 1
+        class_names = widerface_class_labels
+        class_indexs = None
+
+        # dataset
+        dataset = WiderFaceDataset(
+            data_dir=data_dir,
+            img_size=cfg['train_size'],
+            image_set='train' if is_train else 'val',
+            transform=transform,
+            mosaic_prob=mosaic_prob,
+            mixup_prob=mixup_prob,
+            trans_config=trans_config
+            )
+        # evaluator
+        if is_train:
+            evaluator = WiderFaceEvaluator(
+                data_dir=data_dir,
+                device=device,
+                image_set='val',
+                transform=val_transform
+            )
         else:
             evaluator = None
 
