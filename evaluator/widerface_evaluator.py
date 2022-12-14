@@ -338,24 +338,12 @@ class WiderFaceEvaluator():
         # rescale
         bboxes *= max(orig_h, orig_w)
 
-        # threshold
-        boxes_=[]
-        scores_ = []
-        for i, box in enumerate(bboxes):
-            x1, y1, x2, y2 = box
-            print(x1, y1, x2, y2)
-            score = scores[i]
-            if score > 0.01:
-                boxes_.append([x1, y1, x2, y2])
-                scores_.append(score)
+        # check
+        if len(scores) == 0:
+            det = np.zeros([1, 5], dtype=np.float32)
+        else:
+            det = np.concatenate([bboxes, scores[..., None]], axis=0)
 
-        scores = np.array(scores_)
-        bboxes = np.array(boxes_)
-
-        if bboxes.shape[0] == 0:
-            return np.array([[0,0,0,0,0.001]])
-
-        det = np.column_stack((bboxes, scores))
         return det
 
 
