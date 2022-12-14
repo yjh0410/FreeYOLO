@@ -252,7 +252,6 @@ def evaluation(pred_path, gt_path, iou_thresh=0.5):
     event_num = len(event_list)
     thresh_num = 1000
     settings = ['easy', 'medium', 'hard']
-    settings = ['easy']
     setting_gts = [easy_gt_list, medium_gt_list, hard_gt_list]
     aps = []
     for setting_id in range(3):
@@ -283,7 +282,6 @@ def evaluation(pred_path, gt_path, iou_thresh=0.5):
                 ignore = np.zeros(gt_boxes.shape[0])
                 if len(keep_index) != 0:
                     ignore[keep_index-1] = 1
-                print(pred_info)
                 pred_recall, proposal_list = image_eval(pred_info, gt_boxes, ignore, iou_thresh)
 
                 _img_pr_info = img_pr_info(thresh_num, pred_info, proposal_list, pred_recall)
@@ -381,8 +379,8 @@ class WiderFaceEvaluator():
 
             det = self.detect_face(model, image)  # origin test
             event_path = os.path.join(self.pred_path, event)
-            os.makedirs(event_path, exist_ok=True)
-
+            if not os.path.exists(event_path):
+                os.makedirs(event_path)
             f = open(event_path + '/' + img_id.split(".")[0] + '.txt', 'w')
             self.write_to_txt(f, det , event, img_id)
 
