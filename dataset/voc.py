@@ -242,8 +242,18 @@ class VOCDetection(data.Dataset):
 
 
 if __name__ == "__main__":
+    import time
+    import argparse
     from transforms import TrainTransforms, ValTransforms
     
+    parser = argparse.ArgumentParser(description='FreeYOLO-Seg')
+
+    # opt
+    parser.add_argument('--root', default='D:\\python_work\\object-detection\\dataset\\COCO',
+                        help='data root')
+    
+    args = parser.parse_args()
+
     img_size = 640
     trans_config = {
         'degrees': 0.0,
@@ -267,7 +277,7 @@ if __name__ == "__main__":
 
     dataset = VOCDetection(
         img_size=img_size,
-        data_dir='D:\\python_work\\object-detection\\dataset\\VOCdevkit',
+        data_dir=args.root,
         transform=train_transform,
         mosaic_prob=0.5,
         mixup_prob=0.15,

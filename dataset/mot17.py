@@ -211,7 +211,17 @@ class MOT17Dataset(Dataset):
 
 
 if __name__ == "__main__":
+    import time
+    import argparse
     from transforms import TrainTransforms, ValTransforms
+    
+    parser = argparse.ArgumentParser(description='FreeYOLO-Seg')
+
+    # opt
+    parser.add_argument('--root', default='D:\\python_work\\object-detection\\dataset\\COCO',
+                        help='data root')
+
+    args = parser.parse_args()
     
     img_size = 640
     trans_config = {
@@ -236,7 +246,7 @@ if __name__ == "__main__":
 
     dataset = MOT17Dataset(
         img_size=img_size,
-        data_dir='/mnt/share/ssd2/dataset/MOT17/',
+        data_dir=args.root,
         image_set='train',
         json_file='val_half.json',
         transform=train_transform,
