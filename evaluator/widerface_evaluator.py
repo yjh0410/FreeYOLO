@@ -274,6 +274,7 @@ def evaluation(pred_path, gt_path, iou_thresh=0.5):
                 pred_info = pred_list[str(img_list[j][0][0])]
 
                 gt_boxes = gt_bbx_list[j][0].astype('float')
+                print(gt_boxes)
                 keep_index = sub_gt_list[j][0]
                 count_face += len(keep_index)
 
