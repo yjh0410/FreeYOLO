@@ -99,7 +99,7 @@ class WIDERFaceDetection(data.Dataset):
             for im_idx, im in enumerate(self.file_list[event_idx][0]):
                 im_name = im[0][0]
 
-                if self.image_set in [ 'test']:
+                if self.image_set in [ 'test' , 'val']:
                     self.img_ids.append( osp.join(self.path_to_image, directory,  im_name + '.jpg') )
                     self.event_ids.append( directory )
                     self.label_ids.append([])
@@ -157,7 +157,6 @@ class WIDERFaceDetection(data.Dataset):
             "labels": anno[:, 4],
             "orig_size": [height, width]
         }
-        print(target)
         
         return image, target
 
