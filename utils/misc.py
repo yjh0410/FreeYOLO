@@ -34,9 +34,14 @@ def build_dataset(cfg, args, device, is_train=False):
     
     # dataset params
     transform = train_transform if is_train else None
-    mosaic_prob=cfg['mosaic_prob'] if is_train else 0.0
-    mixup_prob=cfg['mixup_prob']  if is_train else 0.0
     trans_config=cfg['trans_config'] if is_train else None
+
+    if args.no_mosaic:
+        mosaic_prob=0.0
+        mixup_prob=0.0
+    else:
+        mosaic_prob=cfg['mosaic_prob'] if is_train else 0.0
+        mixup_prob=cfg['mixup_prob']  if is_train else 0.0
 
     # dataset
     if args.dataset == 'voc':

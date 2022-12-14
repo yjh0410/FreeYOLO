@@ -246,8 +246,8 @@ if __name__ == "__main__":
         data_dir=args.root,
         image_set='val',
         transform=train_transform,
-        mosaic_prob=0.5,
-        mixup_prob=0.15,
+        mosaic_prob=0.0,
+        mixup_prob=0.0,
         trans_config=trans_config
         )
     

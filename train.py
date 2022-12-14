@@ -78,6 +78,8 @@ def parse_args():
                         help='Model EMA')
     parser.add_argument('--min_box_size', default=8.0, type=float,
                         help='min size of target bounding box.')
+    parser.add_argument('--no_mosaic', action='store_true', default=False,
+                        help='cancel mosaic augmentation.')
 
     # DDP train
     parser.add_argument('-dist', '--distributed', action='store_true', default=False,
@@ -265,13 +267,14 @@ def train():
                             path_to_save=path_to_save)
 
         # close mosaic augmentation
-        if cfg['mosaic_prob'] > 0. and total_epochs - epoch == cfg['no_aug_epoch']:
-            print('close Mosaic Augmentation ...')
-            dataloader.dataset.mosaic_prob = 0.
-        # close mixup augmentation
-        if cfg['mixup_prob'] > 0. and total_epochs - epoch == cfg['no_aug_epoch']:
-            print('close Mixup Augmentation ...')
-            dataloader.dataset.mixup_prob = 0.
+        if not args.no_mosaic:
+            if cfg['mosaic_prob'] > 0. and total_epochs - epoch == cfg['no_aug_epoch']:
+                print('close Mosaic Augmentation ...')
+                dataloader.dataset.mosaic_prob = 0.
+            # close mixup augmentation
+            if cfg['mixup_prob'] > 0. and total_epochs - epoch == cfg['no_aug_epoch']:
+                print('close Mixup Augmentation ...')
+                dataloader.dataset.mixup_prob = 0.
 
 
 if __name__ == '__main__':

@@ -73,7 +73,51 @@ Main results on COCO-val:
 | FreeYOLO-Large |  640    |                    |  144.8 G |  44.1 M  |   48.3   |    68.5    | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_large_48.3.pth) |
 | FreeYOLO-Huge  |  640    |                    |  257.8 G |  78.9 M  |      |        |  |
 
-New AP results and weight files are coming ...
+
+## WiderFace
+- Download [WiderFace](http://shuoyang1213.me/WIDERFACE/).
+
+- Prepare WiderFace
+```
+WiderFace
+|_ WIDER_train
+|  |_ images
+|     |_ 0--Parade
+|     |_ ...
+|_ WIDER_tval
+|  |_ images
+|     |_ 0--Parade
+|     |_ ...
+|_ wider_face_split
+|_ eval_tools
+```
+
+- Convert WiderFace to COCO format.
+```Shell
+cd <FreeYOLO_HOME>
+python tools/convert_widerface_to_coco.py --root path/to/WiderFace
+```
+
+- Check WiderFace
+```Shell
+cd <FreeYOLO_HOME>
+python dataset/widerface.py
+```
+
+- Train on WiderFace
+For example:
+```Shell
+python train.py --cuda -d widerface -v yolo_free_nano -bs 16 -accu 4 --max_epoch 100 --wp_epoch 1 --eval_epoch 10 --fp16 --ema --root path/to/WiderFace --pretrained path/to/coco/yolo_free_nano_ckpt
+```
+
+Main results on WiderFace-val:
+
+| Model          |  Scale  |    AP    |    AP50    |  Weight  |
+|----------------|---------|----------|------------|----------|
+| FreeYOLO-Nano  |  640    |      |        |  |
+| FreeYOLO-Tiny  |  640    |      |        |  |
+| FreeYOLO-Large |  640    |      |        |  |
+| FreeYOLO-Huge  |  640    |      |        |  |
 
 ## CrowdHuman
 - Download [CrowdHuman](https://www.crowdhuman.org/).
