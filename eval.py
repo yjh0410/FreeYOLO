@@ -6,7 +6,6 @@ import torch
 
 from evaluator.voc_evaluator import VOCAPIEvaluator
 from evaluator.coco_evaluator import COCOAPIEvaluator
-from evaluator.widerface_evaluator import WiderFaceEvaluator
 from evaluator.crowdhuman_evaluator import CrowdHumanEvaluator
 
 from dataset.transforms import ValTransforms
@@ -74,17 +73,6 @@ def coco_test(model, data_dir, device, transform, test=False):
                         transform=transform)
 
     # COCO evaluation
-    evaluator.evaluate(model)
-
-
-def widerface_test(model, data_dir, device, transform):
-    evaluator = WiderFaceEvaluator(
-        data_dir=data_dir,
-        device=device,
-        image_set='val',
-        transform=transform)
-
-    # WiderFace evaluation
     evaluator.evaluate(model)
 
 
