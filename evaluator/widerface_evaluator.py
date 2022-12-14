@@ -183,7 +183,6 @@ def image_eval(pred, gt, ignore, iou_thresh):
     _gt[:, 3] = _gt[:, 3] + _gt[:, 1]
 
     overlaps = bbox_overlaps(_pred[:, :4], _gt)
-    print(overlaps)
 
     for h in range(_pred.shape[0]):
 
