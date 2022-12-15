@@ -40,6 +40,10 @@ def parse_args():
                         help='data root')
     parser.add_argument('-d', '--dataset', default='coco',
                         help='coco, voc.')
+    parser.add_argument('--mosaic', default=None, type=float,
+                        help='mosaic augmentation.')
+    parser.add_argument('--mixup', default=None, type=float,
+                        help='mixup augmentation.')
 
     return parser.parse_args()
 

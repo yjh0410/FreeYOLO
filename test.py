@@ -54,6 +54,10 @@ def parse_args():
                         help='coco, voc.')
     parser.add_argument('--min_box_size', default=8.0, type=float,
                         help='min size of target bounding box.')
+    parser.add_argument('--mosaic', default=None, type=float,
+                        help='mosaic augmentation.')
+    parser.add_argument('--mixup', default=None, type=float,
+                        help='mixup augmentation.')
 
     return parser.parse_args()
 

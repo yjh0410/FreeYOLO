@@ -115,7 +115,7 @@ Main results on WiderFace-val:
 | Model          |  Scale  |    AP    |    AP50    |  Weight  |
 |----------------|---------|----------|------------|----------|
 | FreeYOLO-Nano  |  640    |      |        |  |
-| FreeYOLO-Tiny  |  640    |      |        |  |
+| FreeYOLO-Tiny  |  640    |   29.7   |    55.0    |  |
 | FreeYOLO-Large |  640    |      |        |  |
 | FreeYOLO-Huge  |  640    |      |        |  |
 
@@ -170,7 +170,7 @@ Main results on CrowdHuman-val:
 |----------------|---------|----------|------------|----------|
 | FreeYOLO-Nano  |  640    |   31.3   |   67.2     | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_nano_ch_31.3.pth) |
 | FreeYOLO-Tiny  |  640    |   34.7   |   70.4     | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_tiny_ch_34.7.pth) |
-| FreeYOLO-Large |  640    |      |        |  |
+| FreeYOLO-Large |  640    |   43.1   |   76.5     | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_large_ch_43.1.pth) |
 | FreeYOLO-Huge  |  640    |      |        |  |
 
 ## MOT17
