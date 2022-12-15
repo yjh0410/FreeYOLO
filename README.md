@@ -114,7 +114,7 @@ Main results on WiderFace-val:
 
 | Model          |  Scale  |    AP    |    AP50    |  Weight  |
 |----------------|---------|----------|------------|----------|
-| FreeYOLO-Nano  |  640    |      |        |  |
+| FreeYOLO-Nano  |  640    |   26.4   |   51.6     | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_nano_wf_26.4.pth) |
 | FreeYOLO-Tiny  |  640    |   30.1   |   57.4     | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_tiny_wf_30.1.pth) |
 | FreeYOLO-Large |  640    |      |        |  |
 | FreeYOLO-Huge  |  640    |      |        |  |
