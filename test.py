@@ -97,11 +97,7 @@ def visualize(img,
             else:
                 cls_color = class_colors[cls_id]
                 
-            if len(class_names) > 1:
-                mess = '%s: %.2f' % (class_names[cls_id], scores[i])
-            else:
-                cls_color = [255, 0, 0]
-                mess = None
+            mess = '%s: %.2f' % (class_names[cls_id], scores[i])
             img = plot_bbox_labels(img, bbox, mess, cls_color, text_scale=ts)
 
     return img
