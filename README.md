@@ -116,7 +116,7 @@ Main results on WiderFace-val:
 |----------------|---------|----------|------------|----------|
 | FreeYOLO-Nano  |  640    |   26.4   |   51.6     | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_nano_wf_26.4.pth) |
 | FreeYOLO-Tiny  |  640    |   30.1   |   57.4     | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_tiny_wf_30.1.pth) |
-| FreeYOLO-Large |  640    |      |        |  |
+| FreeYOLO-Large |  640    |   35.7   |   64.6     | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_large_wf_35.7.pth) |
 | FreeYOLO-Huge  |  640    |      |        |  |
 
 ## CrowdHuman
