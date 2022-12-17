@@ -23,8 +23,8 @@ def build_model(args,
         device=device, 
         num_classes=num_classes,
         trainable=trainable,
-        conf_thresh=cfg['conf_thresh'],
-        nms_thresh=cfg['nms_thresh'],
+        conf_thresh=args.conf_thresh,
+        nms_thresh=args.nms_thresh,
         topk=args.topk,
         no_decode=args.no_decode
         )

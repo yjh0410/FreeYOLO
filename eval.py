@@ -30,6 +30,10 @@ def parse_args():
                         help='build YOLO')
     parser.add_argument('--weight', default=None,
                         type=str, help='Trained state_dict file path to open')
+    parser.add_argument('-ct', '--conf_thresh', default=0.005, type=float,
+                        help='confidence threshold')
+    parser.add_argument('-nt', '--nms_thresh', default=0.6, type=float,
+                        help='NMS threshold')
     parser.add_argument('--topk', default=1000, type=int,
                         help='topk candidates for testing')
     parser.add_argument("--no_decode", action="store_true", default=False,

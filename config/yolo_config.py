@@ -49,9 +49,6 @@ yolo_config = {
         'num_cls_head': 2,
         'num_reg_head': 2,
         'head_depthwise': True,
-        # post process
-        'conf_thresh': 0.01,
-        'nms_thresh': 0.5,
         # matcher
         'matcher': {'center_sampling_radius': 2.5,
                     'topk_candicate': 10},
@@ -119,9 +116,6 @@ yolo_config = {
         'num_cls_head': 2,
         'num_reg_head': 2,
         'head_depthwise': False,
-        # post process
-        'conf_thresh': 0.01,
-        'nms_thresh': 0.5,
         # matcher
         'matcher': {'center_sampling_radius': 2.5,
                     'topk_candicate': 10},
@@ -190,9 +184,6 @@ yolo_config = {
         'num_cls_head': 2,
         'num_reg_head': 2,
         'head_depthwise': False,
-        # post process
-        'conf_thresh': 0.005,
-        'nms_thresh': 0.6,
         # matcher
         'matcher': {'center_sampling_radius': 2.5,
                     'topk_candicate': 10},
@@ -261,9 +252,6 @@ yolo_config = {
         'num_cls_head': 2,
         'num_reg_head': 2,
         'head_depthwise': False,
-        # post process
-        'conf_thresh': 0.01,
-        'nms_thresh': 0.5,
         # matcher
         'matcher': {'center_sampling_radius': 2.5,
                     'topk_candicate': 10},

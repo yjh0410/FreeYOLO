@@ -58,6 +58,10 @@ def parse_args():
     # model
     parser.add_argument('-v', '--version', default='yolo_free_large', type=str,
                         help='build yolo')
+    parser.add_argument('-ct', '--conf_thresh', default=0.005, type=float,
+                        help='confidence threshold')
+    parser.add_argument('-nt', '--nms_thresh', default=0.6, type=float,
+                        help='NMS threshold')
     parser.add_argument('--topk', default=1000, type=int,
                         help='topk candidates for evaluation')
     parser.add_argument('-p', '--pretrained', default=None, type=str,

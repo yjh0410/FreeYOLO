@@ -70,7 +70,7 @@ Main results on COCO-val:
 |----------------|---------|--------------------|----------|----------|----------|------------|----------|
 | FreeYOLO-Nano  |  640    |                    |   4.6 G  |  2.0 M   |   30.5   |    50.3    | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_nano_30.5.pth) |
 | FreeYOLO-Tiny  |  640    |                    |   13.9 G |  6.2 M   |   34.4   |    53.9    | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_tiny_34.4.pth) |
-| FreeYOLO-Large |  640    |                    |  144.8 G |  44.1 M  |   48.3   |    68.5    | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_large_48.3.pth) |
+| FreeYOLO-Large |  640    |                    |  144.8 G |  44.1 M  |   48.6   |    68.5    | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_large_48.3.pth) |
 | FreeYOLO-Huge  |  640    |                    |  257.8 G |  78.9 M  |      |        |  |
 
 
