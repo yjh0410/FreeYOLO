@@ -191,8 +191,8 @@ yolo_config = {
         'num_reg_head': 2,
         'head_depthwise': False,
         # post process
-        'conf_thresh': 0.01,
-        'nms_thresh': 0.5,
+        'conf_thresh': 0.005,
+        'nms_thresh': 0.6,
         # matcher
         'matcher': {'center_sampling_radius': 2.5,
                     'topk_candicate': 10},
