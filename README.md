@@ -1,5 +1,18 @@
 # FreeYOLO
-Anchor-free YOLO detector.
+FreeYOLO is inspired by many other excellent works, such as [YOLOv7](https://github.com/WongKinYiu/yolov7) and [YOLOX](https://github.com/Megvii-BaseDetection/YOLOX). Achieving the SOTA performance is not my purpose, which requires much computing resource. I just believe Mr. Feynman's famous saying: Learning by doing. I will never understand the YOLO detector until I achieve it.
+
+I have tried my best to design FreeYOLO. Although there is still much room for improvement, my few GPU devices are not enough to support me to continue to optimize it, which is a pity for me.
+
+Nevertheless, in this project, you will enjoy:
+* FreeYOLO on COCO for general object detection.
+* FreeYOLO on WiderFace for face detection.
+* FreeYOLO on CrowdHuman for person detection.
+
+Besides the detection task, I also apply FreeYOLO to the multi-object tracking task.
+* [FreeTrack](https://github.com/yjh0410/FreeTrack)
+
+My FreeTrack consists of the FreeYOLO object detector and [ByteTrack](https://github.com/ifzhang/ByteTrack) tracker. Note that my FreeTrack is
+just a A+B work, so it is not novel.
 
 # Requirements
 - We recommend you to use Anaconda to create a conda environment:
