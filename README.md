@@ -68,9 +68,9 @@ Main results on COCO-val:
 
 | Model          |  Scale  | FPS<sup><br>2080ti |  FLOPs   |  Params  |    AP    |    AP50    |  Weight  |
 |----------------|---------|--------------------|----------|----------|----------|------------|----------|
-| FreeYOLO-Nano  |  640    |                    |   4.6 G  |  2.0 M   |   30.5   |    50.3    | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_nano_30.5.pth) |
-| FreeYOLO-Tiny  |  640    |                    |   13.9 G |  6.2 M   |   34.4   |    53.9    | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_tiny_34.4.pth) |
-| FreeYOLO-Large |  640    |                    |  144.8 G |  44.1 M  |   48.6   |    68.5    | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_large_48.3.pth) |
+| FreeYOLO-Nano  |  640    |                    |   4.6 G  |  2.0 M   |   30.5   |    50.3    | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_nano_coco.pth) |
+| FreeYOLO-Tiny  |  640    |                    |   13.9 G |  6.2 M   |   34.4   |    53.9    | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_tiny_coco.pth) |
+| FreeYOLO-Large |  640    |                    |  144.8 G |  44.1 M  |   48.6   |    68.5    | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_large_coco.pth) |
 | FreeYOLO-Huge  |  640    |                    |  257.8 G |  78.9 M  |      |        |  |
 
 
@@ -114,9 +114,9 @@ Main results on WiderFace-val:
 
 | Model          |  Scale  |    AP    |    AP50    |  Weight  |
 |----------------|---------|----------|------------|----------|
-| FreeYOLO-Nano  |  640    |   26.4   |   51.6     | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_nano_wf_26.4.pth) |
-| FreeYOLO-Tiny  |  640    |   30.1   |   57.4     | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_tiny_wf_30.1.pth) |
-| FreeYOLO-Large |  640    |   35.7   |   64.6     | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_large_wf_35.7.pth) |
+| FreeYOLO-Nano  |  640    |   26.4   |   51.6     | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_nano_wf.pth) |
+| FreeYOLO-Tiny  |  640    |   30.1   |   57.4     | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_tiny_wf.pth) |
+| FreeYOLO-Large |  640    |   35.7   |   64.6     | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_large_wf.pth) |
 | FreeYOLO-Huge  |  640    |      |        |  |
 
 ## CrowdHuman
@@ -168,9 +168,9 @@ Main results on CrowdHuman-val:
 
 | Model          |  Scale  |    AP    |    AP50    |  Weight  |
 |----------------|---------|----------|------------|----------|
-| FreeYOLO-Nano  |  640    |   31.3   |   67.2     | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_nano_ch_31.3.pth) |
-| FreeYOLO-Tiny  |  640    |   34.7   |   70.4     | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_tiny_ch_34.7.pth) |
-| FreeYOLO-Large |  640    |   43.1   |   76.5     | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_large_ch_43.1.pth) |
+| FreeYOLO-Nano  |  640    |   31.3   |   67.2     | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_nano_ch.pth) |
+| FreeYOLO-Tiny  |  640    |   34.7   |   70.4     | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_tiny_ch.pth) |
+| FreeYOLO-Large |  640    |   43.1   |   76.5     | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_large_ch.pth) |
 | FreeYOLO-Huge  |  640    |      |        |  |
 
 ## MOT17
