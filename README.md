@@ -86,13 +86,12 @@ Main results on COCO-val:
 | FreeYOLO-Large |  640    |                    |  144.8 G |  44.1 M  |   48.6   |    68.5    | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_large_coco.pth) |
 | FreeYOLO-Huge  |  640    |                    |  257.8 G |  78.9 M  |      |        |  |
 
-![image](det_results/coco/yolo_free_large/000000.jpg)
-![image](det_results/coco/yolo_free_large/000011.jpg)
-![image](det_results/coco/yolo_free_large/000018.jpg)
-![image](det_results/coco/yolo_free_large/000036.jpg)
-![image](det_results/coco/yolo_free_large/000064.jpg)
-![image](det_results/coco/yolo_free_large/000078.jpg)
-![image](det_results/coco/yolo_free_large/000146.jpg)
+![image](img_files/coco/000000.jpg)
+![image](img_files/coco/000011.jpg)
+![image](img_files/coco/000018.jpg)
+![image](img_files/coco/000036.jpg)
+![image](img_files/coco/000064.jpg)
+![image](img_files/coco/000146.jpg)
 
 ## WiderFace
 - Download [WiderFace](http://shuoyang1213.me/WIDERFACE/).
@@ -139,10 +138,10 @@ Main results on WiderFace-val:
 | FreeYOLO-Large |  640    |   35.7   |   64.6     | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_large_wf.pth) |
 | FreeYOLO-Huge  |  640    |      |        |  |
 
-![image](det_results/widerface/yolo_free_large/000006.jpg)
-![image](det_results/widerface/yolo_free_large/000018.jpg)
-![image](det_results/widerface/yolo_free_large/000091.jpg)
-![image](det_results/widerface/yolo_free_large/000093.jpg)
+![image](img_files/widerface/000006.jpg)
+![image](img_files/widerface/000018.jpg)
+![image](img_files/widerface/000091.jpg)
+![image](img_files/widerface/000093.jpg)
 
 ## CrowdHuman
 - Download [CrowdHuman](https://www.crowdhuman.org/).
@@ -197,6 +196,11 @@ Main results on CrowdHuman-val:
 | FreeYOLO-Tiny  |  640    |   34.7   |   70.4     | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_tiny_ch.pth) |
 | FreeYOLO-Large |  640    |   43.1   |   76.5     | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_large_ch.pth) |
 | FreeYOLO-Huge  |  640    |      |        |  |
+
+![image](img_files/crowdhuman/000000.jpg)
+![image](img_files/crowdhuman/000060.jpg)
+![image](img_files/crowdhuman/000081.jpg)
+![image](img_files/crowdhuman/000097.jpg)
 
 ## MOT17
 - Download [MOT17](https://motchallenge.net/), then you will get a ```MOT17.zip` file.
