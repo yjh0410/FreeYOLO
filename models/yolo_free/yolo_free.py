@@ -239,7 +239,7 @@ class FreeYOLO(nn.Module):
             
             # normalize bbox
             bboxes /= max(img_h, img_w)
-            bboxes = bboxes.clip(0., 1.)
+            # bboxes = bboxes.clip(0., 1.)
 
             return bboxes, scores, labels
 
