@@ -85,6 +85,9 @@ class COCOAPIEvaluator():
             # rescale
             bboxes *= max(orig_h, orig_w)
 
+            bboxes[..., [0, 2]] = np.clip(bboxes[..., [0, 2]], a_min=0., a_max=orig_w)
+            bboxes[..., [1, 3]] = np.clip(bboxes[..., [1, 3]], a_min=0., a_max=orig_h)
+
             for i, box in enumerate(bboxes):
                 x1 = float(box[0])
                 y1 = float(box[1])
