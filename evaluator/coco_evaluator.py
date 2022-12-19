@@ -79,15 +79,19 @@ class COCOAPIEvaluator():
             
             id_ = int(id_)
             ids.append(id_)
+
             # inference
             outputs = model(x)
             bboxes, scores, cls_inds = outputs
+
             # rescale
             bboxes *= max(orig_h, orig_w)
 
+            # clip bboxes
             bboxes[..., [0, 2]] = np.clip(bboxes[..., [0, 2]], a_min=0., a_max=orig_w)
             bboxes[..., [1, 3]] = np.clip(bboxes[..., [1, 3]], a_min=0., a_max=orig_h)
 
+            # process outputs
             for i, box in enumerate(bboxes):
                 x1 = float(box[0])
                 y1 = float(box[1])
