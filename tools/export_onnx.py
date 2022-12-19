@@ -23,6 +23,8 @@ def make_parser():
     # basic
     parser.add_argument("--output-name", type=str, default="yolo_free_large.onnx",
                         help="output name of models")
+    parser.add_argument('-size', '--img_size', default=640, type=int,
+                        help='the max size of input image')
     parser.add_argument("--input", default="images", type=str,
                         help="input node name of onnx model")
     parser.add_argument("--output", default="output", type=str,
@@ -54,6 +56,8 @@ def make_parser():
                         help='topk candidates for testing')
     parser.add_argument("--no_decode", action="store_true", default=False,
                         help="not decode in inference or yes")
+    parser.add_argument('-nc', '--num_classes', default=80, type=int,
+                        help='topk candidates for testing')
 
     return parser
 
@@ -68,11 +72,13 @@ def main():
     cfg = build_config(args)
 
     # build model
-    model = build_model(args=args, 
-                        cfg=cfg,
-                        device=device, 
-                        num_classes=80, 
-                        trainable=False)
+    model = build_model(
+        args=args, 
+        cfg=cfg,
+        device=device, 
+        num_classes=args.num_classes,
+        trainable=False
+        )
 
     # load trained weight
     model = load_weight(model=model, path_to_ckpt=args.weight)
@@ -82,7 +88,7 @@ def main():
     model = replace_module(model, nn.SiLU, SiLU)
 
     logger.info("loading checkpoint done.")
-    dummy_input = torch.randn(args.batch_size, 3, cfg['test_size'], cfg['test_size'])
+    dummy_input = torch.randn(args.batch_size, 3, args.img_size, args.img_size)
 
     # save onnx file
     save_path = os.path.join(args.save_dir, str(args.opset))

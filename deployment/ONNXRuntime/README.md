@@ -22,7 +22,7 @@ Then, you can:
 
 1. Convert a standard FreeYOLO model by:
 ```shell
-python3 export_onnx.py --output-name yolo_free_large.onnx -v yolo_free_large --weight ../weight/coco/yolo_free_large/yolo_free_large.pth --no_decode
+python3 export_onnx.py --output-name yolo_free_large.onnx -v yolo_free_large --weight ../weight/coco/yolo_free_large/yolo_free_large.pth --no_decode -nc 80 --img_size 640
 ```
 
 Notes:
@@ -33,7 +33,7 @@ Notes:
 * To customize an input shape for onnx model,  modify the following code in tools/export_onnx.py:
 
     ```python
-    dummy_input = torch.randn(args.batch_size, 3, cfg['test_size'], cfg['test_size'])
+    dummy_input = torch.randn(args.batch_size, 3, args.img_size, args.img_size)
     ```
 
 ### ONNXRuntime Demo
