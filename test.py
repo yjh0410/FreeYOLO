@@ -34,6 +34,8 @@ def parse_args():
                         help='Final confidence threshold')
     parser.add_argument('-ws', '--window_scale', default=1.0, type=float,
                         help='resize window of cv2 for visualization.')
+    parser.add_argument('--resave', action='store_true', default=False, 
+                        help='resave the model weight.')
 
     # model
     parser.add_argument('-v', '--version', default='yolo_free_large', type=str,
@@ -196,6 +198,13 @@ if __name__ == '__main__':
     # load trained weight
     model = load_weight(model=model, path_to_ckpt=args.weight)
     model.to(device).eval()
+
+    # resave model weight
+    if args.resave:
+        print('Resave: {}'.format(args.version.upper()))
+        weight_name = '{}_pure.pth'.format(args.version)
+        checkpoint_path = 'weights/{}/{}/{}'.format(args.dataset, args.version, weight_name)
+        torch.save({'model': model.state_dict()}, checkpoint_path)                      
 
     # compute FLOPs and Params
     model_copy = deepcopy(model)
