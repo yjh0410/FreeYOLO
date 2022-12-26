@@ -1,7 +1,7 @@
-# yolo config
+# yolo-free config
 
 
-yolo_config = {
+yolo_free_config = {
     'yolo_free_nano': {
         # input
         'train_size': 640,

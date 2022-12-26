@@ -1,4 +1,4 @@
-from .yolo_config import yolo_config
+from .yolo_free_config import yolo_free_config
 
 
 def build_config(args):
@@ -6,6 +6,6 @@ def build_config(args):
     print('Config: {} ...'.format(args.version.upper()))
     
     if 'yolo' in args.version:
-        cfg = yolo_config[args.version]
+        cfg = yolo_free_config[args.version]
 
     return cfg
