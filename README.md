@@ -84,7 +84,7 @@ Main results on COCO-val:
 | FreeYOLO-Nano  |  640    |                    |   4.6 G  |  2.0 M   |   30.5   |    50.3    | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_nano_coco.pth) |
 | FreeYOLO-Tiny  |  640    |                    |   13.9 G |  6.2 M   |   34.4   |    53.9    | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_tiny_coco.pth) |
 | FreeYOLO-Large |  640    |                    |  144.8 G |  44.1 M  |   48.6   |    68.5    | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_large_coco.pth) |
-| FreeYOLO-Huge  |  640    |                    |  257.8 G |  78.9 M  |      |        |  |
+| FreeYOLO-Huge  |  640    |                    |  257.8 G |  78.9 M  |   50.0   |    69.5    | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_huge_coco.pth) |
 
 ![image](img_files/coco/000000.jpg)
 ![image](img_files/coco/000011.jpg)
@@ -126,7 +126,7 @@ python dataset/widerface.py
 - Train on WiderFace
 For example:
 ```Shell
-python train.py --cuda -d widerface --root path/to/WiderFace -v yolo_free_nano -bs 16 -accu 4 --max_epoch 100 --wp_epoch 1 --eval_epoch 10 --fp16 --ema --pretrained path/to/coco/yolo_free_nano_ckpt --mosaic 0.5 --mixup 0.0 --min_box_size 1
+python train.py --cuda -d widerface --root path/to/WiderFace -v yolo_free_nano -bs 16 -accu 4 -lr 0.001 -mlr 0.05 --max_epoch 100 --wp_epoch 1 --eval_epoch 10 --fp16 --ema --pretrained path/to/coco/yolo_free_nano_ckpt --mosaic 0.5 --mixup 0.0 --min_box_size 1
 ```
 
 Main results on WiderFace-val:
@@ -185,7 +185,7 @@ python dataset/crowdhuman.py
 - Train on CrowdHuman
 For example:
 ```Shell
-python train.py --cuda -d crowdhuman -v yolo_free_nano -bs 16 -accu 4 --max_epoch 100 --wp_epoch 1 --eval_epoch 10 --fp16 --ema --root path/to/CrowdHuman --pretrained path/to/coco/yolo_free_nano_ckpt
+python train.py --cuda -d crowdhuman -v yolo_free_nano -bs 16 -accu 4 -lr 0.001 -mlr 0.05 --max_epoch 100 --wp_epoch 1 --eval_epoch 10 --fp16 --ema --root path/to/CrowdHuman --pretrained path/to/coco/yolo_free_nano_ckpt
 ```
 
 Main results on CrowdHuman-val:
