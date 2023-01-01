@@ -196,7 +196,7 @@ Main results on CrowdHuman-val:
 | FreeYOLO-Nano  |  640    |   31.3   |   67.2     | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_nano_ch.pth) |
 | FreeYOLO-Tiny  |  640    |   34.7   |   70.4     | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_tiny_ch.pth) |
 | FreeYOLO-Large |  640    |   43.1   |   76.5     | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_large_ch.pth) |
-| FreeYOLO-Huge  |  640    |      |        |  |
+| FreeYOLO-Huge  |  640    |   44.8   |   78.9     | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_huge_ch.pth) |
 
 ![image](img_files/crowdhuman/000000.jpg)
 ![image](img_files/crowdhuman/000060.jpg)
