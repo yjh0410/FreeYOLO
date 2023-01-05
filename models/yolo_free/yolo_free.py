@@ -266,7 +266,7 @@ class FreeYOLO(nn.Module):
             for level, (feat, head) in enumerate(zip(pyramid_feats, self.non_shared_heads)):
                 cls_feat, reg_feat = head(feat)
 
-                # [1, C, H, W]
+                # [B, C, H, W]
                 obj_pred = self.obj_preds[level](reg_feat)
                 cls_pred = self.cls_preds[level](cls_feat)
                 reg_pred = self.reg_preds[level](reg_feat)
