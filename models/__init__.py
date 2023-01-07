@@ -3,7 +3,7 @@
 
 import torch
 from .yolo_free.loss import build_criterion
-from .yolo_free.yolo_free import FreeYOLO
+from .yolo_free.build import build_yolo_free
 
 
 # build object detector
@@ -18,16 +18,8 @@ def build_model(args,
     print('==============================')
     print('Model Configuration: \n', cfg)
     
-    model = FreeYOLO(
-        cfg=cfg,
-        device=device, 
-        num_classes=num_classes,
-        trainable=trainable,
-        conf_thresh=args.conf_thresh,
-        nms_thresh=args.nms_thresh,
-        topk=args.topk,
-        no_decode=args.no_decode
-        )
+    model, criterion = build_yolo_free(
+        args, cfg, device, num_classes, trainable)
 
     if trainable:
         # Load pretrained weight
@@ -60,9 +52,7 @@ def build_model(args,
             checkpoint_state_dict = checkpoint.pop("model")
             model.load_state_dict(checkpoint_state_dict)
 
-    if trainable:
-        # build criterion for training
-        criterion = build_criterion(cfg, device, num_classes)
         return model, criterion
+
     else:      
         return model
