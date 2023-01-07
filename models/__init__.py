@@ -2,8 +2,8 @@
 # -*- coding:utf-8 -*-
 
 import torch
-from .yolo_free.loss import build_criterion
 from .yolo_free.build import build_yolo_free
+from .yolo_anchor.build import build_yolo_anchor
 
 
 # build object detector
@@ -18,8 +18,14 @@ def build_model(args,
     print('==============================')
     print('Model Configuration: \n', cfg)
     
-    model, criterion = build_yolo_free(
-        args, cfg, device, num_classes, trainable)
+    if args.version in ['yolo_free_nano', 'yolo_free_tiny',
+                        'yolo_free_large', 'yolo_free_huge']:
+        model, criterion = build_yolo_free(
+            args, cfg, device, num_classes, trainable)
+    elif args.version in ['yolo_anchor_nano', 'yolo_anchor_tiny',
+                          'yolo_anchor_large', 'yolo_anchor_huge']:
+        model, criterion = build_yolo_anchor(
+            args, cfg, device, num_classes, trainable)
 
     if trainable:
         # Load pretrained weight
