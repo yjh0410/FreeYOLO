@@ -1,0 +1,26 @@
+<annotation>
+	<folder>Images</folder>
+	<filename>2.jpeg</filename>
+	<path>D:\python_work\object-detection\dataset\OurDataset\Images\2.jpeg</path>
+	<source>
+		<database>Unknown</database>
+	</source>
+	<size>
+		<width>600</width>
+		<height>400</height>
+		<depth>3</depth>
+	</size>
+	<segmented>0</segmented>
+	<object>
+		<name>cat</name>
+		<pose>Unspecified</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>53</xmin>
+			<ymin>70</ymin>
+			<xmax>388</xmax>
+			<ymax>343</ymax>
+		</bndbox>
+	</object>
+</annotation>

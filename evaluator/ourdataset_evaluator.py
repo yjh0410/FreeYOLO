@@ -1,7 +1,7 @@
 import json
 import tempfile
 import torch
-from dataset.crowdhuman import CrowdHumanDataset
+from dataset.ourdataset import OurDataset
 
 try:
     from pycocotools.cocoeval import COCOeval
@@ -27,7 +27,7 @@ class OurDatasetEvaluator():
             nmsthre (float):
                 IoU threshold of non-max supression ranging from 0 to 1.
         """
-        self.dataset = CrowdHumanDataset(
+        self.dataset = OurDataset(
             data_dir=data_dir,
             image_set=image_set,
             transform=None,

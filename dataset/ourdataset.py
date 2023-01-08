@@ -17,7 +17,7 @@ except:
     from transforms import mosaic_x4_augment, mosaic_x9_augment, mixup_augment
 
 # please define our class labels
-our_class_labels = ('person', 'dog',)
+our_class_labels = ('cat',)
 
 
 
@@ -45,7 +45,7 @@ class OurDataset(Dataset):
         self.image_set = image_set
         self.json_file = '{}.json'.format(image_set)
         self.data_dir = data_dir
-        self.coco = COCO(os.path.join(self.data_dir, 'annotations', self.json_file))
+        self.coco = COCO(os.path.join(self.data_dir, image_set, 'annotations', self.json_file))
         self.ids = self.coco.getImgIds()
         self.class_ids = sorted(self.coco.getCatIds())
         # augmentation
@@ -78,7 +78,7 @@ class OurDataset(Dataset):
 
         # load an image
         img_file = os.path.join(
-                self.data_dir, 'OurDataset_{}'.format(self.image_set), 'Images', im_ann["file_name"])
+                self.data_dir, self.image_set, 'images', im_ann["file_name"])
         image = cv2.imread(img_file)
         
         assert image is not None
@@ -179,7 +179,7 @@ class OurDataset(Dataset):
         id_ = self.ids[index]
         im_ann = self.coco.loadImgs(id_)[0] 
         img_file = os.path.join(
-                self.data_dir, 'OurDataset_{}'.format(self.image_set), 'Images', im_ann["file_name"])
+                self.data_dir, self.image_set, 'images', im_ann["file_name"])
         image = cv2.imread(img_file)
 
         return image, id_
@@ -211,12 +211,14 @@ class OurDataset(Dataset):
 
 if __name__ == "__main__":
     import argparse
+    import sys
     from transforms import TrainTransforms, ValTransforms
+    sys.path.append('.')
     
-    parser = argparse.ArgumentParser(description='FreeYOLO-Seg')
+    parser = argparse.ArgumentParser(description='FreeYOLO')
 
     # opt
-    parser.add_argument('--root', default='D:\\python_work\\object-detection\\dataset\\COCO',
+    parser.add_argument('--root', default='OurDataset',
                         help='data root')
 
     args = parser.parse_args()

@@ -1,0 +1,26 @@
+<annotation>
+	<folder>images</folder>
+	<filename>8.jpg</filename>
+	<path>D:\python_work\object-detection\dataset\OurDataset\val\images\8.jpg</path>
+	<source>
+		<database>Unknown</database>
+	</source>
+	<size>
+		<width>610</width>
+		<height>610</height>
+		<depth>3</depth>
+	</size>
+	<segmented>0</segmented>
+	<object>
+		<name>cat</name>
+		<pose>Unspecified</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>154</xmin>
+			<ymin>20</ymin>
+			<xmax>476</xmax>
+			<ymax>599</ymax>
+		</bndbox>
+	</object>
+</annotation>
