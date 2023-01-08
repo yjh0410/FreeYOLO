@@ -285,8 +285,8 @@ def build_dataset(cfg, args, device, is_train=False):
 
     elif args.dataset == 'ourdataset':
         data_dir = os.path.join(args.root, 'OurDataset')
-        num_classes = 1
-        class_names = crowd_class_labels
+        class_names = our_class_labels
+        num_classes = len(our_class_labels)
         class_indexs = None
 
         # dataset

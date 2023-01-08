@@ -407,6 +407,112 @@ python demo.py --mode camera \
                --weight path/to/weight
 ```
 
+# Train on ourself dataset
+Besides the popular datasets, we can also train the model on ourself dataset. To achieve this goal, you should follow these steps:
+- Step-1: Prepare the images (JPG/JPEG/PNG ...) and use `labelimg` to make XML format annotation files.
+
+```
+OurDataset
+|_ train
+|  |_ images     
+|     |_ 0.jpg
+|     |_ 1.jpg
+|     |_ ...
+|  |_ annotations
+|     |_ 0.xml
+|     |_ 1.xml
+|     |_ ...
+|_ val
+|  |_ images     
+|     |_ 0.jpg
+|     |_ 1.jpg
+|     |_ ...
+|  |_ annotations
+|     |_ 0.xml
+|     |_ 1.xml
+|     |_ ...
+|  ...
+```
+You can refer the format of `dataset/OurDataset/` which has been provided in this project.
+
+- Step-2: Convert ourdataset to COCO format.
+
+```Shell
+cd <FreeYOLO_HOME>
+cd tools
+# convert train split
+python convert_ours_to_coco.py --root path/to/OurDataset/ --split train
+# convert val split
+python convert_ours_to_coco.py --root path/to/OurDataset/ --split val
+```
+Then, we can get a `train.json` file and a `val.json` file, as shown below.
+```
+OurDataset
+|_ train
+|  |_ images     
+|     |_ 0.jpg
+|     |_ 1.jpg
+|     |_ ...
+|  |_ annotations
+|     |_ 0.xml
+|     |_ 1.xml
+|     |_ ...
+|     |_ train.json
+|_ val
+|  |_ images     
+|     |_ 0.jpg
+|     |_ 1.jpg
+|     |_ ...
+|  |_ annotations
+|     |_ 0.xml
+|     |_ 1.xml
+|     |_ ...
+|     |_ val.json
+|  ...
+```
+
+- Step-3 Define our class labels.
+
+Please open `dataset/ourdataset.py` file and change `our_class_labels = ('cat',)` according to our definition of categories.
+
+- Step-4 Check
+
+```Shell
+cd <FreeYOLO_HOME>
+cd dataset
+# convert train split
+python ourdataset.py --root path/to/OurDataset/ --split train
+# convert val split
+python ourdataset.py --root path/to/OurDataset/ --split val
+```
+
+- Step-5 **Train**
+
+For example:
+
+```Shell
+cd <FreeYOLO_HOME>
+python train.py --root path/to/OurDataset/ -d ourdataset -v yolo_free_nano -bs 16 -accu 4 -p path/to/COCO-pretrained-model
+```
+
+- Step-6 **Test**
+
+For example:
+
+```Shell
+cd <FreeYOLO_HOME>
+python test.py --root path/to/OurDataset/ -d ourdataset -v yolo_free_nano --weight path/to/checkpoint --show
+```
+
+- Step-7 **Eval**
+
+For example:
+
+```Shell
+cd <FreeYOLO_HOME>
+python eval.py --root path/to/OurDataset/ -d ourdataset -v yolo_free_nano --weight path/to/checkpoint
+```
+
 # Deployment
 1. [ONNX export and an ONNXRuntime](./deployment/ONNXRuntime/)
 2. [OpenVINO in C++ and Python](./deployment/OpenVINO)

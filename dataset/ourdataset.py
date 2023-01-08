@@ -220,6 +220,8 @@ if __name__ == "__main__":
     # opt
     parser.add_argument('--root', default='OurDataset',
                         help='data root')
+    parser.add_argument('--split', default='train',
+                        help='data split')
 
     args = parser.parse_args()
     
@@ -247,7 +249,7 @@ if __name__ == "__main__":
     dataset = OurDataset(
         img_size=img_size,
         data_dir=args.root,
-        image_set='val',
+        image_set=args.split,
         transform=train_transform,
         mosaic_prob=0.5,
         mixup_prob=0.15,

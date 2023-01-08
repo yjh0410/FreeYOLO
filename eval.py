@@ -8,8 +8,10 @@ from evaluator.voc_evaluator import VOCAPIEvaluator
 from evaluator.coco_evaluator import COCOAPIEvaluator
 from evaluator.crowdhuman_evaluator import CrowdHumanEvaluator
 from evaluator.widerface_evaluator import WiderFaceEvaluator
+from evaluator.ourdataset_evaluator import OurDatasetEvaluator
 
 from dataset.transforms import ValTransforms
+from dataset.ourdataset import our_class_labels
 from utils.misc import load_weight
 from utils.com_flops_params import FLOPs_and_Params
 
@@ -107,6 +109,17 @@ def widerface_test(model, data_dir, device, transform):
     evaluator.evaluate(model)
 
 
+def our_test(model, data_dir, device, transform):
+    evaluator = OurDatasetEvaluator(
+        data_dir=data_dir,
+        device=device,
+        image_set='val',
+        transform=transform)
+
+    # WiderFace evaluation
+    evaluator.evaluate(model)
+
+
 if __name__ == '__main__':
     args = parse_args()
     # cuda
@@ -137,6 +150,10 @@ if __name__ == '__main__':
         print('eval on crowdhuman ...')
         num_classes = 1
         data_dir = os.path.join(args.root, 'CrowdHuman')
+    elif args.dataset == 'ourdataset':
+        print('eval on crowdhuman ...')
+        num_classes = len(our_class_labels)
+        data_dir = os.path.join(args.root, 'OurDataset')
     else:
         print('unknow dataset !!')
         exit(0)
@@ -180,3 +197,5 @@ if __name__ == '__main__':
             widerface_test(model, data_dir, device, transform)
         elif args.dataset == 'crowdhuman':
             crowdhuman_test(model, data_dir, device, transform)
+        elif args.dataset == 'ourdataset':
+            our_test(model, data_dir, device, transform)
