@@ -25,7 +25,6 @@ yolo_free_config = {
         'backbone': 'shufflenetv2_1.0x',
         'pretrained': True,
         'stride': [8, 16, 32],  # P3, P4, P5
-        'anchor_size': None,
         # neck
         'neck': 'sppf',
         'neck_dim': 232,
