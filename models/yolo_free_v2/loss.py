@@ -64,8 +64,8 @@ class Criterion(object):
         fg_masks = []
 
         for batch_idx in range(bs):
-            tgt_labels = targets[batch_idx]["labels"][None, :, None].to(device)  # [1, Mp, 1]
-            tgt_boxs = targets[batch_idx]["boxes"][None].to(device)              # [1, Mp, 4]
+            tgt_labels = targets[batch_idx]["labels"].to(device)     # [Mp, ]
+            tgt_boxs = targets[batch_idx]["boxes"][None].to(device)  # [Mp, 4]
 
             # check target
             if len(tgt_labels) == 0 or tgt_boxs.max().item() == 0.:
@@ -75,6 +75,8 @@ class Criterion(object):
                 gt_score = cls_preds.new_zeros((1, num_anchors, self.num_classes)) #[1, M, C]
                 gt_box = cls_preds.new_zeros((1, num_anchors, 4))                  #[1, M, 4]
             else:
+                tgt_labels = tgt_labels[None, :, None]      # [1, Mp, 1]
+                tgt_boxs = tgt_boxs[None].to(device)        # [1, Mp, 4]
                 (
                     gt_label,   #[1, M,]
                     gt_box,     #[1, M, 4]
