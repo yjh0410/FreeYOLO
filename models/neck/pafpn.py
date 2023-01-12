@@ -10,20 +10,24 @@ class ELANBlock(nn.Module):
     """
     ELAN BLock of YOLOv7's head
     """
-    def __init__(self, in_dim, out_dim, fpn_size='large', depthwise=False, act_type='silu', norm_type='BN'):
+    def __init__(self, in_dim, out_dim, size='large', depthwise=False, act_type='silu', norm_type='BN'):
         super(ELANBlock, self).__init__()
-        if fpn_size == 'tiny' or fpn_size =='nano':
+        if size == 'tiny' or size =='nano':
             e1, e2 = 0.25, 1.0
             width = 2
             depth = 1
-        elif fpn_size == 'large':
+        elif size == 'large':
             e1, e2 = 0.5, 0.5
             width = 4
             depth = 1
-        elif fpn_size == 'huge':
+        elif size == 'huge':
             e1, e2 = 0.5, 0.5
             width = 4
             depth = 2
+        elif size == 'normal':
+            e1, e2 = 0.5, 1.0
+            width = 2
+            depth = 1
         inter_dim = int(in_dim * e1)
         inter_dim2 = int(inter_dim * e2) 
         self.cv1 = Conv(in_dim, inter_dim, k=1, act_type=act_type, norm_type=norm_type)
@@ -179,6 +183,7 @@ class PaFPNELAN(nn.Module):
                  out_dim=256,
                  fpn_size='large',
                  depthwise=False,
+                 head_conv_elan=False,
                  norm_type='BN',
                  act_type='silu'):
         super(PaFPNELAN, self).__init__()
@@ -201,7 +206,7 @@ class PaFPNELAN(nn.Module):
         self.cv2 = Conv(c4, int(256 * width), k=1, norm_type=norm_type, act_type=act_type)
         self.head_elan_1 = ELANBlock(in_dim=int(256 * width) + int(256 * width),
                                      out_dim=int(256 * width),
-                                     fpn_size=fpn_size,
+                                     size=fpn_size,
                                      depthwise=depthwise,
                                      norm_type=norm_type,
                                      act_type=act_type)
@@ -211,7 +216,7 @@ class PaFPNELAN(nn.Module):
         self.cv4 = Conv(c3, int(128 * width), k=1, norm_type=norm_type, act_type=act_type)
         self.head_elan_2 = ELANBlock(in_dim=int(128 * width) + int(128 * width),
                                      out_dim=int(128 * width),  # 128
-                                     fpn_size=fpn_size,
+                                     size=fpn_size,
                                      depthwise=depthwise,
                                      norm_type=norm_type,
                                      act_type=act_type)
@@ -231,7 +236,7 @@ class PaFPNELAN(nn.Module):
             )
         self.head_elan_3 = ELANBlock(in_dim=int(256 * width) + int(256 * width),
                                      out_dim=int(256 * width),  # 256
-                                     fpn_size=fpn_size,
+                                     size=fpn_size,
                                      depthwise=depthwise,
                                      norm_type=norm_type,
                                      act_type=act_type)
@@ -250,17 +255,29 @@ class PaFPNELAN(nn.Module):
             )
         self.head_elan_4 = ELANBlock(in_dim=int(512 * width) + c5,
                                      out_dim=int(512 * width),  # 512
-                                     fpn_size=fpn_size,
+                                     size=fpn_size,
                                      depthwise=depthwise,
                                      norm_type=norm_type,
                                      act_type=act_type)
 
-        self.head_conv_1 = Conv(int(128 * width), int(256 * width), k=3, p=1,
-                                act_type=act_type, norm_type=norm_type, depthwise=depthwise)
-        self.head_conv_2 = Conv(int(256 * width), int(512 * width), k=3, p=1,
-                                act_type=act_type, norm_type=norm_type, depthwise=depthwise)
-        self.head_conv_3 = Conv(int(512 * width), int(1024 * width), k=3, p=1,
-                                act_type=act_type, norm_type=norm_type, depthwise=depthwise)
+        if head_conv_elan:
+            self.head_conv_1 = ELANBlock(
+                in_dim=int(128 * width), out_dim=int(256 * width), size='normal',
+                depthwise=depthwise, norm_type=norm_type, act_type=act_type)
+            self.head_conv_2 = ELANBlock(
+                in_dim=int(256 * width), out_dim=int(512 * width), size='normal',
+                depthwise=depthwise, norm_type=norm_type, act_type=act_type)
+            self.head_conv_3 = ELANBlock(
+                in_dim=int(512 * width), out_dim=int(1024 * width), size='normal',
+                depthwise=depthwise, norm_type=norm_type, act_type=act_type)
+        else:
+            self.head_conv_1 = Conv(int(128 * width), int(256 * width), k=3, p=1,
+                                    act_type=act_type, norm_type=norm_type, depthwise=depthwise)
+            self.head_conv_2 = Conv(int(256 * width), int(512 * width), k=3, p=1,
+                                    act_type=act_type, norm_type=norm_type, depthwise=depthwise)
+            self.head_conv_3 = Conv(int(512 * width), int(1024 * width), k=3, p=1,
+                                    act_type=act_type, norm_type=norm_type, depthwise=depthwise)
+
         # output proj layers
         if self.out_dim is not None:
             self.out_layers = nn.ModuleList([
@@ -268,6 +285,8 @@ class PaFPNELAN(nn.Module):
                      norm_type=norm_type, act_type=act_type)
                      for in_dim in [int(256 * width), int(512 * width), int(1024 * width)]
                      ])
+        else:
+            self.out_dim = [int(256 * width), int(512 * width), int(1024 * width)]
 
 
     def forward(self, features):

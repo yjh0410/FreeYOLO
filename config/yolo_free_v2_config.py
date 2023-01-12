@@ -1,14 +1,15 @@
 # yolo-free config
 
 
-yolo_free_config = {
-    'yolo_free_nano': {
+yolo_free_v2_config = {
+    'yolo_free_v2_nano': {
         # input
-        'train_size': 640,
+        'train_size': 800,
         'test_size': 640,
         'random_size': [320, 352, 384, 416,
                         448, 480, 512, 544,
-                        576, 608, 640],
+                        576, 608, 640, 672,
+                        704, 736, 768, 800],
         'mosaic_prob': 1.0,
         'mixup_prob': 0.05,
         'format': 'RGB',
@@ -40,6 +41,7 @@ yolo_free_config = {
         'fpn_norm': 'BN',
         'fpn_act': 'lrelu',
         'fpn_depthwise': True,
+        'head_conv_elan': True,
         # head
         'head': 'decoupled_head',
         'head_dim': 64,
@@ -48,14 +50,13 @@ yolo_free_config = {
         'num_cls_head': 2,
         'num_reg_head': 2,
         'head_depthwise': True,
-        'head_conv_elan': False,
         # matcher
         'matcher': {'center_sampling_radius': 2.5,
                     'topk_candicate': 10},
         # loss
-        'loss_obj_weight': 1.0,
         'loss_cls_weight': 1.0,
-        'loss_reg_weight': 5.0,
+        'loss_reg_weight': 2.0,
+        'loss_iou_weight': 0.5,
         # training configuration
         'no_aug_epoch': 15,
         'base_lr': 0.01 / 64.,
@@ -70,13 +71,14 @@ yolo_free_config = {
         'wp_epoch': 1,
         },
 
-    'yolo_free_tiny': {
+    'yolo_free_v2_tiny': {
         # input
-        'train_size': 640,
+        'train_size': 800,
         'test_size': 640,
         'random_size': [320, 352, 384, 416,
                         448, 480, 512, 544,
-                        576, 608, 640],
+                        576, 608, 640, 672,
+                        704, 736, 768, 800],
         'mosaic_prob': 1.0,
         'mixup_prob': 0.05,
         'format': 'RGB',
@@ -97,7 +99,7 @@ yolo_free_config = {
         'neck': 'spp_block_csp',
         'neck_dim': 256,
         'expand_ratio': 0.5,
-        'pooling_size': [5, 9, 13],
+        'pooling_size': 5,
         'neck_act': 'lrelu',
         'neck_norm': 'BN',
         'neck_depthwise': False,
@@ -108,6 +110,7 @@ yolo_free_config = {
         'fpn_norm': 'BN',
         'fpn_act': 'lrelu',
         'fpn_depthwise': False,
+        'head_conv_elan': True,
         # head
         'head': 'decoupled_head',
         'head_dim': 64,
@@ -116,14 +119,13 @@ yolo_free_config = {
         'num_cls_head': 2,
         'num_reg_head': 2,
         'head_depthwise': False,
-        'head_conv_elan': False,
         # matcher
         'matcher': {'center_sampling_radius': 2.5,
                     'topk_candicate': 10},
         # loss
-        'loss_obj_weight': 1.0,
         'loss_cls_weight': 1.0,
-        'loss_reg_weight': 5.0,
+        'loss_reg_weight': 2.0,
+        'loss_iou_weight': 0.5,
         # training configuration
         'no_aug_epoch': 15,
         'base_lr': 0.01 / 64.,
@@ -138,7 +140,7 @@ yolo_free_config = {
         'wp_epoch': 1,
         },
 
-    'yolo_free_large': {
+    'yolo_free_v2_large': {
         # input
         'train_size': 800,
         'test_size': 640,
@@ -166,7 +168,7 @@ yolo_free_config = {
         'neck': 'spp_block_csp',
         'neck_dim': 512,
         'expand_ratio': 0.5,
-        'pooling_size': [5, 9, 13],
+        'pooling_size': 5,
         'neck_act': 'silu',
         'neck_norm': 'BN',
         'neck_depthwise': False,
@@ -177,6 +179,7 @@ yolo_free_config = {
         'fpn_norm': 'BN',
         'fpn_act': 'silu',
         'fpn_depthwise': False,
+        'head_conv_elan': True,
         # head
         'head': 'decoupled_head',
         'head_dim': 256,
@@ -185,14 +188,13 @@ yolo_free_config = {
         'num_cls_head': 2,
         'num_reg_head': 2,
         'head_depthwise': False,
-        'head_conv_elan': False,
         # matcher
         'matcher': {'center_sampling_radius': 2.5,
                     'topk_candicate': 10},
         # loss
-        'loss_obj_weight': 1.0,
         'loss_cls_weight': 1.0,
-        'loss_reg_weight': 5.0,
+        'loss_reg_weight': 2.0,
+        'loss_iou_weight': 0.5,
         # training configuration
         'no_aug_epoch': 15,
         'base_lr': 0.01 / 64.,
@@ -207,7 +209,7 @@ yolo_free_config = {
         'wp_epoch': 1,
         },
 
-    'yolo_free_huge': {
+    'yolo_free_v2_huge': {
         # input
         'train_size': 800,
         'test_size': 640,
@@ -235,7 +237,7 @@ yolo_free_config = {
         'neck': 'spp_block_csp',
         'neck_dim': 640,
         'expand_ratio': 0.5,
-        'pooling_size': [5, 9, 13],
+        'pooling_size': 5,
         'neck_act': 'silu',
         'neck_norm': 'BN',
         'neck_depthwise': False,
@@ -246,6 +248,7 @@ yolo_free_config = {
         'fpn_norm': 'BN',
         'fpn_act': 'silu',
         'fpn_depthwise': False,
+        'head_conv_elan': True,
         # head
         'head': 'decoupled_head',
         'head_dim': 320,
@@ -254,14 +257,13 @@ yolo_free_config = {
         'num_cls_head': 2,
         'num_reg_head': 2,
         'head_depthwise': False,
-        'head_conv_elan': False,
         # matcher
         'matcher': {'center_sampling_radius': 2.5,
                     'topk_candicate': 10},
         # loss
-        'loss_obj_weight': 1.0,
         'loss_cls_weight': 1.0,
-        'loss_reg_weight': 5.0,
+        'loss_reg_weight': 2.0,
+        'loss_iou_weight': 0.5,
         # training configuration
         'no_aug_epoch': 15,
         'base_lr': 0.01 / 64.,

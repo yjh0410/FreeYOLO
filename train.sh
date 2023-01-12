@@ -3,7 +3,7 @@ python train.py \
         --cuda \
         -d coco \
         --root /mnt/share/ssd2/dataset/ \
-        -v yolo_free_tiny \
+        -v yolo_free_v2_tiny \
         -bs 16 \
         -accu 4 \
         -lr 0.01 \

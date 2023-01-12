@@ -30,6 +30,23 @@ class SPP(nn.Module):
         return x
 
 
+# Spatial Pyramid Pooling - Fast (SPPF) layer for YOLOv5 by Glenn Jocher
+class SPPF(nn.Module):
+    def __init__(self, in_dim, out_dim, pooling_size=5, act_type='', norm_type=''):
+        super().__init__()
+        inter_dim = in_dim // 2  # hidden channels
+        self.cv1 = Conv(in_dim, inter_dim, k=1, act_type=act_type, norm_type=norm_type)
+        self.cv2 = Conv(inter_dim * 4, out_dim, k=1, act_type=act_type, norm_type=norm_type)
+        self.m = nn.MaxPool2d(kernel_size=pooling_size, stride=1, padding=pooling_size // 2)
+
+    def forward(self, x):
+        x = self.cv1(x)
+        y1 = self.m(x)
+        y2 = self.m(y1)
+
+        return self.cv2(torch.cat((x, y1, y2, self.m(y2)), 1))
+
+
 # SPP block with CSP module
 class SPPBlock(nn.Module):
     """
@@ -110,18 +127,46 @@ class SPPBlockCSP(nn.Module):
         return y
 
 
-# Spatial Pyramid Pooling - Fast (SPPF) layer for YOLOv5 by Glenn Jocher
-class SPPF(nn.Module):
-    def __init__(self, in_dim, out_dim, k=5):  # equivalent to SPP(k=(5, 9, 13))
-        super().__init__()
-        inter_dim = in_dim // 2  # hidden channels
-        self.cv1 = Conv(in_dim, inter_dim, k=1)
-        self.cv2 = Conv(inter_dim * 4, out_dim, k=1)
-        self.m = nn.MaxPool2d(kernel_size=k, stride=1, padding=k // 2)
+# SPPF block with CSP module
+class SPPFBlockCSP(nn.Module):
+    """
+        CSP Spatial Pyramid Pooling Block
+    """
+    def __init__(self,
+                 in_dim,
+                 out_dim,
+                 expand_ratio=0.5,
+                 pooling_size=5,
+                 act_type='lrelu',
+                 norm_type='BN',
+                 depthwise=False
+                 ):
+        super(SPPBlockCSP, self).__init__()
+        inter_dim = int(in_dim * expand_ratio)
+        self.cv1 = Conv(in_dim, inter_dim, k=1, act_type=act_type, norm_type=norm_type)
+        self.cv2 = Conv(in_dim, inter_dim, k=1, act_type=act_type, norm_type=norm_type)
+        self.m = nn.Sequential(
+            Conv(inter_dim, inter_dim, k=3, p=1, 
+                 act_type=act_type, norm_type=norm_type, 
+                 depthwise=depthwise),
+            SPPF(inter_dim, 
+                 inter_dim, 
+                 expand_ratio=1.0, 
+                 pooling_size=pooling_size, 
+                 act_type=act_type, 
+                 norm_type=norm_type),
+            Conv(inter_dim, inter_dim, k=3, p=1, 
+                 act_type=act_type, norm_type=norm_type, 
+                 depthwise=depthwise)
+        )
+        self.cv3 = Conv(inter_dim * 2, out_dim, k=1, act_type=act_type, norm_type=norm_type)
 
+        
     def forward(self, x):
-        x = self.cv1(x)
-        y1 = self.m(x)
-        y2 = self.m(y1)
+        x1 = self.cv1(x)
+        x2 = self.cv2(x)
+        x3 = self.m(x2)
+        y = self.cv3(torch.cat([x1, x3], dim=1))
 
-        return self.cv2(torch.cat((x, y1, y2, self.m(y2)), 1))
+        return y
+
