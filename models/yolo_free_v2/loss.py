@@ -75,7 +75,7 @@ class Criterion(object):
                 # There is no valid gt
                 cls_target = cls_preds.new_zeros((num_anchors, self.num_classes))
                 box_target = cls_preds.new_zeros((0, 4))
-                iou_target = cls_preds.new_zeros((0, 1))
+                iou_target = cls_preds.new_zeros((0,))
                 fg_mask = cls_preds.new_zeros(num_anchors).bool()
             else:
                 (
