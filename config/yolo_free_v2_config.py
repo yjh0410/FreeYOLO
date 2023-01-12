@@ -96,7 +96,7 @@ yolo_free_v2_config = {
         'pretrained': True,
         'stride': [8, 16, 32],  # P3, P4, P5
         # neck
-        'neck': 'spp_block_csp',
+        'neck': 'sppf_block_csp',
         'neck_dim': 256,
         'expand_ratio': 0.5,
         'pooling_size': 5,
@@ -165,7 +165,7 @@ yolo_free_v2_config = {
         'pretrained': True,
         'stride': [8, 16, 32],  # P3, P4, P5
         # neck
-        'neck': 'spp_block_csp',
+        'neck': 'sppf_block_csp',
         'neck_dim': 512,
         'expand_ratio': 0.5,
         'pooling_size': 5,
@@ -234,7 +234,7 @@ yolo_free_v2_config = {
         'pretrained': True,
         'stride': [8, 16, 32],  # P3, P4, P5
         # neck
-        'neck': 'spp_block_csp',
+        'neck': 'sppf_block_csp',
         'neck_dim': 640,
         'expand_ratio': 0.5,
         'pooling_size': 5,
