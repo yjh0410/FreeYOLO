@@ -50,13 +50,15 @@ yolo_free_v2_config = {
         'num_cls_head': 2,
         'num_reg_head': 2,
         'head_depthwise': True,
+        'reg_max': 0,
         # matcher
-        'matcher': {'center_sampling_radius': 2.5,
-                    'topk_candicate': 10},
-        # loss
+        'matcher': {'topk': 13,
+                    'alpha': 1.0,
+                    'beta': 6.0},
+        # loss weight
         'loss_cls_weight': 1.0,
-        'loss_reg_weight': 2.0,
-        'loss_iou_weight': 0.5,
+        'loss_iou_weight': 2.5,
+        'loss_dfl_weight': 0.5,
         # training configuration
         'no_aug_epoch': 15,
         'base_lr': 0.01 / 64.,
@@ -119,13 +121,15 @@ yolo_free_v2_config = {
         'num_cls_head': 2,
         'num_reg_head': 2,
         'head_depthwise': False,
+        'reg_max': 0,
         # matcher
-        'matcher': {'center_sampling_radius': 2.5,
-                    'topk_candicate': 10},
-        # loss
+        'matcher': {'topk': 13,
+                    'alpha': 1.0,
+                    'beta': 6.0},
+        # loss weight
         'loss_cls_weight': 1.0,
-        'loss_reg_weight': 2.0,
-        'loss_iou_weight': 0.5,
+        'loss_iou_weight': 2.5,
+        'loss_dfl_weight': 0.5,
         # training configuration
         'no_aug_epoch': 15,
         'base_lr': 0.01 / 64.,
@@ -188,13 +192,15 @@ yolo_free_v2_config = {
         'num_cls_head': 2,
         'num_reg_head': 2,
         'head_depthwise': False,
+        'reg_max': 16,
         # matcher
-        'matcher': {'center_sampling_radius': 2.5,
-                    'topk_candicate': 10},
-        # loss
+        'matcher': {'topk': 13,
+                    'alpha': 1.0,
+                    'beta': 6.0},
+        # loss weight
         'loss_cls_weight': 1.0,
-        'loss_reg_weight': 2.0,
-        'loss_iou_weight': 0.5,
+        'loss_iou_weight': 2.5,
+        'loss_dfl_weight': 0.5,
         # training configuration
         'no_aug_epoch': 15,
         'base_lr': 0.01 / 64.,
@@ -257,13 +263,15 @@ yolo_free_v2_config = {
         'num_cls_head': 2,
         'num_reg_head': 2,
         'head_depthwise': False,
+        'reg_max': 16,
         # matcher
-        'matcher': {'center_sampling_radius': 2.5,
-                    'topk_candicate': 10},
-        # loss
+        'matcher': {'topk': 13,
+                    'alpha': 1.0,
+                    'beta': 6.0},
+        # loss weight
         'loss_cls_weight': 1.0,
-        'loss_reg_weight': 2.0,
-        'loss_iou_weight': 0.5,
+        'loss_iou_weight': 2.5,
+        'loss_dfl_weight': 0.5,
         # training configuration
         'no_aug_epoch': 15,
         'base_lr': 0.01 / 64.,
