@@ -64,8 +64,8 @@ class Criterion(object):
         fg_masks = []
 
         for batch_idx in range(bs):
-            tgt_labels = targets[batch_idx]["labels"].to(device)     # [Mp, ]
-            tgt_boxs = targets[batch_idx]["boxes"].to(device)  # [Mp, 4]
+            tgt_labels = targets[batch_idx]["labels"].to(device)     # [Mp,]
+            tgt_boxs = targets[batch_idx]["boxes"].to(device)        # [Mp, 4]
 
             # check target
             if len(tgt_labels) == 0 or tgt_boxs.max().item() == 0.:
@@ -76,7 +76,7 @@ class Criterion(object):
                 gt_box = cls_preds.new_zeros((1, num_anchors, 4))                  #[1, M, 4]
             else:
                 tgt_labels = tgt_labels[None, :, None]      # [1, Mp, 1]
-                tgt_boxs = tgt_boxs[None].to(device)        # [1, Mp, 4]
+                tgt_boxs = tgt_boxs[None]                   # [1, Mp, 4]
                 (
                     gt_label,   #[1, M,]
                     gt_box,     #[1, M, 4]
@@ -95,10 +95,10 @@ class Criterion(object):
             fg_masks.append(fg_mask)
 
         # List[B, 1, M, C] -> Tensor[B, M, C] -> Tensor[BM, C]
-        fg_masks = torch.cat(fg_masks, 0).view(-1)                                    #[BM,]
-        gt_label_targets = torch.cat(gt_label_targets, 0).view(-1)                    #[BM,]
-        gt_score_targets = torch.cat(gt_score_targets, 0).view(-1, self.num_classes)  #[BM, C]
-        gt_bbox_targets = torch.cat(gt_bbox_targets, 0).view(-1, 4)                   #[BM, 4]
+        fg_masks = torch.cat(fg_masks, 0).view(-1)                                    # [BM,]
+        gt_label_targets = torch.cat(gt_label_targets, 0).view(-1)                    # [BM,]
+        gt_score_targets = torch.cat(gt_score_targets, 0).view(-1, self.num_classes)  # [BM, C]
+        gt_bbox_targets = torch.cat(gt_bbox_targets, 0).view(-1, 4)                   # [BM, 4]
         
         # cls loss
         cls_preds = cls_preds.view(-1, self.num_classes)
