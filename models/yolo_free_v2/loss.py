@@ -65,7 +65,7 @@ class Criterion(object):
 
         for batch_idx in range(bs):
             tgt_labels = targets[batch_idx]["labels"].to(device)     # [Mp, ]
-            tgt_boxs = targets[batch_idx]["boxes"][None].to(device)  # [Mp, 4]
+            tgt_boxs = targets[batch_idx]["boxes"].to(device)  # [Mp, 4]
 
             # check target
             if len(tgt_labels) == 0 or tgt_boxs.max().item() == 0.:
