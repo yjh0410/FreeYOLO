@@ -213,9 +213,9 @@ class FreeYOLO(nn.Module):
             reg_pred = reg_pred[0].permute(1, 2, 0).contiguous().view(-1, 4)
             iou_pred = iou_pred[0].permute(1, 2, 0).contiguous().view(-1, 1)
 
-            all_iou_preds.append(iou_pred)
             all_cls_preds.append(cls_pred)
             all_reg_preds.append(reg_pred)
+            all_iou_preds.append(iou_pred)
             all_anchors.append(anchors)
 
         if self.no_decode:
@@ -230,7 +230,8 @@ class FreeYOLO(nn.Module):
 
         else:
             # post process
-            bboxes, scores, labels = self.post_process(all_cls_preds, all_reg_preds, all_iou_preds, all_anchors)
+            bboxes, scores, labels = self.post_process(
+                all_cls_preds, all_reg_preds, all_iou_preds, all_anchors)
             
             # normalize bbox
             bboxes /= max(img_h, img_w)
@@ -279,9 +280,9 @@ class FreeYOLO(nn.Module):
                 # decode box: [M, 4]
                 box_pred = self.decode_boxes(anchors, reg_pred, self.stride[level])
 
-                all_iou_preds.append(iou_pred)
                 all_cls_preds.append(cls_pred)
                 all_box_preds.append(box_pred)
+                all_iou_preds.append(iou_pred)
                 all_anchors.append(anchors)
             
             # output dict

@@ -392,10 +392,12 @@ def replace_module(module, replaced_module_type, new_module_type, replace_func=N
 
 def sigmoid_focal_loss(logits, targets, alpha=0.25, gamma=2.0, reduction='none'):
     p = torch.sigmoid(logits)
-    ce_loss = F.binary_cross_entropy_with_logits(input=logits, 
-                                                    target=targets, 
-                                                    reduction="none")
+    # bce loss
+    ce_loss = F.binary_cross_entropy_with_logits(
+        input=logits, target=targets, reduction="none")
+    # focal weight
     p_t = p * targets + (1.0 - p) * (1.0 - targets)
+    # focal loss
     loss = ce_loss * ((1.0 - p_t) ** gamma)
 
     if alpha >= 0:
