@@ -32,9 +32,9 @@ class SPP(nn.Module):
 
 # Spatial Pyramid Pooling - Fast (SPPF) layer for YOLOv5 by Glenn Jocher
 class SPPF(nn.Module):
-    def __init__(self, in_dim, out_dim, pooling_size=5, act_type='', norm_type=''):
+    def __init__(self, in_dim, out_dim, expand_ratio=0.5, pooling_size=5, act_type='', norm_type=''):
         super().__init__()
-        inter_dim = in_dim // 2  # hidden channels
+        inter_dim = int(in_dim * expand_ratio)
         self.cv1 = Conv(in_dim, inter_dim, k=1, act_type=act_type, norm_type=norm_type)
         self.cv2 = Conv(inter_dim * 4, out_dim, k=1, act_type=act_type, norm_type=norm_type)
         self.m = nn.MaxPool2d(kernel_size=pooling_size, stride=1, padding=pooling_size // 2)
@@ -141,7 +141,7 @@ class SPPFBlockCSP(nn.Module):
                  norm_type='BN',
                  depthwise=False
                  ):
-        super(SPPBlockCSP, self).__init__()
+        super(SPPFBlockCSP, self).__init__()
         inter_dim = int(in_dim * expand_ratio)
         self.cv1 = Conv(in_dim, inter_dim, k=1, act_type=act_type, norm_type=norm_type)
         self.cv2 = Conv(in_dim, inter_dim, k=1, act_type=act_type, norm_type=norm_type)

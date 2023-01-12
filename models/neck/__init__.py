@@ -54,11 +54,16 @@ def build_neck(cfg, in_dim, out_dim):
             )
 
     elif model == 'sppf':
-        neck = SPPF(in_dim, out_dim, pooling_size=cfg['pooling_size'])
+        neck = SPPF(
+            in_dim=in_dim, 
+            out_dim=out_dim,
+            expand_ratio=cfg['expand_ratio'],
+            pooling_size=cfg['pooling_size']
+            )
 
 
     elif model == 'sppf_block_csp':
-        neck = SPPBlockCSP(
+        neck = SPPFBlockCSP(
             in_dim, out_dim, 
             expand_ratio=cfg['expand_ratio'], 
             pooling_size=cfg['pooling_size'],
