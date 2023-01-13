@@ -159,7 +159,7 @@ class FreeYOLO(nn.Module):
 
             # torch.sort is actually faster than .topk (at least on GPUs)
             predicted_prob, topk_idxs = scores_i.sort(descending=True)
-            topk_scores = predicted_prob[:num_topk]
+            scores = predicted_prob[:num_topk]
             topk_idxs = topk_idxs[:num_topk]
 
             # # filter out the proposals with low confidence score
