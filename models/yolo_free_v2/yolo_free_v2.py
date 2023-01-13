@@ -117,6 +117,7 @@ class FreeYOLO(nn.Module):
         Output:
             pred_box: (Tensor) [B, M, 4]
         """
+        print(pred_regs.shape)
         if self.use_dfl:
             B, M = pred_regs.shape[:2]
             # [B, M, 4*(reg_max + 1)] -> [B, M, 4, reg_max + 1] -> [B, 4, M, reg_max + 1]
