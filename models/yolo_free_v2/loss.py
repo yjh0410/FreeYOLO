@@ -178,6 +178,7 @@ class ClassificationLoss(nn.Module):
 
         return loss
 
+
     def binary_cross_entropy(self, pred_logits, gt_score):
         loss = F.binary_cross_entropy_with_logits(
             pred_logits.float(), gt_score.float(), reduction='none')

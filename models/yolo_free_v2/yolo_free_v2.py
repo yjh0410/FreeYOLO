@@ -129,6 +129,7 @@ class FreeYOLO(nn.Module):
             pred_regs = pred_regs.view(B, 4, M).permute(0, 2, 1).contiguous()
 
         # tlbr -> xyxy
+        print(pred_regs)
         pred_x1y1 = anchors - pred_regs[..., :2] * stride
         pred_x2y2 = anchors + pred_regs[..., 2:] * stride
         pred_box = torch.cat([pred_x1y1, pred_x2y2], dim=-1)
