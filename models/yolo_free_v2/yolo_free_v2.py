@@ -129,7 +129,6 @@ class FreeYOLO(nn.Module):
             pred_regs = pred_regs.view(B, 4, M).permute(0, 2, 1).contiguous()
 
         # tlbr -> xyxy
-        print(pred_regs)
         pred_x1y1 = anchors - pred_regs[..., :2] * stride
         pred_x2y2 = anchors + pred_regs[..., 2:] * stride
         pred_box = torch.cat([pred_x1y1, pred_x2y2], dim=-1)
@@ -163,10 +162,10 @@ class FreeYOLO(nn.Module):
             topk_scores = predicted_prob[:num_topk]
             topk_idxs = topk_idxs[:num_topk]
 
-            # filter out the proposals with low confidence score
-            keep_idxs = topk_scores > self.conf_thresh
-            scores = topk_scores[keep_idxs]
-            topk_idxs = topk_idxs[keep_idxs]
+            # # filter out the proposals with low confidence score
+            # keep_idxs = topk_scores > self.conf_thresh
+            # scores = topk_scores[keep_idxs]
+            # topk_idxs = topk_idxs[keep_idxs]
 
             anchor_idxs = torch.div(topk_idxs, self.num_classes, rounding_mode='floor')
             labels = topk_idxs % self.num_classes
@@ -186,6 +185,12 @@ class FreeYOLO(nn.Module):
         scores = torch.cat(all_scores)
         labels = torch.cat(all_labels)
         bboxes = torch.cat(all_bboxes)
+
+        # threshold
+        keep_idxs = scores.gt(self.conf_thresh)
+        scores = scores[keep_idxs]
+        labels = labels[keep_idxs]
+        bboxes = bboxes[keep_idxs]
 
         # to cpu & numpy
         scores = scores.cpu().numpy()
