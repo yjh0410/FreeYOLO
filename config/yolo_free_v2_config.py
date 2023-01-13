@@ -56,13 +56,13 @@ yolo_free_v2_config = {
                     'alpha': 1.0,
                     'beta': 6.0},
         # loss weight
+        'cls_loss': 'bce', # vfl (optional)
         'loss_cls_weight': 1.0,
         'loss_iou_weight': 2.5,
         'loss_dfl_weight': 0.5,
         # training configuration
-        'no_aug_epoch': 15,
+        'no_aug_epoch': 10,
         'base_lr': 0.01 / 64.,
-        'min_lr_ratio': 0.05,
         # optimizer
         'optimizer': 'sgd',
         'momentum': 0.9,
@@ -127,13 +127,13 @@ yolo_free_v2_config = {
                     'alpha': 1.0,
                     'beta': 6.0},
         # loss weight
+        'cls_loss': 'bce', # vfl (optional)
         'loss_cls_weight': 1.0,
         'loss_iou_weight': 2.5,
         'loss_dfl_weight': 0.5,
         # training configuration
-        'no_aug_epoch': 15,
+        'no_aug_epoch': 10,
         'base_lr': 0.01 / 64.,
-        'min_lr_ratio': 0.05,
         # optimizer
         'optimizer': 'sgd',
         'momentum': 0.9,
@@ -194,17 +194,17 @@ yolo_free_v2_config = {
         'head_depthwise': False,
         'reg_max': 16,
         # matcher
-        'matcher': {'topk': 13,
-                    'alpha': 1.0,
+        'matcher': {'topk': 10,
+                    'alpha': 0.5,
                     'beta': 6.0},
         # loss weight
-        'loss_cls_weight': 1.0,
-        'loss_iou_weight': 2.5,
-        'loss_dfl_weight': 0.5,
+        'cls_loss': 'bce', # vfl (optional)
+        'loss_cls_weight': 0.5,
+        'loss_iou_weight': 7.5,
+        'loss_dfl_weight': 1.5,
         # training configuration
-        'no_aug_epoch': 15,
+        'no_aug_epoch': 10,
         'base_lr': 0.01 / 64.,
-        'min_lr_ratio': 0.05,
         # optimizer
         'optimizer': 'sgd',
         'momentum': 0.9,
@@ -269,13 +269,13 @@ yolo_free_v2_config = {
                     'alpha': 1.0,
                     'beta': 6.0},
         # loss weight
+        'cls_loss': 'bce', # vfl (optional)
         'loss_cls_weight': 1.0,
         'loss_iou_weight': 2.5,
         'loss_dfl_weight': 0.5,
         # training configuration
-        'no_aug_epoch': 15,
+        'no_aug_epoch': 10,
         'base_lr': 0.01 / 64.,
-        'min_lr_ratio': 0.05,
         # optimizer
         'optimizer': 'sgd',
         'momentum': 0.9,
