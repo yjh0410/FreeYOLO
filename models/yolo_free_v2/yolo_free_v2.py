@@ -149,19 +149,18 @@ class FreeYOLO(nn.Module):
         
         for level, (cls_pred_i, reg_pred_i, anchors_i) in enumerate(zip(cls_preds, reg_preds, anchors)):
             # [B, M, C] -> [M, C]
-            cls_pred_i = cls_pred_i[0]
-            reg_pred_i = reg_pred_i[0]
+            cur_cls_pred_i = cls_pred_i[0]
+            cur_reg_pred_i = reg_pred_i[0]
             # [MC,]
-            scores_i = cls_pred_i.sigmoid().flatten()
+            scores_i = cur_cls_pred_i.sigmoid().flatten()
 
             # Keep top k top scoring indices only.
-            num_topk = min(self.topk, reg_pred_i.size(0))
+            num_topk = min(self.topk, cur_reg_pred_i.size(0))
 
             # torch.sort is actually faster than .topk (at least on GPUs)
             predicted_prob, topk_idxs = scores_i.sort(descending=True)
             topk_scores = predicted_prob[:num_topk]
             topk_idxs = topk_idxs[:num_topk]
-            print(topk_scores)
 
             # filter out the proposals with low confidence score
             keep_idxs = topk_scores > self.conf_thresh
@@ -171,12 +170,12 @@ class FreeYOLO(nn.Module):
             anchor_idxs = torch.div(topk_idxs, self.num_classes, rounding_mode='floor')
             labels = topk_idxs % self.num_classes
 
-            reg_pred_i = reg_pred_i[anchor_idxs]
+            cur_reg_pred_i = cur_reg_pred_i[anchor_idxs]
             anchors_i = anchors_i[anchor_idxs]
 
             # decode box: [M, 4]
             box_pred_i = self.decode_boxes(
-                anchors_i[None], reg_pred_i[None], self.stride[level])
+                anchors_i[None], cur_reg_pred_i[None], self.stride[level])
             bboxes = box_pred_i[0]
 
             all_scores.append(scores)
