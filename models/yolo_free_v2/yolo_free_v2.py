@@ -153,7 +153,6 @@ class FreeYOLO(nn.Module):
             cur_reg_pred_i = reg_pred_i[0]
             # [MC,]
             scores_i = cur_cls_pred_i.sigmoid().flatten()
-            print(scores_i)
 
             # Keep top k top scoring indices only.
             num_topk = min(self.topk, cur_reg_pred_i.size(0))
@@ -163,6 +162,7 @@ class FreeYOLO(nn.Module):
             topk_scores = predicted_prob[:num_topk]
             topk_idxs = topk_idxs[:num_topk]
 
+            print(topk_scores)
             # filter out the proposals with low confidence score
             keep_idxs = topk_scores > self.conf_thresh
             scores = topk_scores[keep_idxs]
