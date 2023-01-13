@@ -43,7 +43,7 @@ class FreeYOLO(nn.Module):
 
         ## non-shared heads
         self.non_shared_heads = nn.ModuleList(
-            [build_head(cfg) 
+            [build_head(cfg, in_dim=cfg['head_dim']) 
             for _ in range(len(cfg['stride']))
             ])
 

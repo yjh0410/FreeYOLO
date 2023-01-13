@@ -1,29 +1,20 @@
-from .spp import SPPBlock, SPPBlockCSP, SPPF, SPPFBlockCSP
-from .pafpn import PaFPNCSP, PaFPNELAN
+from .spp import SPPBlockCSP, SPPF
+from .elan_pafpn import ELAN_PaFPN
 
 
-def build_fpn(cfg, in_dims, out_dim):
+def build_fpn(cfg, in_dims, out_dim=None):
     model = cfg['fpn']
     print('==============================')
     print('FPN: {}'.format(model))
     # build neck
-    if model == 'pafpn_csp':
-        fpn_net = PaFPNCSP(in_dims=in_dims,
-                            out_dim=out_dim,
-                            depth=cfg['fpn_depth'],
-                            depthwise=cfg['fpn_depthwise'],
-                            norm_type=cfg['fpn_norm'],
-                            act_type=cfg['fpn_act'])
-
-    elif model == 'pafpn_elan':
-        fpn_net = PaFPNELAN(in_dims=in_dims,
+    if model == 'elan_pafpn':
+        fpn_net = ELAN_PaFPN(in_dims=in_dims,
                             out_dim=out_dim,
                             fpn_size=cfg['fpn_size'],
                             depthwise=cfg['fpn_depthwise'],
                             head_conv_elan=cfg['head_conv_elan'],
                             norm_type=cfg['fpn_norm'],
                             act_type=cfg['fpn_act'])
-                                                        
 
     return fpn_net
 
@@ -33,17 +24,7 @@ def build_neck(cfg, in_dim, out_dim):
     print('==============================')
     print('Neck: {}'.format(model))
     # build neck
-    if model == 'spp_block':
-        neck = SPPBlock(
-            in_dim, out_dim, 
-            expand_ratio=cfg['expand_ratio'], 
-            pooling_size=cfg['pooling_size'],
-            act_type=cfg['neck_act'],
-            norm_type=cfg['neck_norm'],
-            depthwise=cfg['neck_depthwise']
-            )
-            
-    elif model == 'spp_block_csp':
+    if model == 'spp_block_csp':
         neck = SPPBlockCSP(
             in_dim, out_dim, 
             expand_ratio=cfg['expand_ratio'], 
@@ -59,17 +40,6 @@ def build_neck(cfg, in_dim, out_dim):
             out_dim=out_dim,
             expand_ratio=cfg['expand_ratio'],
             pooling_size=cfg['pooling_size']
-            )
-
-
-    elif model == 'sppf_block_csp':
-        neck = SPPFBlockCSP(
-            in_dim, out_dim, 
-            expand_ratio=cfg['expand_ratio'], 
-            pooling_size=cfg['pooling_size'],
-            act_type=cfg['neck_act'],
-            norm_type=cfg['neck_norm'],
-            depthwise=cfg['neck_depthwise']
             )
 
     return neck

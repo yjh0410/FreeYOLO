@@ -21,7 +21,7 @@ def build_backbone(cfg, trainable=False):
             model_size=cfg['backbone'][-4:],
             pretrained=pretrained
         )
-        
+
     else:
         print('Unknown Backbone ...')
         exit()

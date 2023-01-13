@@ -48,42 +48,6 @@ class SPPF(nn.Module):
 
 
 # SPP block with CSP module
-class SPPBlock(nn.Module):
-    """
-        Spatial Pyramid Pooling Block
-    """
-    def __init__(self,
-                 in_dim,
-                 out_dim,
-                 expand_ratio=0.5,
-                 pooling_size=[5, 9, 13],
-                 act_type='lrelu',
-                 norm_type='BN',
-                 depthwise=False
-                 ):
-        super(SPPBlockCSP, self).__init__()
-        inter_dim = int(in_dim * expand_ratio)
-        self.cv1 = Conv(in_dim, inter_dim, k=1, act_type=act_type, norm_type=norm_type)
-        self.cv2 = nn.Sequential(
-            SPP(inter_dim, 
-                inter_dim, 
-                expand_ratio=1.0, 
-                pooling_size=pooling_size, 
-                act_type=act_type, 
-                norm_type=norm_type),
-        )
-        self.cv3 = Conv(inter_dim * 2, out_dim, k=1, act_type=act_type, norm_type=norm_type)
-
-        
-    def forward(self, x):
-        x1 = self.cv1(x)
-        x2 = self.cv2(x)
-        y = self.cv3(torch.cat([x1, x2], dim=1))
-
-        return y
-
-
-# SPP block with CSP module
 class SPPBlockCSP(nn.Module):
     """
         CSP Spatial Pyramid Pooling Block
@@ -111,50 +75,6 @@ class SPPBlockCSP(nn.Module):
                 pooling_size=pooling_size, 
                 act_type=act_type, 
                 norm_type=norm_type),
-            Conv(inter_dim, inter_dim, k=3, p=1, 
-                 act_type=act_type, norm_type=norm_type, 
-                 depthwise=depthwise)
-        )
-        self.cv3 = Conv(inter_dim * 2, out_dim, k=1, act_type=act_type, norm_type=norm_type)
-
-        
-    def forward(self, x):
-        x1 = self.cv1(x)
-        x2 = self.cv2(x)
-        x3 = self.m(x2)
-        y = self.cv3(torch.cat([x1, x3], dim=1))
-
-        return y
-
-
-# SPPF block with CSP module
-class SPPFBlockCSP(nn.Module):
-    """
-        CSP Spatial Pyramid Pooling Block
-    """
-    def __init__(self,
-                 in_dim,
-                 out_dim,
-                 expand_ratio=0.5,
-                 pooling_size=5,
-                 act_type='lrelu',
-                 norm_type='BN',
-                 depthwise=False
-                 ):
-        super(SPPFBlockCSP, self).__init__()
-        inter_dim = int(in_dim * expand_ratio)
-        self.cv1 = Conv(in_dim, inter_dim, k=1, act_type=act_type, norm_type=norm_type)
-        self.cv2 = Conv(in_dim, inter_dim, k=1, act_type=act_type, norm_type=norm_type)
-        self.m = nn.Sequential(
-            Conv(inter_dim, inter_dim, k=3, p=1, 
-                 act_type=act_type, norm_type=norm_type, 
-                 depthwise=depthwise),
-            SPPF(inter_dim, 
-                 inter_dim, 
-                 expand_ratio=1.0, 
-                 pooling_size=pooling_size, 
-                 act_type=act_type, 
-                 norm_type=norm_type),
             Conv(inter_dim, inter_dim, k=3, p=1, 
                  act_type=act_type, norm_type=norm_type, 
                  depthwise=depthwise)

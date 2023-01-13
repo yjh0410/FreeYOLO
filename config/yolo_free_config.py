@@ -34,7 +34,7 @@ yolo_free_config = {
         'neck_norm': 'BN',
         'neck_depthwise': True,
         # fpn
-        'fpn': 'pafpn_elan',
+        'fpn': 'elan_pafpn',
         'fpn_size': 'nano',
         'fpn_dim': [116, 232, 232],
         'fpn_norm': 'BN',
@@ -102,7 +102,7 @@ yolo_free_config = {
         'neck_norm': 'BN',
         'neck_depthwise': False,
         # fpn
-        'fpn': 'pafpn_elan',
+        'fpn': 'elan_pafpn',
         'fpn_size': 'tiny', # 'tiny', 'large', 'huge
         'fpn_dim': [128, 256, 256],
         'fpn_norm': 'BN',
@@ -171,7 +171,7 @@ yolo_free_config = {
         'neck_norm': 'BN',
         'neck_depthwise': False,
         # fpn
-        'fpn': 'pafpn_elan',
+        'fpn': 'elan_pafpn',
         'fpn_size': 'large', # 'tiny', 'large', 'huge
         'fpn_dim': [512, 1024, 512],
         'fpn_norm': 'BN',
@@ -240,7 +240,7 @@ yolo_free_config = {
         'neck_norm': 'BN',
         'neck_depthwise': False,
         # fpn
-        'fpn': 'pafpn_elan',
+        'fpn': 'elan_pafpn',
         'fpn_size': 'huge', # 'tiny', 'large', 'huge
         'fpn_dim': [640, 1280, 640],
         'fpn_norm': 'BN',
