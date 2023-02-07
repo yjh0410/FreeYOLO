@@ -108,13 +108,13 @@ class Criterion(object):
         num_foregrounds = (num_foregrounds / get_world_size()).clamp(1.0)
 
         # objectness loss
-        loss_objectness = self.obj_lossf(obj_preds.view(-1, 1), obj_targets.float())
-        loss_objectness = loss_objectness.sum() / num_foregrounds
+        loss_obj = self.obj_lossf(obj_preds.view(-1, 1), obj_targets.float())
+        loss_obj = loss_obj.sum() / num_foregrounds
         
         # classification loss
         matched_cls_preds = cls_preds.view(-1, self.num_classes)[fg_masks]
-        loss_labels = self.cls_lossf(matched_cls_preds, cls_targets)
-        loss_labels = loss_labels.sum() / num_foregrounds
+        loss_cls = self.cls_lossf(matched_cls_preds, cls_targets)
+        loss_cls = loss_cls.sum() / num_foregrounds
 
         # regression loss
         matched_box_preds = box_preds.view(-1, 4)[fg_masks]
@@ -122,17 +122,17 @@ class Criterion(object):
                         box_targets,
                         box_mode="xyxy",
                         iou_type='giou')
-        loss_bboxes = (1.0 - ious).sum() / num_foregrounds
+        loss_box = (1.0 - ious).sum() / num_foregrounds
 
         # total loss
-        losses = self.loss_obj_weight * loss_objectness + \
-                 self.loss_cls_weight * loss_labels + \
-                 self.loss_reg_weight * loss_bboxes
+        losses = self.loss_obj_weight * loss_obj + \
+                 self.loss_cls_weight * loss_cls + \
+                 self.loss_reg_weight * loss_box
 
         loss_dict = dict(
-                loss_objectness = loss_objectness,
-                loss_labels = loss_labels,
-                loss_bboxes = loss_bboxes,
+                loss_obj = loss_obj,
+                loss_cls = loss_cls,
+                loss_box = loss_box,
                 losses = losses
         )
 
