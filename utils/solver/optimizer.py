@@ -6,6 +6,7 @@ from torch import optim
 def build_optimizer(cfg, model, base_lr=0.0, resume=None):
     print('==============================')
     print('Optimizer: {}'.format(cfg['optimizer']))
+    print('--base_lr: {}'.format(base_lr))
     print('--momentum: {}'.format(cfg['momentum']))
     print('--weight_decay: {}'.format(cfg['weight_decay']))
 

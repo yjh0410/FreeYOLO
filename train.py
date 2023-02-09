@@ -40,8 +40,6 @@ def parse_args():
     # Batchsize
     parser.add_argument('-bs', '--batch_size', default=16, type=int, 
                         help='batch size on a single GPU.')
-    parser.add_argument('-accu', '--accumulate', default=1, type=int, 
-                        help='gradient accumulate.')
     parser.add_argument('-lr', '--base_lr', default=0.01, type=float, 
                         help='base lr.')
     parser.add_argument('-mlr', '--min_lr_ratio', default=0.05, type=float, 
@@ -106,7 +104,9 @@ def train():
     print("----------------------------------------------------------")
 
     # dist
-    print('World size: {}'.format(distributed_utils.get_world_size()))
+    world_size = distributed_utils.get_world_size()
+    per_gpu_batch = args.batch_size // world_size
+    print('World size: {}'.format(world_size))
     if args.distributed:
         distributed_utils.init_distributed_mode(args)
         print("git:\n  {}\n".format(distributed_utils.get_sha()))
@@ -134,7 +134,7 @@ def train():
     num_classes = dataset_info[0]
 
     # dataloader
-    dataloader = build_dataloader(args, dataset, args.batch_size, CollateFunc())
+    dataloader = build_dataloader(args, dataset, per_gpu_batch, CollateFunc())
 
     # build model
     model, criterion = build_model(
@@ -171,16 +171,15 @@ def train():
         dist.barrier()
 
     # batch size
-    world_size = distributed_utils.get_world_size()
-    single_gpu_bs = args.batch_size
-    accumulate = args.accumulate
-    total_bs = single_gpu_bs * accumulate * world_size
+    total_bs = args.batch_size
+    accumulate = max(1, round(64 / args.batch_size))
 
     # learning rate
-    base_lr = args.base_lr * (total_bs / 64)
+    base_lr = args.base_lr
     min_lr = base_lr * args.min_lr_ratio
 
     # optimizer
+    cfg['weight_decay'] *= total_bs / 64
     optimizer, start_epoch = build_optimizer(cfg, model_without_ddp, base_lr, args.resume)
     
     # warmup scheduler

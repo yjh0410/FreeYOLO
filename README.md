@@ -74,7 +74,7 @@ python dataset/coco.py
 
 For example:
 ```Shell
-python train.py --cuda -d coco -v yolo_free_nano -bs 16 -accu 4 --max_epoch 300 --wp_epoch 1 --eval_epoch 10 --fp16 --ema --root path/to/COCO
+python train.py --cuda -d coco -v yolo_free_nano -bs 16 --max_epoch 300 --wp_epoch 1 --eval_epoch 10 --fp16 --ema --root path/to/COCO
 ```
 
 Main results on COCO-val:
@@ -127,7 +127,7 @@ python dataset/widerface.py
 - Train on WiderFace
 For example:
 ```Shell
-python train.py --cuda -d widerface --root path/to/WiderFace -v yolo_free_nano -bs 16 -accu 4 -lr 0.001 -mlr 0.05 --max_epoch 100 --wp_epoch 1 --eval_epoch 10 --fp16 --ema --pretrained path/to/coco/yolo_free_nano_ckpt --mosaic 0.5 --mixup 0.0 --min_box_size 1
+python train.py --cuda -d widerface --root path/to/WiderFace -v yolo_free_nano -bs 16 -lr 0.001 -mlr 0.05 --max_epoch 100 --wp_epoch 1 --eval_epoch 10 --fp16 --ema --pretrained path/to/coco/yolo_free_nano_ckpt --mosaic 0.5 --mixup 0.0 --min_box_size 1
 ```
 
 Main results on WiderFace-val:
@@ -186,7 +186,7 @@ python dataset/crowdhuman.py
 - Train on CrowdHuman
 For example:
 ```Shell
-python train.py --cuda -d crowdhuman -v yolo_free_nano -bs 16 -accu 4 -lr 0.001 -mlr 0.05 --max_epoch 100 --wp_epoch 1 --eval_epoch 10 --fp16 --ema --root path/to/CrowdHuman --pretrained path/to/coco/yolo_free_nano_ckpt
+python train.py --cuda -d crowdhuman -v yolo_free_nano -bs 16 -lr 0.001 -mlr 0.05 --max_epoch 100 --wp_epoch 1 --eval_epoch 10 --fp16 --ema --root path/to/CrowdHuman --pretrained path/to/coco/yolo_free_nano_ckpt
 ```
 
 Main results on CrowdHuman-val:
@@ -240,7 +240,7 @@ python dataset/mot17.py
 
 For example:
 ```Shell
-python train.py --cuda -d mot17_half -v yolo_free_nano -bs 16 -accu 4 --max_epoch 100 --wp_epoch 1 --eval_epoch 10 --fp16 --ema --root path/to/MOT17 --pretrained path/to/coco/yolo_free_nano_ckpt
+python train.py --cuda -d mot17_half -v yolo_free_nano -bs 16 --max_epoch 100 --wp_epoch 1 --eval_epoch 10 --fp16 --ema --root path/to/MOT17 --pretrained path/to/coco/yolo_free_nano_ckpt
 ```
 
 Main results on MOT17 val-half (trained on MOT17 train-half):
@@ -256,7 +256,7 @@ Main results on MOT17 val-half (trained on MOT17 train-half):
 
 For example:
 ```Shell
-python train.py --cuda -d mot17 -v yolo_free_nano -bs 16 -accu 4 --max_epoch 100 --wp_epoch 1 --fp16 --ema --root path/to/MOT17 --pretrained path/to/coco/yolo_free_nano_ckpt
+python train.py --cuda -d mot17 -v yolo_free_nano -bs 16 --max_epoch 100 --wp_epoch 1 --fp16 --ema --root path/to/MOT17 --pretrained path/to/coco/yolo_free_nano_ckpt
 ```
 
 Pretrained weights on MOT17 train split (fully train, not train-half):
@@ -492,7 +492,7 @@ For example:
 
 ```Shell
 cd <FreeYOLO_HOME>
-python train.py --root path/to/OurDataset/ -d ourdataset -v yolo_free_nano -bs 16 -accu 4 -p path/to/COCO-pretrained-model
+python train.py --root path/to/OurDataset/ -d ourdataset -v yolo_free_nano -bs 16 -p path/to/COCO-pretrained-model
 ```
 
 - Step-6 **Test**
