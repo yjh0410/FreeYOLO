@@ -43,16 +43,16 @@ At least, please make sure your torch is version 1.x.
 - [x] Cosine Annealing Schedule
 
 # Training Configuration
-|   Configuration         |                      |
-|-------------------------|----------------------|
-| Batch Size (bs)         | 16                   |
-| Init Lr                 | 0.01/64 × bs         |
-| Lr Scheduler            | Cos                  |
-| Optimizer               | SGD                  |
-| ImageNet Predtrained    | True                 |
-| Multi Scale Train       | True                 |
-| Mosaic                  | True                 |
-| Mixup                   | True                 |
+|   Configuration         |                          |
+|-------------------------|--------------------------|
+| Per GPU Batch Size      | 16 (8 for FreeYOLO-Huge) |
+| Init Lr                 | 0.01                     |
+| Lr Scheduler            | Cos                      |
+| Optimizer               | SGD                      |
+| ImageNet Predtrained    | True                     |
+| Multi Scale Train       | True                     |
+| Mosaic                  | True                     |
+| Mixup                   | True                     |
 
 
 # Experiments
@@ -79,12 +79,12 @@ python train.py --cuda -d coco -v yolo_free_nano -bs 16 --max_epoch 300 --wp_epo
 
 Main results on COCO-val:
 
-| Model          |  Scale  | FPS<sup><br>2080ti |  FLOPs   |  Params  |    AP    |    AP50    |  Weight  |
-|----------------|---------|--------------------|----------|----------|----------|------------|----------|
-| FreeYOLO-Nano  |  640    |         50         |   4.6 G  |  2.0 M   |   30.5   |    50.3    | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_nano_coco.pth) |
-| FreeYOLO-Tiny  |  640    |         66         |   13.9 G |  6.2 M   |   34.4   |    53.9    | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_tiny_coco.pth) |
-| FreeYOLO-Large |  640    |         50         |  144.8 G |  44.1 M  |   48.6   |    68.5    | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_large_coco.pth) |
-| FreeYOLO-Huge  |  640    |         34         |  257.8 G |  78.9 M  |   50.0   |    69.5    | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_huge_coco.pth) |
+| Model          |  Scale  | FPS<sup><br>2080ti |  FLOPs   |  Params  | AP<sup>val<br>0.5:0.95 | AP<sup>test<br>0.5:0.95 |  Weight  |
+|----------------|---------|--------------------|----------|----------|------------------------|-------------------------|----------|
+| FreeYOLO-Nano  |  640    |         50         |   4.6 G  |  2.0 M   |   30.5                 |   31.1                  | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_nano_coco.pth) |
+| FreeYOLO-Tiny  |  640    |         66         |   13.9 G |  6.2 M   |   34.4                 |   35.2                  | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_tiny_coco.pth) |
+| FreeYOLO-Large |  640    |         50         |  144.8 G |  44.1 M  |   48.6                 |   49.0                  | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_large_coco.pth) |
+| FreeYOLO-Huge  |  640    |         34         |  257.8 G |  78.9 M  |   50.0                 |   50.0                  | [github](https://github.com/yjh0410/FreeYOLO/releases/download/weight/yolo_free_huge_coco.pth) |
 
 
 ![image](img_files/coco/000000.jpg)
