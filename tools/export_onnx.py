@@ -7,7 +7,10 @@ import argparse
 import os
 from loguru import logger
 import sys
-sys.path.append('..')
+from pathlib import Path
+
+root_dir = Path(__file__).parent.parent
+sys.path.append(str(root_dir.absolute()))
 
 import torch
 from torch import nn
@@ -44,8 +47,8 @@ def make_parser():
                         help="Modify config options using the command-line")
     parser.add_argument("--decode_in_inference", action="store_true", default=False,
                         help="decode in inference or not")
-    parser.add_argument('--save_dir', default='../weights/onnx/', type=str,
-                        help='Dir to save onnx file')
+    parser.add_argument('--save_dir', type=str, help='Dir to save onnx file',
+                        default=str(root_dir.joinpath('weights/onnx/')))
 
     # model
     parser.add_argument('-v', '--version', default='yolo_free_large', type=str,
